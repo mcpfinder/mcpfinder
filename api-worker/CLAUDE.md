@@ -1,137 +1,62 @@
-# MCPfinder API Worker Documentation
+# api-worker — Project Instructions
 
-## Overview
-This is the Cloudflare Workers API for MCPfinder, providing REST API endpoints and MCP (Model Context Protocol) support.
+## Role
 
-## MCP Endpoint
+Optional HTTP transport for `mcpfinder` served from Cloudflare Workers at
+`https://mcpfinder.dev/mcp`. The canonical experience is the stdio server in
+`packages/mcp-server` — this Worker exists as a "no Node.js required" fallback
+and is advertised in `dev.mcpfinder/server`'s MCP Registry entry under
+`remotes[].url`.
 
-The API worker provides an MCP-compatible endpoint at `/mcp` that can be used with Claude and other MCP clients.
+As of 2026-04-20 the Worker no longer runs a scheduled aggregator; the stdio
+client talks to upstream registries (Official / Glama / Smithery) directly.
+KV content is residual from earlier syncs and is considered eventually stale.
+If and when we decide to retire the HTTP endpoint, see the "Retirement plan"
+section below.
 
-### Endpoint URL
-- Production: `https://mcpfinder.dev/mcp`
-- Local: `http://localhost:8787/mcp` or `http://localhost:8787/api/v1/mcp`
+## Endpoints
 
-### Adding to Claude CLI
+- `GET/POST /mcp` — MCP protocol over streamable HTTP (main public surface).
+- `GET/POST /api/v1/mcp` — same as `/mcp`, legacy alias.
+- `GET /api/v1/mcp/sse` — legacy SSE variant (kept for old clients).
+- `GET /api/v1/search?q=…&tag=…&limit=…` — plain keyword search over the KV
+  snapshot (no ranking, no multi-registry merge; kept for UI demos).
+- `GET /api/v1/tools/:id` — fetch a single tool manifest.
+- `POST /api/v1/register` — HMAC-signed registration (legacy publisher flow;
+  use with caution, contract may change).
+- `GET /api/v1/events` — SSE stream for registry event notifications.
+- `GET /.well-known/*` — served by the Pages project, not this Worker.
 
-```bash
-# Add the MCPfinder MCP server
-claude mcp add --transport http mcpfinder https://mcpfinder.dev/mcp
-
-# For local development
-claude mcp add --transport http mcpfinder-local http://localhost:8787/mcp
-```
-
-### Available Tools
-
-1. **search_mcp_servers** - Search for MCP servers in the registry
-   - `query`: Search query (optional)
-   - `tag`: Filter by tag (optional)
-   - `capability`: Filter by capability type (tool/resource/prompt) (optional)
-   - `limit`: Maximum results (default: 10)
-
-2. **get_mcp_server_details** - Get detailed information about a specific server
-   - `name`: Exact name of the MCP server (required)
-
-3. **list_trending_servers** - List trending/popular MCP servers
-   - `limit`: Number of servers to return (default: 10)
-
-4. **test_echo** - Test connectivity
-   - `message`: Message to echo back
-
-## API Endpoints
-
-### Search Tools
-`GET /api/v1/search?q=<query>&tag=<tag>&limit=<limit>`
-
-### Get Tool by ID
-`GET /api/v1/tools/:id`
-
-### Register Tool
-`POST /api/v1/register`
-
-### SSE Events Stream
-`GET /api/v1/events`
-
-## Deployment
-
-### Important: KV Bindings
-
-When deploying, you MUST use the explicit config flag to ensure KV bindings are included:
+## Deploy
 
 ```bash
-# Correct deployment command
-npx wrangler deploy -c wrangler.toml
-
-# This will show bindings being deployed:
-# env.MCP_TOOLS_KV (...)
-# env.MCP_SEARCH_INDEX_KV (...)
-# env.MCP_MANIFEST_BACKUPS (...)
-```
-
-⚠️ **WARNING**: Deploying without `-c wrangler.toml` or from the Cloudflare dashboard will remove KV bindings!
-
-### Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run locally
-npm run dev
-# or
-npx wrangler dev
-
-# Deploy to production
-npm run deploy
-# or
 npx wrangler deploy -c wrangler.toml
 ```
 
-### Environment Variables
+Always pass `-c wrangler.toml` explicitly — deploying from the Cloudflare
+dashboard or without the flag strips KV bindings.
 
-- `MCP_REGISTRY_SECRET`: API secret for registration endpoint
-- `MCPFINDER_API_URL`: Base URL for API (defaults to https://mcpfinder.dev)
+## Bindings / secrets
 
-### KV Namespaces
+- `MCP_TOOLS_KV` — tool manifests keyed by `tool:<uuid>`.
+- `MCP_SEARCH_INDEX_KV` — reserved for future search index (currently unused).
+- `MCP_MANIFEST_BACKUPS` — R2 bucket, legacy backups of registrations.
+- `MCP_REGISTRY_SECRET` — HMAC secret for `/api/v1/register` (set via
+  `npx wrangler secret put MCP_REGISTRY_SECRET`).
 
-- `MCP_TOOLS_KV`: Main storage for registered MCP tools
-- `MCP_SEARCH_INDEX_KV`: Search index (optional)
+## Retirement plan (when we decide to)
 
-### Testing
+1. Remove `remotes[]` from `packages/mcp-server/server.json`, bump version,
+   `mcp-publisher publish`.
+2. Update the landing page to drop the HTTP/SSE transport option.
+3. Detach the Worker route from `mcpfinder.dev/*` in Cloudflare.
+4. `wrangler delete` the Worker; drop `api-worker/` from the repo.
+5. Keep KV namespaces around for a retention window in case rollback is needed.
 
-```bash
-# Test search
-curl "https://mcpfinder.dev/api/v1/search?q=github&limit=3"
+Do none of this without explicit user authorization — it breaks any client
+configured with `--transport http https://mcpfinder.dev/mcp`.
 
-# Test MCP endpoint
-curl -X POST https://mcpfinder.dev/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}'
-```
+## Conventions
 
-## Troubleshooting
-
-### KV Namespace Not Available Error
-
-If you see "KV namespace not available" errors:
-
-1. Check that KV namespaces exist in Cloudflare dashboard
-2. Verify namespace IDs in wrangler.toml match production
-3. Always deploy with `npx wrangler deploy -c wrangler.toml`
-4. Don't manually edit bindings in Cloudflare dashboard - they'll be overwritten on next deploy
-
-### Search Returns No Results
-
-1. Check if KV has data: `npx wrangler kv key list --namespace-id <id>`
-2. Verify the tool data structure has correct fields (_id, name, description, etc.)
-
-## Architecture
-
-- Built with Hono framework
-- Cloudflare Workers runtime
-- KV storage for data persistence
-- R2 for manifest backups
-- MCP protocol support via HTTP/SSE transport
-
-## Other requirements
-- Do not add automatically any "Co-Authored-By" informations
+- No scraping scripts live here. Legacy one-off scripts were removed 2026-04-20.
+- Don't add a `Co-Authored-By` line to commits.

@@ -165,4 +165,6 @@ app.options('/mcp', mcpHTTP);
 // Apply CORS to MCP endpoint
 app.use('/mcp', cors());
 
-export default app;
+export default {
+	fetch: app.fetch.bind(app),
+};

@@ -1,6 +1,3 @@
-[submodule "mcpfinder-server"]
-	path = mcpfinder-server
-	url = git@github.com:mcpfinder/server.git
 [submodule "mcp-inspector"]
 	path = mcp-inspector
 	url = https://github.com/modelcontextprotocol/inspector.git

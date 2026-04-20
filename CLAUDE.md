@@ -1,164 +1,78 @@
-# MCPfinder Server CLI Documentation
+# MCPfinder — Project Instructions
 
-## IMPORTANT: No Scraping Functionality Here
-**DO NOT mention or implement any scraping, crawling, or automated discovery features in this directory.**
-All such tools have been intentionally moved to a separate location. This package focuses ONLY on:
-- Searching the MCPfinder registry API
-- Managing MCP configurations
-- Registering individual servers
+## What this project is
 
-## Overview
-MCPfinder Server is a CLI tool for discovering and registering MCP (Model Context Protocol) servers with the MCPfinder registry.
+**MCPfinder is an MCP server that finds MCP servers.** It gives AI agents a
+local, searchable index of the MCP ecosystem across three registries:
 
-## Registration Command
+- **Official MCP Registry** — `https://registry.modelcontextprotocol.io`
+- **Glama** — `https://glama.ai/api/mcp/v1`
+- **Smithery** — `https://registry.smithery.ai`
 
-The `register` command allows users to submit MCP servers to the MCPfinder registry.
+An AI client (Claude Desktop, Cursor, Windsurf, Cline, Claude Code, VS Code)
+installs `@mcpfinder/server` via npx → the server syncs all three registries
+into a local SQLite+FTS5 database → the AI can then search / browse / generate
+install configs for any MCP server in the ecosystem on demand.
 
-### Headless Mode
+## Repo layout
 
-The registration command now supports headless (automated) operation for batch processing and automation:
-
-```bash
-# Headless registration with all parameters
-node index.js register package-name --headless --description "My MCP server" --tags "ai,productivity" --auth-token "your-token"
-
-# Minimal headless registration (uses defaults)
-node index.js register @myorg/mcp-server --headless
-
-# Register a Python package
-node index.js register mcp-python-server --headless --use-uvx --description "Python MCP server"
+```
+mcpfinder/
+├── packages/
+│   ├── core/          # @mcpfinder/core — multi-registry sync, SQLite+FTS5, ranked search, install-config generator
+│   └── mcp-server/    # @mcpfinder/server — stdio MCP server, wraps core, exposes tools to AI clients
+├── api-worker/        # Cloudflare Worker: optional HTTP MCP endpoint at mcpfinder.dev/mcp
+├── mcpfinder-www/     # Static landing page source (production served from separate Cloudflare Pages project `mcpfinder-landing`)
+├── mcp-inspector/     # Dev tool (submodule) for debugging MCP sessions
+└── docs/              # Publish playbook, architecture notes
 ```
 
-#### Headless Parameters
+## Tools exposed by `@mcpfinder/server`
 
-- `--headless` - Enable headless mode (no interactive prompts)
-- `--description "text"` - Server description
-- `--tags "tag1,tag2"` - Comma-separated tags
-- `--auth-token "token"` - Authentication token if server requires auth
-- `--requires-api-key` - Flag if server requires API key
-- `--auth-type "type"` - Authentication type (oauth/api-key/custom)
-- `--key-name "ENV_VAR"` - Environment variable name for API key
-- `--auth-instructions "text"` - Instructions for authentication
-- `--use-uvx` - Use uvx (Python package runner) instead of npx
+1. `search_mcp_servers` — ranked full-text search with fuzzy matching and alias expansion
+2. `get_server_details` — full metadata for one server (env vars, popularity, sources)
+3. `get_install_command` — ready-to-paste config for the caller's platform
+4. `list_categories` — category browse with counts
+5. `browse_category` — top servers in a category
 
-### Usage
-```bash
-npx -y @mcpfinder/server register
-```
+Tool names and schemas are the contract — changing them is a breaking change
+for AI consumers. Add new tools rather than renaming existing ones.
 
-### Features
-
-1. **Automatic Introspection**: Connects to the MCP server to discover capabilities
-2. **Multi-Transport Support**: 
-   - STDIO for npm packages via npx
-   - STDIO for Python packages via uvx
-   - SSE transport for URLs ending with `/sse`
-   - HTTP transport for standard MCP endpoints
-   - Auto-detection of transport type via Content-Type header
-3. **Authentication Support**: Handles authenticated servers with multiple options
-4. **Unverified Registration**: Allows registration without authentication token
-
-### Authentication Handling
-
-The registration tool supports both authenticated and unauthenticated servers:
-
-#### For Open Servers
-- Direct introspection and registration
-- Automatically discovers tools, resources, and prompts
-
-#### For Authenticated Servers
-When a server requires authentication (returns 401), the tool offers three paths:
-
-1. **Retry with Token**: 
-   - User provides authentication token
-   - Supports Bearer token authentication
-   - Both OAuth-style auth providers and direct header injection
-
-2. **Manual Registration**:
-   - User manually specifies if server has tools/resources/prompts
-   - Creates placeholder entries marked as "unknown"
-   - Useful when auth token is not available
-
-3. **Minimal Registration**:
-   - Registers with "unanalyzed" and "auth-required" tags
-   - Single capability entry indicating auth is required
-   - Can be fully updated later (even without auth token)
-
-### Known Issues
-
-1. **SSE Origin Validation**: Some SSE servers may fail with "Endpoint origin does not match connection origin" if they return mismatched protocols (http vs https). The tool will automatically retry using mcp-remote as a stdio transport.
-
-2. **Token Format**: The tool expects Bearer tokens. Other authentication methods may require manual registration.
-
-3. **HTTP/SSE Compatibility**: When HTTP or SSE transports fail, the tool automatically falls back to using `npx mcp-remote <url>` as a stdio transport. This ensures compatibility with servers that have transport-specific issues.
-
-4. **OAuth Authentication**: Some servers like whenmeet.me require OAuth authentication that isn't fully compatible with the MCP SDK. For these servers:
-   - Choose "n" when asked if you have a token
-   - Choose "n" for manual capability entry  
-   - The server will be registered with minimal information
-   - The manifest will use `npx mcp-remote` for installation, which handles OAuth properly
-
-### API Integration
-
-The registration command submits to:
-- Production: `https://mcpfinder.dev/api/v1/register`
-- Can be overridden with `MCPFINDER_API_URL` environment variable
-
-Authentication with the registry API:
-- Uses HMAC signature with `MCP_REGISTRY_SECRET`
-- Without secret, registrations are marked as "unverified"
-- Unverified registrations can only update capabilities
-
-### Testing Commands
+## Development
 
 ```bash
-# Test with local server
-npm run dev
+pnpm install
+pnpm --filter @mcpfinder/core build
+pnpm --filter @mcpfinder/server build
 
-# Test registration
-node src/register.js
-
-# With custom API endpoint
-MCPFINDER_API_URL=http://localhost:8787 node src/register.js
-
-# With registry authentication
-MCP_REGISTRY_SECRET=your-secret node src/register.js
+# Run the stdio server locally (for integration with an MCP client)
+node packages/mcp-server/dist/index.js
 ```
 
-### Input Requirements
+Node.js 20+ required (for `better-sqlite3` native bindings).
 
-#### Tags
-- Must contain only lowercase letters, numbers, and hyphens
-- Pattern: `^[a-z0-9-]+$`
-- Examples: `ai`, `github`, `productivity`, `code-analysis`
-- Invalid examples: `AI Tools`, `Code Analysis`, `testing apps, games`
-- The tool will automatically clean invalid characters and warn about skipped tags
+## Distribution
 
-## Other Commands
+- **npm**: `@mcpfinder/server` (depends on `@mcpfinder/core`). Version `1.0.0+`.
+- **Official MCP Registry**: published as `dev.mcpfinder/server`.
+- **HTTP endpoint**: `https://mcpfinder.dev/mcp` (served by `api-worker/`).
 
-- `/help` - Show help information
-- `/mcp` - Start interactive MCP session
-- `/search <query>` - Search for MCP servers
-- `/trending` - Show trending servers
+Re-publish runbook: `docs/publish-playbook.md`.
 
-## Development Notes
+Keypair for MCP Registry auth: `~/.config/mcpfinder-publish/privkey.hex`
+(chmod 600, never in repo). Public half is served via
+`https://mcpfinder.dev/.well-known/mcp-registry-auth` (static file in
+`mcpfinder-www/public/.well-known/`, deployed to Cloudflare Pages project
+`mcpfinder-landing` — not the api-worker).
 
-- Uses readline for interactive CLI
-- No spinner animations (causes readline conflicts)
-- Supports both ESM and CommonJS
-- Node.js 18+ required
+## License
 
-## Developer Notes
+AGPL-3.0-or-later. Reflect this in `LICENSE`, `package.json` files, landing
+page, and any promotional surface. Never promote under MIT by mistake.
 
-### Scope Boundaries
-This package is strictly limited to:
-1. **Registry Integration**: Search and retrieve from MCPfinder API only
-2. **Configuration Management**: Add/remove servers from client configs
-3. **Manual Registration**: One-at-a-time server registration via CLI
+## Conventions
 
-### What NOT to Include
-- No bulk discovery or automation features
-- No web scraping or crawling functionality  
-- No references to external data sources
-- No batch processing of servers
-- Keep the package focused on end-user tools only
+- Don't add a "Co-Authored-By" line to commits.
+- One-off scripts belong in `/tmp` or a gist, not in the repo.
+- Scraping tooling is **not** part of this project — if you need data from a
+  source, it comes through `packages/core/src/sync.ts` only.

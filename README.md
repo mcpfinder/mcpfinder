@@ -6,14 +6,14 @@
 
 Every time you need a new tool — a database connector, file manager, API integration — you have to manually search GitHub, npm, or registries, find the right MCP server, figure out the config format, and paste it into a JSON file. 
 
-MCPfinder eliminates all of that. Add it to your AI tool once, and from that point on your AI can **discover, evaluate, and install any MCP server on demand** from 5000+ options across three registries.
+MCPfinder eliminates all of that. Add it to your AI tool once, and from that point on your AI can **discover, evaluate, and install any MCP server on demand** from 25000+ options across three registries.
 
 > **You:** "I need to connect to my PostgreSQL database"  
 > **AI:** *(uses MCPfinder)* → finds `postgres-mcp-server` → generates config → done.
 
 ## Why MCPfinder?
 
-- 🔍 **Your AI searches for you** — 5000+ servers, 3 registries, full-text search with ranking
+- 🔍 **Your AI searches for you** — 25000+ servers, 3 registries, full-text search with ranking
 - 📦 **Ready-to-paste configs** — for Claude Desktop, Cursor, Claude Code, Cline, Windsurf, VS Code
 - ⭐ **Smart ranking** — popularity, relevance, recency, and cross-registry presence
 - 🌐 **Remote servers supported** — hosted MCP servers work out of the box (no npm install needed)
@@ -106,7 +106,7 @@ Add to `~/.windsurf/mcp.json`:
 
 | Tool | What it does | When to use |
 |------|-------------|-------------|
-| `search_mcp_servers` | Search 5000+ servers by keyword, use case, or technology | User needs a capability you don't have |
+| `search_mcp_servers` | Search 25000+ servers by keyword, use case, or technology | User needs a capability you don't have |
 | `get_server_details` | Full details — description, env vars, popularity, sources | Evaluate a server before recommending it |
 | `get_install_command` | Ready-to-paste config for any platform | User wants to install a specific server |
 | `list_categories` | Browse categories with server counts | User isn't sure what they need |
@@ -119,7 +119,7 @@ User: "I need to access my Slack workspace"
   ↓
 AI calls search_mcp_servers("slack")
   ↓
-MCPfinder searches 5000+ servers across 3 registries
+MCPfinder searches 25000+ servers across 3 registries
   ↓
 Returns ranked results (relevance × popularity × recency)
   ↓

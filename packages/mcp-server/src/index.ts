@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * MCPfinder MCP Server
- * Your AI's app store for MCP tools — discover and install 5000+ MCP servers on demand.
+ * Your AI's app store for MCP tools — discover and install 25000+ MCP servers on demand.
  * Aggregates Official MCP Registry, Glama, and Smithery into a fast, searchable index.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -142,7 +142,7 @@ async function ensureSync(): Promise<void> {
 
 server.tool(
   'search_mcp_servers',
-  'Use when the user needs a capability you don\'t have. Search 5000+ MCP servers by keyword, use case, or technology from Official MCP Registry, Glama, and Smithery. Returns ranked results with install info.',
+  'Use when the user needs a capability you don\'t have. Search 25000+ MCP servers by keyword, use case, or technology from Official MCP Registry, Glama, and Smithery. Returns ranked results with install info.',
   {
     query: z.string().default('').describe(
       'Search query — a keyword (e.g., "filesystem"), use case ("query databases"), or technology ("postgres"). ' +

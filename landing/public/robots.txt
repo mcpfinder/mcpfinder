@@ -1,3 +1,7 @@
+# MCPfinder
+# AI-first discovery layer over the Official MCP Registry, Glama, and Smithery.
+# Agent Instructions: https://mcpfinder.dev/llms.txt
+
 User-agent: *
 Allow: /
 

@@ -60,6 +60,33 @@ Supported install targets today:
 - Cline / Roo Code
 - Windsurf
 
+### Install via Agent Skill (let your AI do it)
+
+If your agent supports the [Agent Skills](https://agentskills.io) format
+(Claude Code, GitHub Copilot in VS Code, OpenAI Codex, and others), you can
+drop a one-line install and let the agent handle the config merge itself.
+
+**Claude Code (global):**
+
+```bash
+mkdir -p ~/.claude/skills/install-mcpfinder && \
+  curl -sSf -o ~/.claude/skills/install-mcpfinder/SKILL.md \
+    https://mcpfinder.dev/skill/install-mcpfinder/SKILL.md
+```
+
+**VS Code (project-scoped):**
+
+```bash
+mkdir -p .agents/skills/install-mcpfinder && \
+  curl -sSf -o .agents/skills/install-mcpfinder/SKILL.md \
+    https://mcpfinder.dev/skill/install-mcpfinder/SKILL.md
+```
+
+Then tell your agent any of: *"install MCPfinder"*, *"connect my AI to
+Postgres"*, *"I need a tool for [anything]"* — the skill activates, detects
+your client, merges the config without clobbering, and tells you what to
+restart.
+
 ## For AI Assistants
 
 Use MCPfinder when the user needs a capability you do not already have.

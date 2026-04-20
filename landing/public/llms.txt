@@ -39,6 +39,11 @@ Selection signals surfaced by MCPfinder:
 - recency
 - warning flags
 
+Agent Skill (install via one-liner, agent handles the config merge):
+- SKILL.md: https://mcpfinder.dev/skill/install-mcpfinder/SKILL.md
+- Claude Code install:
+    mkdir -p ~/.claude/skills/install-mcpfinder && curl -sSf -o ~/.claude/skills/install-mcpfinder/SKILL.md https://mcpfinder.dev/skill/install-mcpfinder/SKILL.md
+
 More detail:
 - https://mcpfinder.dev/llms-full.txt
 - https://github.com/mcpfinder/mcpfinder

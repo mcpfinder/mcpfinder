@@ -1,27 +1,6 @@
-import { DateTime, Str } from "chanfana";
 import type { Context } from "hono";
-import { z } from "zod";
-
-// Define the bindings type directly
 export interface Bindings {
-	MCP_TOOLS_KV: KVNamespace;
-	MCP_MANIFEST_BACKUPS: R2Bucket;
-	MCP_REGISTRY_SECRET: string;
-	MCPFINDER_API_URL?: string;
-	MCP_SEARCH_INDEX_KV?: KVNamespace;
-	// Add other bindings if needed
+	/** R2 bucket holding the pre-built DB snapshot (optional). */
+	MCP_DB_SNAPSHOTS?: R2Bucket;
 }
-
-// Example AppContext using the direct Bindings type
 export type AppContext = Context<{ Bindings: Bindings }>;
-
-// The old Env interface might not be needed anymore, or could be adapted
-// interface Env { /* ... */ }
-
-export const Task = z.object({
-	name: Str({ example: "lorem" }),
-	slug: Str(),
-	description: Str({ required: false }),
-	completed: z.boolean().default(false),
-	due_date: DateTime(),
-});

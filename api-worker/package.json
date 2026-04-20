@@ -9,15 +9,7 @@
 		"cf-typegen": "wrangler types"
 	},
 	"dependencies": {
-		"@noble/hashes": "^1.8.0",
-		"@types/uuid": "^10.0.0",
-		"ajv": "^8.17.1",
-		"ajv-formats": "^3.0.1",
-		"chanfana": "^2.6.3",
-		"hono": "^4.7.8",
-		"node-fetch": "^2.7.0",
-		"uuid": "^11.1.0",
-		"zod": "^3.24.1"
+		"hono": "^4.7.8"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250504.0",

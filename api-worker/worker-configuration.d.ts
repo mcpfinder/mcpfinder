@@ -3,7 +3,7 @@
 // Runtime types generated with workerd@1.20250617.0 2025-05-04 
 declare namespace Cloudflare {
 	interface Env {
-		MCP_REGISTRY_SECRET: string;
+		MCP_DB_SNAPSHOTS: R2Bucket;
 	}
 }
 interface Env extends Cloudflare.Env {}

@@ -6,33 +6,21 @@ compatibility_date = "2024-11-05"
 # Use: npx wrangler deploy -c wrangler.toml
 # DO NOT deploy from Cloudflare dashboard or bindings will be lost!
 
-# KV Namespaces - These store all MCP tool registrations
-[[kv_namespaces]]
-binding = "MCP_TOOLS_KV"
-id = "59bfeb2ef6ab471a9a3461f113704891" # Production KV for tool storage
-preview_id = "eba817abf81343708dcb07b4452bb0c4" # Local dev KV
-
-[[kv_namespaces]]
-binding = "MCP_SEARCH_INDEX_KV" # Search optimization index (optional)
-id = "38748fb584cb46dbab1585f66e6f2fb0" # Production search index KV
-preview_id = "628bb8266d294c56a5861e722b30432a" # Local dev search KV
-
-# R2 Buckets - Backup storage for tool manifests
-[[r2_buckets]]
-binding = "MCP_MANIFEST_BACKUPS"
-bucket_name = "mcp-finder-manifest-backups"
-preview_bucket_name = "mcp-finder-manifest-backups"
-
-# Secrets (Create using `npx wrangler secret put MCP_REGISTRY_SECRET`)
-[vars]
-# MCP_REGISTRY_SECRET = "" # Define secrets via wrangler cli, not directly here
-
 # Routes - Define which URLs trigger this worker
-# These routes handle both API endpoints and MCP protocol
+# This Worker serves support APIs and snapshot endpoints only.
+# NOTE: top-level keys (like `routes`) MUST come before any [[table]] headers,
+# otherwise TOML parses them into the last section (causes wrangler warning).
 routes = [
-  { pattern = "mcpfinder.dev/api/*", zone_name = "mcpfinder.dev" }, # REST API endpoints
-  { pattern = "mcpfinder.dev/mcp", zone_name = "mcpfinder.dev" }    # MCP protocol endpoint
+  { pattern = "mcpfinder.dev/api/*", zone_name = "mcpfinder.dev" }  # Support + snapshot API endpoints
 ]
+
+# Pre-built SQLite snapshot served at /api/v1/snapshot/*
+# Populated by scripts/build-snapshot.mjs (via CI cron).
+# Create with: npx wrangler r2 bucket create mcp-finder-db-snapshots
+[[r2_buckets]]
+binding = "MCP_DB_SNAPSHOTS"
+bucket_name = "mcp-finder-db-snapshots"
+preview_bucket_name = "mcp-finder-db-snapshots"
 
 # Observability - Enable logging and analytics
 [observability]

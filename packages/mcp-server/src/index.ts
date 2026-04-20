@@ -48,7 +48,7 @@ const db = initDatabase();
 // Create MCP server
 const server = new McpServer({
   name: 'mcpfinder',
-  version: '1.0.2',
+  version: '1.0.3',
 });
 
 // ─── Platform Configuration ─────────────────────────────────────────────────
@@ -155,7 +155,16 @@ function makeTextResponse(text: string, structuredContent?: Record<string, unkno
   } = {
     content: [{ type: 'text' as const, text }],
   };
-  if (structuredContent) result.structuredContent = structuredContent;
+  
+  if (structuredContent) {
+    result.structuredContent = structuredContent;
+    // Also inject it into the text block so clients without structuredContent support can read it
+    result.content.push({
+      type: 'text' as const,
+      text: JSON.stringify(structuredContent, null, 2),
+    });
+  }
+  
   return result;
 }
 
@@ -192,6 +201,8 @@ const detailsOutputSchema = {
 };
 
 const installOutputSchema = {
+  // `name` is returned in the not-found path so the client knows which lookup failed.
+  name: z.string().optional(),
   found: z.boolean(),
   autoInstallable: z.boolean().optional(),
   server: z.string().optional(),
@@ -443,7 +454,7 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
   const detail = getServerDetails(db, name);
   if (!detail) {
     return makeTextResponse(`Server "${name}" not found. Try searching with search_mcp_servers first.`, {
-      name,
+      server: name,
       found: false,
       next_actions: ['search_mcp_servers(query="<keyword>")'],
     });

@@ -3,7 +3,7 @@
   "name": "dev.mcpfinder/server",
   "title": "MCPfinder - MCP Server Discovery",
   "description": "Your AI discovers and installs MCP servers across Official Registry, Glama, and Smithery.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "websiteUrl": "https://mcpfinder.dev",
   "repository": {
     "url": "https://github.com/mcpfinder/mcpfinder",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "@mcpfinder/server",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "transport": {
         "type": "stdio"
       }

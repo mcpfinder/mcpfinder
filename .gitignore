@@ -92,13 +92,13 @@ web_modules/
 
 .yarn-integrity
 
-# dotenv environment variable files
-
+# dotenv / wrangler env files — broad glob so no secret variant ever slips in
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+.env*
+!.env.example
+.dev*
+!.devcontainer
+!.devcontainer/
 
 # parcel-bundler cache (https://parceljs.org/)
 
@@ -214,6 +214,15 @@ packages/*/test-dedup-*.mjs
 TODO.md
 NOTES.md
 SCRATCH.md
+
+# Agent instruction files (private dev tooling, not for public repo)
+CLAUDE.md
+AGENTS.md
+*/CLAUDE.md
+*/AGENTS.md
+
+# mcp-inspector — dev-only debugger, fetched separately when needed
+mcp-inspector/
 
 # Root is a pnpm workspace — npm-managed lockfile should not appear here.
 # (api-worker/ is outside the workspace and keeps its own package-lock.json.)

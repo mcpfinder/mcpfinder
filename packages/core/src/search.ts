@@ -3,7 +3,14 @@
  * Ranking formula: fts_rank * 0.4 + log(useCount+1) * 0.3 + source_count * 0.2 + official_boost * 0.1
  */
 import type Database from 'better-sqlite3';
-import type { McpServer, SearchResult, ServerDetail, ToolSummary, TrustSignals } from './types.js';
+import type {
+  ConfidenceBreakdown,
+  McpServer,
+  SearchResult,
+  ServerDetail,
+  ToolSummary,
+  TrustSignals,
+} from './types.js';
 import { categorizeServer } from './categories.js';
 
 /**
@@ -306,7 +313,8 @@ function formatSearchResult(row: McpServer, idx: number): SearchResult {
   }
 
   const warningFlags = getWarningFlags(row, sources);
-  const confidenceScore = getConfidenceScore(row, sources, warningFlags);
+  const confidenceBreakdown = getConfidenceBreakdown(row, sources, warningFlags);
+  const confidenceScore = confidenceBreakdown.score;
   const toolsExposed = extractTools(row);
   const trustSignals = getTrustSignals(row, sources);
   const freshnessDays = getFreshnessDays(row);
@@ -329,6 +337,7 @@ function formatSearchResult(row: McpServer, idx: number): SearchResult {
     publishedAt: row.published_at,
     sourceCount: sources.length,
     confidenceScore,
+    confidenceBreakdown,
     recommendationReason: getRecommendationReason(row, sources),
     warningFlags,
     trustSignals,
@@ -376,7 +385,8 @@ export function getServerDetails(
   }
 
   const warningFlags = getWarningFlags(row, sources);
-  const confidenceScore = getConfidenceScore(row, sources, warningFlags);
+  const confidenceBreakdown = getConfidenceBreakdown(row, sources, warningFlags);
+  const confidenceScore = confidenceBreakdown.score;
   const toolsExposed = extractTools(row);
   const trustSignals = getTrustSignals(row, sources, envVars);
   const freshnessDays = getFreshnessDays(row);
@@ -404,6 +414,7 @@ export function getServerDetails(
     iconUrl: row.icon_url,
     sourceCount: sources.length,
     confidenceScore,
+    confidenceBreakdown,
     recommendationReason: getRecommendationReason(row, sources),
     warningFlags,
     trustSignals,
@@ -579,6 +590,10 @@ function getWarningFlags(row: McpServer, sources: string[]): string[] {
   if (!row.package_identifier && row.has_remote !== 1) warnings.push('install-method-unclear');
   if (row.status && row.status !== 'active') warnings.push(`status:${row.status}`);
 
+  // Build-time enrichment flags (null = never probed, 1 = flagged, 0 = clean).
+  if (row.deprecated_npm === 1) warnings.push('deprecated-npm');
+  if (row.archived_repo === 1) warnings.push('archived-repo');
+
   if (row.updated_at) {
     const updatedTime = Date.parse(row.updated_at);
     if (!Number.isNaN(updatedTime)) {
@@ -591,17 +606,52 @@ function getWarningFlags(row: McpServer, sources: string[]): string[] {
   return warnings;
 }
 
-function getConfidenceScore(row: McpServer, sources: string[], warningFlags: string[]): number {
-  let score = 0.4;
-  if (sources.includes('official')) score += 0.2;
-  if (row.verified === 1) score += 0.15;
-  if ((row.use_count || 0) >= 100) score += 0.15;
-  else if ((row.use_count || 0) > 0) score += 0.1;
-  if (sources.length > 1) score += 0.05;
-  if (warningFlags.includes('stale-over-18-months')) score -= 0.15;
-  if (warningFlags.includes('install-method-unclear')) score -= 0.1;
-  if (warningFlags.includes('missing-repository-url')) score -= 0.05;
-  return Math.max(0, Math.min(1, Number(score.toFixed(2))));
+function getConfidenceBreakdown(
+  row: McpServer,
+  sources: string[],
+  warningFlags: string[],
+): ConfidenceBreakdown {
+  const base = 0.4;
+  const official = sources.includes('official') ? 0.2 : 0;
+  const verified = row.verified === 1 ? 0.15 : 0;
+  const useCount = row.use_count || 0;
+  const popularity = useCount >= 100 ? 0.15 : useCount > 0 ? 0.1 : 0;
+  const multiSource = sources.length > 1 ? 0.05 : 0;
+
+  let penalties = 0;
+  if (warningFlags.includes('stale-over-18-months')) penalties -= 0.15;
+  if (warningFlags.includes('deprecated-npm')) penalties -= 0.2;
+  if (warningFlags.includes('archived-repo')) penalties -= 0.1;
+  if (warningFlags.includes('install-method-unclear')) penalties -= 0.1;
+  if (warningFlags.includes('missing-repository-url')) penalties -= 0.05;
+
+  const raw = base + official + verified + popularity + multiSource + penalties;
+  const score = Math.max(0, Math.min(1, Number(raw.toFixed(2))));
+
+  const drivers: string[] = [];
+  if (official) drivers.push('+official');
+  if (verified) drivers.push('+verified');
+  if (popularity >= 0.15) drivers.push('+popularity:100+uses');
+  else if (popularity > 0) drivers.push('+popularity:any-use');
+  if (multiSource) drivers.push('+multi-source');
+  if (warningFlags.includes('deprecated-npm')) drivers.push('-deprecated-npm');
+  if (warningFlags.includes('archived-repo')) drivers.push('-archived-repo');
+  if (warningFlags.includes('stale-over-18-months')) drivers.push('-stale>18mo');
+  if (warningFlags.includes('install-method-unclear')) drivers.push('-install-unclear');
+  if (warningFlags.includes('missing-repository-url')) drivers.push('-no-repo-url');
+
+  return {
+    score,
+    components: {
+      base,
+      official,
+      verified,
+      popularity,
+      multiSource,
+      penalties: Number(penalties.toFixed(2)),
+    },
+    drivers,
+  };
 }
 
 function getTrustSignals(

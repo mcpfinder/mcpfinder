@@ -16,6 +16,7 @@ export type {
   Category,
   ToolSummary,
   TrustSignals,
+  ConfidenceBreakdown,
   GlamaServer,
   GlamaListResponse,
   SmitheryServer,
@@ -33,8 +34,8 @@ export { bootstrapFromSnapshot, fetchSnapshotManifest, DEFAULT_SNAPSHOT_BASE } f
 export type { SnapshotManifest, BootstrapResult, BootstrapOptions } from './snapshot.js';
 
 // Build-time enrichment (GitHub probe, post-sync dedup pass)
-export { enrichSmitheryRepoUrls } from './enrich.js';
-export type { EnrichResult } from './enrich.js';
+export { enrichSmitheryRepoUrls, enrichDeprecationFlags } from './enrich.js';
+export type { EnrichResult, DeprecationEnrichResult } from './enrich.js';
 
 // Search
 export { searchServers, getServerDetails, findServerByNameOrSlug } from './search.js';

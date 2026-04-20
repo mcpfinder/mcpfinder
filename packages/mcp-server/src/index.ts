@@ -48,7 +48,7 @@ const db = initDatabase();
 // Create MCP server
 const server = new McpServer({
   name: 'mcpfinder',
-  version: '1.0.1',
+  version: '1.0.2',
 });
 
 // ─── Platform Configuration ─────────────────────────────────────────────────
@@ -292,6 +292,7 @@ server.registerTool(
           sources: r.sources,
           updatedAt: r.updatedAt,
           confidenceScore: r.confidenceScore,
+          confidenceBreakdown: r.confidenceBreakdown,
           recommendationReason: r.recommendationReason,
           warningFlags: r.warningFlags,
         })),
@@ -384,7 +385,11 @@ server.registerTool(
       detail.categories.length > 0 ? `**Categories:** ${detail.categories.join(', ')}` : '',
       badges ? `**Sources:** ${badges}` : '',
       `**Source Count:** ${detail.sourceCount}`,
-      `**Confidence:** ${detail.confidenceScore}`,
+      `**Confidence:** ${detail.confidenceScore}${
+        detail.confidenceBreakdown?.drivers?.length
+          ? ` (${detail.confidenceBreakdown.drivers.join(', ')})`
+          : ''
+      }`,
       `**Why recommended:** ${detail.recommendationReason}`,
       detail.useCount > 0 ? `**Popularity:** ${formatUseCount(detail.useCount)} uses` : '',
       detail.verified ? '**Verified:** ✓' : '',
@@ -413,6 +418,7 @@ server.registerTool(
         useCount: detail.useCount,
         verified: detail.verified,
         confidenceScore: detail.confidenceScore,
+        confidenceBreakdown: detail.confidenceBreakdown,
         recommendationReason: detail.recommendationReason,
         warningFlags: detail.warningFlags,
         trustSignals: detail.trustSignals,

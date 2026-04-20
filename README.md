@@ -183,6 +183,34 @@ node packages/mcp-server/dist/index.js
 - Tool metadata quality depends on upstream registries; some servers have rich details, others only partial metadata.
 - Tool-level capability extraction is currently strongest for sources that expose tool manifests directly, especially Glama.
 
+## Roadmap
+
+These items are planned but not yet implemented. Informed largely by feedback
+from AI agents consuming the tool surface.
+
+- **Semantic search over tool descriptions.** Today's search ranks by keyword
+  (FTS5) + popularity + source count. It doesn't help when a user describes a
+  capability in prose that doesn't overlap lexically with the server's name or
+  description. Plan: index `toolsExposed[*].description` (where upstream exposes
+  it) into a lightweight embedding column, expose a `semanticQuery` parameter
+  alongside the existing keyword `query`, and rank hybrid.
+- **Hosted HTTP MCP endpoint at `mcpfinder.dev/mcp`.** Today only stdio is
+  canonical. Serverless AI agents (Workers, Lambda, browser) can't spawn a
+  subprocess; giving them an HTTP transport with the same 4-tool contract
+  removes an entire class of blocker. Plan: port the MCP SDK streamable-http
+  transport into `api-worker/`, re-use the same snapshot-backed database via
+  R2 + Durable Objects, gate with a lightweight rate limit.
+- **Capability-count enrichment for non-Glama rows.** `capabilityCount` is
+  currently 0 for most Official/Smithery rows because those upstreams don't
+  publish tool manifests in list responses. Plan: during the snapshot build,
+  probe the downstream server's README or, for npm packages, parse the tarball's
+  `package.json` for an `mcp.tools` hint; surface per-row confidence in the
+  extracted list.
+- **CI automation for npm + Registry publish.** Today the release playbook
+  (`docs/publish-playbook.md`) is manual and consumes a fresh OTP per package.
+  Plan: move to GitHub Actions with NPM automation tokens and a committed
+  `mcp-publisher` login step triggered on `v*` tags.
+
 ## Links
 
 - Website: [mcpfinder.dev](https://mcpfinder.dev)

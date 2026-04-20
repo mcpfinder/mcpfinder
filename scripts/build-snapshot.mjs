@@ -63,6 +63,7 @@ const {
   syncSmitheryRegistry,
   getServerCount,
   enrichSmitheryRepoUrls,
+  enrichDeprecationFlags,
 } = await import(corePath);
 
 const dbPath = join(outDir, 'data.sqlite');
@@ -82,9 +83,9 @@ counts.official = await run('official', syncOfficialRegistry);
 if (!flag('--no-glama')) counts.glama = await run('glama   ', syncGlamaRegistry);
 if (!flag('--no-smithery')) counts.smithery = await run('smithery', syncSmitheryRegistry);
 
-// Fix 3 (build-only): GitHub probe enrichment for Smithery rows without a
-// repo URL. Needs GITHUB_TOKEN; silently no-ops when absent.
+// Build-time enrichment passes (skipped with --no-enrich).
 let enrichStats = null;
+let deprecationStats = null;
 if (!flag('--no-enrich')) {
   const t0 = Date.now();
   enrichStats = await enrichSmitheryRepoUrls(db);
@@ -92,6 +93,17 @@ if (!flag('--no-enrich')) {
   console.log(
     `[build-snapshot] enrich : probed=${enrichStats.probed} found=${enrichStats.repoFound} ` +
       `merged=${enrichStats.merged} rate-limited=${enrichStats.rateLimited} errors=${enrichStats.errors} (${dt}s)`,
+  );
+
+  // Deprecation flags: npm (fast, no token needed) + GitHub archived
+  // (requires GITHUB_TOKEN, otherwise skipped with a stderr note).
+  const d0 = Date.now();
+  deprecationStats = await enrichDeprecationFlags(db);
+  const dd = ((Date.now() - d0) / 1000).toFixed(1);
+  console.log(
+    `[build-snapshot] deprec : npm(probed=${deprecationStats.npm.probed} flagged=${deprecationStats.npm.flagged} ` +
+      `errors=${deprecationStats.npm.errors}) archived(probed=${deprecationStats.github.probed} flagged=${deprecationStats.github.flagged} ` +
+      `rate-limited=${deprecationStats.github.rateLimited} errors=${deprecationStats.github.errors}) (${dd}s)`,
   );
 }
 
@@ -126,6 +138,7 @@ const manifest = {
   builder: process.env.GITHUB_SHA || 'local',
   counts,
   enrich: enrichStats,
+  deprecation: deprecationStats,
 };
 
 await writeFile(join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2));

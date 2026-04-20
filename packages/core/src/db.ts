@@ -123,6 +123,10 @@ function migrateSchema(db: Database.Database): void {
     ['use_count', 'INTEGER DEFAULT 0'],
     ['verified', 'INTEGER DEFAULT 0'],
     ['icon_url', 'TEXT'],
+    // Deprecation signals set by enrichDeprecationFlags (build-time probe).
+    // NULL = not checked yet, 0 = checked and clean, 1 = flagged.
+    ['deprecated_npm', 'INTEGER DEFAULT NULL'],
+    ['archived_repo', 'INTEGER DEFAULT NULL'],
   ];
 
   for (const [col, def] of migrations) {

@@ -54,6 +54,25 @@ export interface TrustSignals {
   requiresSecrets: boolean;
 }
 
+/**
+ * Transparent breakdown of how `confidenceScore` was assembled, so an AI can
+ * explain the ranking decision instead of citing a single opaque number. Each
+ * component is the exact delta that contributed to the final score; positive
+ * values lift confidence, negative values (under `penalties`) reduce it.
+ */
+export interface ConfidenceBreakdown {
+  score: number; // final score, 0..1
+  components: {
+    base: number;        // starting point (all servers share this)
+    official: number;    // lift for Official Registry presence
+    verified: number;    // lift for verified publisher flag (Smithery)
+    popularity: number;  // lift for community use_count tiers
+    multiSource: number; // lift for appearing in >1 registry
+    penalties: number;   // sum of penalties (<=0): staleness, missing install path, etc.
+  };
+  drivers: string[];     // ordered human-readable list, e.g. ["+official", "+popularity:100+", "-stale>18mo"]
+}
+
 export interface RegistryMeta {
   status?: string;
   publishedAt?: string;
@@ -98,6 +117,8 @@ export interface McpServer {
   use_count: number;
   verified: number; // 0 or 1
   icon_url: string | null;
+  deprecated_npm: number | null; // null = not checked, 0 = clean, 1 = deprecated on npm
+  archived_repo: number | null;  // null = not checked, 0 = clean, 1 = archived on GitHub
 }
 
 /** Search result returned to MCP clients */
@@ -119,6 +140,7 @@ export interface SearchResult {
   publishedAt: string | null;
   sourceCount: number;
   confidenceScore: number;
+  confidenceBreakdown: ConfidenceBreakdown;
   recommendationReason: string;
   warningFlags: string[];
   trustSignals: TrustSignals;
@@ -152,6 +174,7 @@ export interface ServerDetail {
   iconUrl: string | null;
   sourceCount: number;
   confidenceScore: number;
+  confidenceBreakdown: ConfidenceBreakdown;
   recommendationReason: string;
   warningFlags: string[];
   trustSignals: TrustSignals;

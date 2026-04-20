@@ -224,6 +224,5 @@ AGENTS.md
 # mcp-inspector — dev-only debugger, fetched separately when needed
 mcp-inspector/
 
-# Root is a pnpm workspace — npm-managed lockfile should not appear here.
-# (api-worker/ is outside the workspace and keeps its own package-lock.json.)
-/package-lock.json
+# npm-managed lockfiles should not appear in this repo (pnpm workspace).
+package-lock.json

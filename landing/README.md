@@ -42,11 +42,12 @@ Current state: `mcpfinder.dev` is served by the Cloudflare Pages project
 Keep the old Pages project around for a rollback window. When you're
 confident, delete it in the dashboard.
 
-## What's NOT up to date
+## Content state
 
-The snapshot reflects the Feb 2026 site copy. The page still advertises
-`v0.4.1`, `MIT license`, and `500+ servers` — outdated vs the 1.0.0 /
-AGPL-3.0 / 5000+ reality. Content refresh is tracked in the root `TODO.md`.
+Reconciled with the 1.0.0 release on 2026-04-20: version, license
+(AGPL-3.0), server count (5000+), and registry list (Official + Glama +
+Smithery) all match the code. Live production still serves the older
+v0.4.1 / MIT / 500+ copy — deploy this `landing/` to cut over.
 
 The `.well-known/mcp-registry-auth` file is load-bearing — it's how
 `mcp-publisher login http --domain=mcpfinder.dev` proves ownership. Don't

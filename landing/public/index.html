@@ -3,26 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MCPfinder — Find the Perfect MCP Server for Your AI Agent | MCP Server Directory</title>
-  <meta name="description" content="MCPfinder is the intelligent MCP server discovery tool. Search and find the best Model Context Protocol servers for your AI agent. Aggregates multiple registries. Free &amp; open-source.">
-  <meta name="keywords" content="MCP server finder, find MCP server, MCP server directory, best MCP server, Model Context Protocol tools, MCP server search, discover MCP servers, MCP registry">
+  <title>MCPfinder | Discover and Install MCP Servers</title>
+  <meta name="description" content="AI-first MCP server discovery across Official Registry, Glama, and Smithery. Inspect trust signals, tools and env vars, then generate install config for Claude, Cursor, Claude Code, Cline, and Windsurf.">
+  <meta name="keywords" content="MCP discovery, MCP server install, AI agent tooling, Model Context Protocol, MCP server registry, Claude Desktop MCP, Cursor MCP">
   <meta name="author" content="Coder AI">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://mcpfinder.dev/">
+  <link rel="icon" type="image/png" href="/mcpfinder-icon.png">
+  <link rel="apple-touch-icon" href="/mcpfinder-icon.png">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mcpfinder.dev/">
-  <meta property="og:title" content="MCPfinder — Google for MCP Servers">
-  <meta property="og:description" content="Find the perfect MCP server for your AI agent. Intelligent search across multiple registries. Free &amp; open-source.">
-  <meta property="og:image" content="https://mcpfinder.dev/og-image.png">
+  <meta property="og:title" content="MCPfinder | MCP Server Discovery for AI Agents">
+  <meta property="og:description" content="Search MCP servers across multiple registries, inspect trust signals, and generate install-ready config for your AI client.">
+  <meta property="og:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
   <meta property="og:site_name" content="MCPfinder">
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="MCPfinder — Google for MCP Servers">
-  <meta name="twitter:description" content="Find the perfect MCP server for your AI agent. Intelligent search across multiple registries.">
-  <meta name="twitter:image" content="https://mcpfinder.dev/og-image.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="MCPfinder | MCP Server Discovery for AI Agents">
+  <meta name="twitter:description" content="Search MCP servers across multiple registries, inspect trust signals, and generate install-ready config for your AI client.">
+  <meta name="twitter:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -31,7 +35,7 @@
     "@type": "SoftwareApplication",
     "name": "MCPfinder",
     "url": "https://mcpfinder.dev",
-    "description": "Intelligent MCP server discovery tool. Search and find the best Model Context Protocol servers for your AI agent across multiple registries.",
+    "description": "AI-first MCP server discovery tool. Search, inspect, and install MCP servers across multiple registries.",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Any",
     "offers": {
@@ -66,7 +70,7 @@
         "name": "How do I find the best MCP server for my use case?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "MCPfinder aggregates multiple MCP registries and uses intelligent search to match your needs. Simply describe what you need — like 'I need a tool for PostgreSQL' — and MCPfinder recommends the best MCP server for the job."
+          "text": "MCPfinder helps an AI agent discover and evaluate MCP servers. Search first, inspect trust signals and environment variables, then generate a client-specific install config."
         }
       },
       {
@@ -82,7 +86,7 @@
         "name": "What MCP registries does MCPfinder search?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "MCPfinder aggregates the Official MCP Registry, Glama, and Smithery — three of the largest MCP server registries — into one unified searchable index."
+          "text": "MCPfinder aggregates the Official MCP Registry, Glama, and Smithery into one searchable index and exposes that discovery workflow through MCP tools."
         }
       },
       {
@@ -587,6 +591,13 @@
       letter-spacing: 0.1em;
     }
 
+    .freshness-note {
+      margin-top: 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
     /* FAQ */
     .faq-list { 
       max-width: 800px; 
@@ -789,9 +800,10 @@
       <a href="#how-it-works">HOW IT WORKS</a>
       <a href="#install">INSTALL</a>
       <a href="#features">FEATURES</a>
+      <a href="#for-ai">FOR AI</a>
       <a href="#faq">FAQ</a>
-      <a href="https://github.com/lksrz/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
-      <a href="#install" class="nav-cta">GET STARTED</a>
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
+      <a href="/llms.txt" class="nav-cta">LLMS.TXT</a>
     </div>
   </div>
 </nav>
@@ -804,15 +816,15 @@
         <circle cx="12" cy="12" r="10"/>
         <polyline points="12,6 12,12 16,14"/>
       </svg>
-      v1.0.0 — THE APP STORE FOR AI AGENTS
+      v1.0.0 — DISCOVERY AND INSTALL LAYER FOR AI AGENTS
     </div>
     <h1>
-      FIND THE PERFECT<br>
-      <span class="highlight">MCP SERVER</span><br>
-      FOR YOUR AI AGENT
+      YOUR AI FINDS<br>
+      <span class="highlight">MCP SERVERS</span><br>
+      FOR YOU
     </h1>
     <p>
-      MCPfinder is the intelligent MCP server discovery tool. Search across multiple registries, get smart recommendations, and expand your AI's capabilities in seconds.
+      MCPfinder helps an assistant search multiple MCP registries, inspect trust signals and environment variables, and generate install-ready JSON for the right client.
     </p>
 
     <div class="search-wrap">
@@ -820,7 +832,7 @@
         <circle cx="11" cy="11" r="8"/>
         <path d="m21 21-4.3-4.3"/>
       </svg>
-      <input type="text" placeholder='Try "I need a tool for PostgreSQL" or "GitHub integration"' readonly>
+      <input type="text" value='Preview only — install MCPfinder and let your AI call search_mcp_servers("postgres")' readonly aria-label="Preview search box">
     </div>
 
     <div class="btn-group">
@@ -830,13 +842,13 @@
           <polyline points="7 10 12 15 17 10"/>
           <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        INSTALL NOW
+        INSTALL MCPFINDER
       </a>
-      <a href="https://github.com/lksrz/mcpfinder" target="_blank" rel="noopener" class="btn btn-secondary">
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener" class="btn btn-secondary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
         </svg>
-        STAR ON GITHUB
+        VIEW GITHUB
       </a>
     </div>
   </div>
@@ -856,7 +868,7 @@
           MCP servers give your AI agent superpowers: access databases, call APIs, manage files, interact with services — all through a standardized protocol.
         </p>
         <p>
-          <strong>MCPfinder is an MCP server that discovers other MCP servers.</strong> It's like giving your AI agent its own search engine for tools.
+          <strong>MCPfinder is an MCP server that discovers other MCP servers.</strong> The primary user is the AI assistant itself; the human installs it once, then the assistant uses it repeatedly.
         </p>
       </div>
       <div class="mcp-diagram">
@@ -879,7 +891,7 @@
             <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
             <polyline points="14,2 14,8 20,8"/>
           </svg>
-          GITHUB · POSTGRES · SLACK · 25000+ MCP SERVERS
+          GITHUB · POSTGRES · SLACK · MULTI-REGISTRY MCP DISCOVERY
         </div>
       </div>
     </div>
@@ -892,13 +904,13 @@
     <div class="section-label">HOW IT WORKS</div>
     <h2 class="section-title">THREE STEPS TO SMARTER AI</h2>
     <p class="section-desc">
-      MCPfinder connects to your AI agent as an MCP server. Your AI can then discover and use any MCP server it needs — automatically.
+      MCPfinder connects to your AI agent as an MCP server. Your AI can then discover candidate servers, inspect trust signals, and generate install config with minimal round-trips.
     </p>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
         <h3>INSTALL MCPFINDER</h3>
-        <p>One command. Zero config. Add MCPfinder as an MCP server to your AI client (Claude Desktop, Cursor, or any MCP-compatible client).</p>
+        <p>One install step. Minimal setup. Add MCPfinder as an MCP server to your AI client, then let the assistant discover and configure downstream MCP servers.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
@@ -958,13 +970,46 @@
   </div>
 </section>
 
+<!-- For AI Agents -->
+<section id="for-ai">
+  <div class="container">
+    <div class="section-center">
+      <div class="section-label">FOR AI AGENTS</div>
+      <h2 class="section-title">THE PART YOUR ASSISTANT ACTUALLY NEEDS</h2>
+      <p class="section-desc">Humans install MCPfinder once. Assistants use it repeatedly to discover missing capabilities, inspect trust signals, and generate install-ready config.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature">
+        <h3>SEARCH_MCP_SERVERS</h3>
+        <p>Find candidate servers by keyword, technology, or use case. Use this first when the user needs a capability you do not already have.</p>
+      </div>
+      <div class="feature">
+        <h3>GET_SERVER_DETAILS</h3>
+        <p>Inspect trust signals, tools, warning flags, transport, and required environment variables before recommending anything.</p>
+      </div>
+      <div class="feature">
+        <h3>GET_INSTALL_CONFIG</h3>
+        <p>Generate a client-specific JSON config snippet for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf.</p>
+      </div>
+      <div class="feature">
+        <h3>BROWSE_CATEGORIES</h3>
+        <p>Explore categories when the user only knows a domain like database, filesystem, communication, or security.</p>
+      </div>
+    </div>
+    <div class="btn-group" style="margin-top:32px;">
+      <a href="/llms.txt" class="btn btn-primary">READ LLMS.TXT</a>
+      <a href="https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder" target="_blank" rel="noopener" class="btn btn-secondary">VIEW REGISTRY ENTRY</a>
+    </div>
+  </div>
+</section>
+
 <!-- Features -->
 <section id="features">
   <div class="container">
     <div class="section-center">
       <div class="section-label">FEATURES</div>
       <h2 class="section-title">EVERYTHING YOU NEED TO DISCOVER MCP SERVERS</h2>
-      <p class="section-desc">MCPfinder aggregates, searches, and recommends — so your AI always has the right tool for the job.</p>
+      <p class="section-desc">MCPfinder aggregates, searches, scores, warns, and generates install config — so your AI can choose tools with less guesswork.</p>
     </div>
     <div class="features-grid">
       <div class="feature">
@@ -980,14 +1025,14 @@
           <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h4a2 2 0 0 1 2 2v1.28c.6.35 1 .99 1 1.72 0 .73-.4 1.37-1 1.72V15a2 2 0 0 1-2 2h-4v1.27c.6.35 1 .99 1 1.73a2 2 0 1 1-4 0c0-.74.4-1.38 1-1.73V17H7a2 2 0 0 1-2-2v-1.28c-.6-.35-1-.99-1-1.72 0-.73.4-1.37 1-1.72V9a2 2 0 0 1 2-2h4V5.73c-.6-.35-1-.99-1-1.73a2 2 0 0 1 2-2Z"/>
         </svg>
         <h3>SMART RECOMMENDATIONS</h3>
-        <p>Describe what you need in plain language. MCPfinder uses intelligent matching to find the best MCP server for your use case.</p>
+        <p>Search returns confidence, recommendation reasons, and warning flags so an assistant can decide whether to recommend a server strongly or cautiously.</p>
       </div>
       <div class="feature">
         <svg class="feature-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
         </svg>
         <h3>ZERO-FRICTION SETUP</h3>
-        <p>One command, no configuration files, no API keys. Works out of the box with any MCP-compatible AI client.</p>
+        <p>One install for MCPfinder itself. After that, your assistant can generate install-ready JSON snippets for the right downstream MCP server.</p>
       </div>
       <div class="feature">
         <svg class="feature-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1004,7 +1049,7 @@
           <polyline points="9,22 9,12 15,12 15,22"/>
         </svg>
         <h3>ALWAYS UP-TO-DATE</h3>
-        <p>Continuously syncs with upstream registries. New MCP servers are discoverable as soon as they're published.</p>
+        <p>Bootstraps from published snapshots and syncs from upstream registries. The snapshot manifest is a better freshness signal than vague marketing claims.</p>
       </div>
       <div class="feature">
         <svg class="feature-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1023,22 +1068,25 @@
   <div class="container">
     <div class="stats">
       <div class="stat">
-        <div class="stat-value">25000+</div>
-        <div class="stat-label">MCP SERVERS INDEXED</div>
+        <div class="stat-value" id="snapshot-server-count">...</div>
+        <div class="stat-label">SERVERS IN LATEST SNAPSHOT</div>
       </div>
       <div class="stat">
         <div class="stat-value">3</div>
         <div class="stat-label">REGISTRIES AGGREGATED</div>
       </div>
       <div class="stat">
-        <div class="stat-value">V1.0.0</div>
-        <div class="stat-label">LATEST ON NPM</div>
+        <div class="stat-value">JSON</div>
+        <div class="stat-label">STRUCTURED OUTPUTS</div>
       </div>
       <div class="stat">
         <div class="stat-value">AGPL-3.0</div>
         <div class="stat-label">OPEN SOURCE LICENSE</div>
       </div>
     </div>
+    <p class="freshness-note" id="snapshot-freshness">
+      Snapshot freshness appears here when the manifest endpoint is reachable.
+    </p>
   </div>
 </section>
 
@@ -1063,7 +1111,7 @@
           HOW DO I FIND THE BEST MCP SERVER FOR MY USE CASE?
         </div>
         <div class="faq-a">
-          MCPfinder aggregates multiple MCP registries and uses intelligent search to match your needs. Simply describe what you need — like "I need a tool for PostgreSQL" or "GitHub integration" — and MCPfinder recommends the best MCP server for the job. Your AI agent can do this automatically.
+          MCPfinder works best as an AI workflow rather than a human search page. Your assistant should search for candidates, inspect trust signals and environment variables with <code>get_server_details</code>, then generate config with <code>get_install_config</code>.
         </div>
       </div>
       <div class="faq-item">
@@ -1095,7 +1143,7 @@
           HOW IS MCPFINDER DIFFERENT FROM BROWSING A REGISTRY DIRECTLY?
         </div>
         <div class="faq-a">
-          MCPfinder is itself an MCP server — meaning your AI agent can use it directly to discover and recommend other MCP servers on-the-fly. No manual browsing required. It searches across multiple registries simultaneously and provides intelligent recommendations. It's like giving your AI its own app store.
+          MCPfinder is itself an MCP server, so an assistant can use it directly. Instead of manually browsing registries, the assistant can ask for candidates, review warnings, and generate install-ready JSON. That makes it more like a decision engine than a static directory.
         </div>
       </div>
       <div class="faq-item">
@@ -1111,7 +1159,7 @@
           CAN I CONTRIBUTE TO MCPFINDER?
         </div>
         <div class="faq-a">
-          Absolutely! MCPfinder is open-source and we welcome contributions. Visit our <a href="https://github.com/lksrz/mcpfinder" target="_blank" rel="noopener">GitHub repository</a> to report issues, submit pull requests, or suggest new features. The project is maintained by Coder AI.
+          Absolutely! MCPfinder is open-source and we welcome contributions. Visit our <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GitHub repository</a> to report issues, submit pull requests, or suggest new features. The project is maintained by Coder AI.
         </div>
       </div>
     </div>
@@ -1121,8 +1169,8 @@
 <!-- CTA -->
 <section class="cta-section">
   <div class="container">
-    <h2>READY TO SUPERCHARGE YOUR AI?</h2>
-    <p>Give your AI agent the power to discover any tool it needs.</p>
+    <h2>INSTALL ONCE, LET YOUR AI USE IT DAILY</h2>
+    <p>Use the local stdio server as the canonical interface, then point your assistant at MCPfinder whenever it needs a missing capability.</p>
     <div class="cta-install" title="Click to copy">
       <span class="prompt">$</span> npx @mcpfinder/server
     </div>
@@ -1136,11 +1184,11 @@
         </svg>
         INSTALL FROM NPM
       </a>
-      <a href="https://github.com/lksrz/mcpfinder" target="_blank" rel="noopener" class="btn btn-secondary">
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener" class="btn btn-secondary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
         </svg>
-        STAR ON GITHUB
+        VIEW SOURCE
       </a>
     </div>
   </div>
@@ -1150,8 +1198,10 @@
 <footer>
   <div class="container">
     <div class="footer-links">
-      <a href="https://github.com/lksrz/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
       <a href="https://www.npmjs.com/package/@mcpfinder/server" target="_blank" rel="noopener">NPM</a>
+      <a href="/llms.txt">LLMS.TXT</a>
+      <a href="https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder" target="_blank" rel="noopener">REGISTRY</a>
       <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP SPEC</a>
       <a href="https://coderai.dev" target="_blank" rel="noopener">CODER AI</a>
     </div>
@@ -1161,5 +1211,46 @@
   </div>
 </footer>
 
+<script>
+  async function loadSnapshotManifest() {
+    const countEl = document.getElementById('snapshot-server-count');
+    const freshnessEl = document.getElementById('snapshot-freshness');
+
+    try {
+      const response = await fetch('/api/v1/snapshot/manifest.json', {
+        headers: { 'accept': 'application/json' }
+      });
+      if (!response.ok) throw new Error('manifest unavailable');
+
+      const manifest = await response.json();
+
+      if (typeof manifest.serverCount === 'number') {
+        countEl.textContent = manifest.serverCount.toLocaleString('en-US');
+      } else {
+        countEl.textContent = 'N/A';
+      }
+
+      if (manifest.publishedAt) {
+        const published = new Date(manifest.publishedAt);
+        const ageHours = Math.round((Date.now() - published.getTime()) / (1000 * 60 * 60));
+        const sizeMb = typeof manifest.sizeBytes === 'number'
+          ? (manifest.sizeBytes / 1e6).toFixed(1)
+          : '?';
+        freshnessEl.textContent =
+          'Latest published snapshot: ' +
+          published.toISOString().slice(0, 10) +
+          ' (' + ageHours + 'h ago), compressed size ' + sizeMb + ' MB.';
+      } else {
+        freshnessEl.textContent = 'Snapshot manifest loaded, but freshness metadata is incomplete.';
+      }
+    } catch {
+      countEl.textContent = 'N/A';
+      freshnessEl.textContent =
+        'Snapshot manifest is not reachable from this deployment. Treat static counts cautiously and prefer the local stdio server as canonical.';
+    }
+  }
+
+  loadSnapshotManifest();
+</script>
 </body>
 </html>

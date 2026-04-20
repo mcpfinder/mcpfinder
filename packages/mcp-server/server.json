@@ -1,12 +1,12 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "dev.mcpfinder/server",
-  "title": "MCPfinder",
-  "description": "The MCP server that finds MCP servers. Aggregates Official Registry, Glama, and Smithery.",
+  "title": "MCPfinder - MCP Server Discovery",
+  "description": "Install once. Your AI discovers, evaluates, and installs MCP servers on demand across Official Registry, Glama, and Smithery.",
   "version": "1.0.0",
   "websiteUrl": "https://mcpfinder.dev",
   "repository": {
-    "url": "https://github.com/lksrz/mcpfinder",
+    "url": "https://github.com/mcpfinder/mcpfinder",
     "source": "github",
     "subfolder": "packages/mcp-server"
   },
@@ -20,24 +20,34 @@
       }
     }
   ],
-  "remotes": [
-    {
-      "type": "streamable-http",
-      "url": "https://mcpfinder.dev/mcp"
-    }
-  ],
   "_meta": {
     "io.modelcontextprotocol.registry/publisher-provided": {
-      "protocolVersion": "2024-11-05",
+      "protocolVersion": "2025-12-11",
       "authentication": "none",
       "tools": [
         "search_mcp_servers",
         "get_server_details",
-        "get_install_command",
-        "list_categories",
-        "browse_category"
+        "get_install_config",
+        "browse_categories"
       ],
-      "documentation": "https://github.com/lksrz/mcpfinder/blob/main/README.md"
+      "documentation": "https://github.com/mcpfinder/mcpfinder/blob/main/README.md",
+      "toolHints": [
+        {
+          "name": "search_mcp_servers",
+          "description": "Find candidate MCP servers by keyword, technology, or use case.",
+          "exampleQuery": "postgres"
+        },
+        {
+          "name": "get_server_details",
+          "description": "Inspect trust signals, tools, env vars, and warnings before recommending a server.",
+          "exampleQuery": "io.modelcontextprotocol/filesystem"
+        },
+        {
+          "name": "get_install_config",
+          "description": "Generate a client-specific JSON config snippet for installation.",
+          "exampleQuery": "filesystem for claude-desktop"
+        }
+      ]
     }
   }
 }

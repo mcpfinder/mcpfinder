@@ -1,31 +1,19 @@
-# MCPfinder — An App Store for Your AI 🔍
+# MCPfinder
 
-> **The MCP server that finds MCP servers.**
+> The MCP server that helps AI agents discover, evaluate, and install other MCP servers.
 
-**Install once. Your AI finds and installs MCP servers for you.**
+MCPfinder is an AI-first discovery layer over the Official MCP Registry, Glama, and Smithery. Install it once, and your assistant can search for missing capabilities, inspect trust signals, review required secrets, and generate client-specific MCP config snippets.
 
-Every time you need a new tool — a database connector, file manager, API integration — you have to manually search GitHub, npm, or registries, find the right MCP server, figure out the config format, and paste it into a JSON file. 
+## Canonical Use
 
-MCPfinder eliminates all of that. Add it to your AI tool once, and from that point on your AI can **discover, evaluate, and install any MCP server on demand** from 25000+ options across three registries.
-
-> **You:** "I need to connect to my PostgreSQL database"  
-> **AI:** *(uses MCPfinder)* → finds `postgres-mcp-server` → generates config → done.
-
-## Why MCPfinder?
-
-- 🔍 **Your AI searches for you** — 25000+ servers, 3 registries, full-text search with ranking
-- 📦 **Ready-to-paste configs** — for Claude Desktop, Cursor, Claude Code, Cline, Windsurf, VS Code
-- ⭐ **Smart ranking** — popularity, relevance, recency, and cross-registry presence
-- 🌐 **Remote servers supported** — hosted MCP servers work out of the box (no npm install needed)
-- ⚡ **Zero config** — just add MCPfinder and start asking
+- Canonical transport: `stdio` via `npx -y @mcpfinder/server`
+- Canonical package: [`@mcpfinder/server`](https://www.npmjs.com/package/@mcpfinder/server)
+- MCP Registry entry: [`dev.mcpfinder/server`](https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder)
+- Public HTTP endpoint: intentionally not advertised as canonical until its tool surface is fully identical to the local server
 
 ## Quick Install
 
-Add MCPfinder to your AI tool — pick your platform:
-
 ### Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
@@ -37,28 +25,9 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) o
   }
 }
 ```
-Restart Claude Desktop to activate.
 
 ### Cursor
 
-Add to `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
-
-```json
-{
-  "mcpServers": {
-    "mcpfinder": {
-      "command": "npx",
-      "args": ["-y", "@mcpfinder/server"]
-    }
-  }
-}
-```
-Cursor auto-detects config changes — no restart needed.
-
-### Claude Code (CLI)
-
-Add to `.mcp.json` (project) or `~/.claude.json` (global):
-
 ```json
 {
   "mcpServers": {
@@ -70,9 +39,7 @@ Add to `.mcp.json` (project) or `~/.claude.json` (global):
 }
 ```
 
-### Cline / Roo Code (VS Code)
-
-Add to `.vscode/mcp.json`:
+### Claude Code
 
 ```json
 {
@@ -85,85 +52,120 @@ Add to `.vscode/mcp.json`:
 }
 ```
 
-### Windsurf
+Supported install targets today:
 
-Add to `~/.windsurf/mcp.json`:
+- Claude Desktop
+- Cursor
+- Claude Code
+- Cline / Roo Code
+- Windsurf
 
-```json
-{
-  "mcpServers": {
-    "mcpfinder": {
-      "command": "npx",
-      "args": ["-y", "@mcpfinder/server"]
-    }
-  }
-}
-```
+## For AI Assistants
 
-> **Note:** First run syncs all registries (~1-2 min). After that, data is cached locally and refreshes automatically.
+Use MCPfinder when the user needs a capability you do not already have.
 
-## What Can Your AI Do With MCPfinder?
+- If the user mentions Slack, Postgres, GitHub, Notion, AWS, Google Drive, filesystems, browsers, APIs, or databases: call `search_mcp_servers`.
+- Before recommending a server: call `get_server_details`.
+- Before telling the user what to paste into config: call `get_install_config`.
+- If the user only knows a domain, not a specific technology: call `browse_categories` (omit `category` to list; pass `category` for top servers).
 
-| Tool | What it does | When to use |
-|------|-------------|-------------|
-| `search_mcp_servers` | Search 25000+ servers by keyword, use case, or technology | User needs a capability you don't have |
-| `get_server_details` | Full details — description, env vars, popularity, sources | Evaluate a server before recommending it |
-| `get_install_command` | Ready-to-paste config for any platform | User wants to install a specific server |
-| `list_categories` | Browse categories with server counts | User isn't sure what they need |
-| `browse_category` | Popular servers in a specific category | Explore a domain (database, AI, cloud, etc.) |
+Preferred workflow:
 
-## How It Works
+1. `search_mcp_servers(query="postgres")`
+2. `get_server_details(name="...best candidate...")`
+3. `get_install_config(name="...best candidate...", platform="claude-desktop")`
+4. Tell the user what server you chose, why, which secrets are required, and what restart/reload step is needed.
 
-```
-User: "I need to access my Slack workspace"
-  ↓
-AI calls search_mcp_servers("slack")
-  ↓
-MCPfinder searches 25000+ servers across 3 registries
-  ↓
-Returns ranked results (relevance × popularity × recency)
-  ↓
-AI calls get_install_command("slack-mcp", "cursor")
-  ↓
-Returns ready-to-paste JSON config + file path + env vars needed
-  ↓
-AI configures it (or shows user what to paste)
-  ↓
-Done — new capability added ✨
-```
+## Tool Surface
 
-## Search & Ranking
+| Tool | Purpose | When to call |
+| --- | --- | --- |
+| `search_mcp_servers` | Search by keyword, technology, or use case | First step when a capability is missing |
+| `get_server_details` | Inspect metadata, trust signals, tools, warnings, env vars | Before recommending or installing |
+| `get_install_config` | Generate a JSON config snippet for a target client | After selecting a server |
+| `browse_categories` | Single-call category browser (omit `category` to list; pass `category` for top servers) | Domain-driven discovery |
 
-**Full-text search** powered by SQLite FTS5. Results ranked by:
-- **Relevance** (40%) — how well the query matches name/description
-- **Popularity** (30%) — Smithery usage count (log-scaled)
-- **Registry presence** (20%) — appears in multiple registries = more established
-- **Recency** (10%) — recently updated servers ranked higher
+## What MCPfinder Returns
 
-**Filters:** transport type (`stdio`/`sse`/`http`), package type (`npm`/`pypi`/`docker`), registry source (`official`/`glama`/`smithery`).
+MCPfinder is intentionally optimized for agent consumption.
+
+- Human-readable text summaries
+- Structured content for chaining follow-up calls
+- Trust signals: source count, verification, popularity, recency
+- Warning flags: stale projects, missing repository URL, unclear install path, single-source-only
+- Install metadata: config snippet, target file paths, required environment variables, restart instructions
+
+## Ranking and Recommendation
+
+Search ranking uses:
+
+- text relevance
+- name-match boost
+- community usage (`useCount`)
+- official registry presence
+- verification signals
+
+Each result is also annotated with:
+
+- `confidenceScore`
+- `recommendationReason`
+- `warningFlags`
+- `updatedAt`
+- `sourceCount`
 
 ## Data Sources
 
-| Registry | Servers | Highlights |
-|----------|---------|------------|
-| [Official MCP Registry](https://registry.modelcontextprotocol.io) | ~2,000 | Packages, transport, env vars |
-| [Glama](https://glama.ai/mcp/servers) | ~5,000 | Repository, license, tools metadata |
-| [Smithery](https://smithery.ai) | ~3,500 | Popularity (useCount), verification, hosted/remote servers |
+MCPfinder aggregates:
 
-Servers appearing in multiple registries are **deduplicated** and **merged** — combining metadata from all sources. Data refreshes automatically every 15 minutes.
+- [Official MCP Registry](https://registry.modelcontextprotocol.io)
+- [Glama](https://glama.ai/mcp/servers)
+- [Smithery](https://smithery.ai)
 
-## Architecture
+Counts vary over time and differ depending on whether you count raw upstream records or merged/deduplicated entries. Snapshot metadata is the source of truth for the currently published local bootstrap dataset.
 
+## Snapshots and Freshness
+
+First run can bootstrap from a prebuilt SQLite snapshot instead of doing a slow live sync.
+
+- snapshot manifest: `/api/v1/snapshot/manifest.json`
+- snapshot database: `/api/v1/snapshot/data.sqlite.gz`
+- scheduled build: [`.github/workflows/snapshot.yml`](/Users/lukasz/Git/mcpfinder/.github/workflows/snapshot.yml:1)
+
+## Example Workflow
+
+User request:
+
+```text
+I need my assistant to read data from PostgreSQL.
 ```
+
+Agent workflow:
+
+```text
+search_mcp_servers(query="postgres")
+get_server_details(name="io.example/postgres")
+get_install_config(name="io.example/postgres", platform="cursor")
+```
+
+Agent response:
+
+```text
+I found a PostgreSQL MCP server with official registry presence and recent metadata.
+It requires DATABASE_URL and runs via npx.
+Add this JSON to ~/.cursor/mcp.json, then reload Cursor.
+```
+
+## Repository Layout
+
+```text
 mcpfinder/
 ├── packages/
-│   ├── core/          # SQLite + FTS5 database, multi-registry sync, search, install
-│   └── mcp-server/    # MCP server (stdio) exposing tools
-└── README.md
+│   ├── core/          # sync, SQLite search, trust signals, install-config generation
+│   └── mcp-server/    # stdio MCP server
+├── landing/           # static website and AI-facing public files
+├── api-worker/        # snapshot/support worker for published bootstrap artifacts
+└── scripts/           # snapshot builder and other support scripts
 ```
-
-- **@mcpfinder/core** — Database, sync engine, ranked search, multi-platform install config generation
-- **@mcpfinder/server** — MCP server you add to your AI tool
 
 ## Development
 
@@ -174,24 +176,18 @@ pnpm --filter @mcpfinder/server build
 node packages/mcp-server/dist/index.js
 ```
 
-## Roadmap
+## Current Limitations
 
-- [x] Official MCP Registry sync
-- [x] Multi-registry support (Glama, Smithery)
-- [x] Popularity ranking (Smithery useCount)
-- [x] Source badges and deduplication
-- [x] Multi-platform install configs (6 platforms)
-- [x] Published to npm as `@mcpfinder/server@1.0.0`
-- [x] Published to the Official MCP Registry as `dev.mcpfinder/server@1.0.0`
-- [ ] Web UI at findmcp.dev
+- The local `stdio` server is the canonical interface. Install via `npx -y @mcpfinder/server`.
+- There is no hosted HTTP MCP endpoint currently served at `mcpfinder.dev/mcp`. The `api-worker` package is reserved for snapshot support and will only be promoted to a canonical HTTP transport once it exposes the same tool contract as the stdio server.
+- Tool metadata quality depends on upstream registries; some servers have rich details, others only partial metadata.
+- Tool-level capability extraction is currently strongest for sources that expose tool manifests directly, especially Glama.
 
 ## Links
 
-- **npm:** [@mcpfinder/server](https://www.npmjs.com/package/@mcpfinder/server)
-- **MCP Registry:** [`dev.mcpfinder/server`](https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder)
-- **Website:** [mcpfinder.dev](https://mcpfinder.dev) · [findmcp.dev](https://findmcp.dev)
-- **GitHub:** [lksrz/mcpfinder](https://github.com/lksrz/mcpfinder)
+- Website: [mcpfinder.dev](https://mcpfinder.dev)
+- GitHub: [mcpfinder/mcpfinder](https://github.com/mcpfinder/mcpfinder)
+- npm: [@mcpfinder/server](https://www.npmjs.com/package/@mcpfinder/server)
+- MCP Registry: [`dev.mcpfinder/server`](https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder)
 
----
-
-Built by [Coder AI](https://coderai.dev) · [AGPL-3.0 License](LICENSE)
+Built by [Coder AI](https://coderai.dev) under [AGPL-3.0-or-later](LICENSE).

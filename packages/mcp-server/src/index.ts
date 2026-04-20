@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * MCPfinder MCP Server
- * Your AI's app store for MCP tools — discover and install 25000+ MCP servers on demand.
+ * Your AI's app store for MCP tools — discover and install 10K+ MCP servers on demand.
  * Aggregates Official MCP Registry, Glama, and Smithery into a fast, searchable index.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -18,8 +18,29 @@ import {
   getServerDetails,
   listCategories,
   getServersByCategory,
+  bootstrapFromSnapshot,
 } from '@mcpfinder/core';
 import type { RegistryEnvVar } from '@mcpfinder/core';
+
+// Bootstrap from hosted snapshot on first run (much faster than live sync).
+// Disable with MCPFINDER_DISABLE_SNAPSHOT=1; override URL with MCPFINDER_SNAPSHOT_BASE.
+async function maybeBootstrap(): Promise<void> {
+  if (process.env.MCPFINDER_DISABLE_SNAPSHOT) return;
+  const result = await bootstrapFromSnapshot({
+    baseUrl: process.env.MCPFINDER_SNAPSHOT_BASE,
+  });
+  if (result.ok) {
+    process.stderr.write(
+      `[mcpfinder] Bootstrapped from snapshot: ${result.servers} servers, ` +
+        `${((result.bytesDownloaded ?? 0) / 1e6).toFixed(1)}MB in ${result.durationMs}ms ` +
+        `(published ${result.publishedAt})\n`,
+    );
+  } else if (result.reason !== 'db-already-exists') {
+    process.stderr.write(`[mcpfinder] Snapshot bootstrap skipped: ${result.reason}\n`);
+  }
+}
+
+await maybeBootstrap();
 
 // Initialize database
 const db = initDatabase();
@@ -123,6 +144,21 @@ function buildEnvMap(envVars: RegistryEnvVar[]): Record<string, string> {
   return env;
 }
 
+// Returns a CallToolResult with both a human-readable text block and a
+// machine-readable `structuredContent` field. Clients that understand the
+// MCP 2025-12-11 spec can read structuredContent directly; older clients
+// fall back to the text block.
+function makeTextResponse(text: string, structuredContent?: Record<string, unknown>) {
+  const result: {
+    content: Array<{ type: 'text'; text: string }>;
+    structuredContent?: Record<string, unknown>;
+  } = {
+    content: [{ type: 'text' as const, text }],
+  };
+  if (structuredContent) result.structuredContent = structuredContent;
+  return result;
+}
+
 async function ensureSync(): Promise<void> {
   const count = getServerCount(db);
   if (count === 0 || isSyncNeeded(db)) {
@@ -138,30 +174,75 @@ async function ensureSync(): Promise<void> {
   }
 }
 
+// ─── Output schemas (permissive — let record-shaped nested data through) ────
+
+const nextActionsSchema = z.array(z.string());
+
+const searchOutputSchema = {
+  query: z.string(),
+  results: z.array(z.record(z.string(), z.unknown())),
+  next_actions: nextActionsSchema,
+};
+
+const detailsOutputSchema = {
+  found: z.boolean(),
+  server: z.record(z.string(), z.unknown()).optional(),
+  name: z.string().optional(),
+  next_actions: nextActionsSchema,
+};
+
+const installOutputSchema = {
+  found: z.boolean(),
+  autoInstallable: z.boolean().optional(),
+  server: z.string().optional(),
+  platform: z.string().optional(),
+  installType: z.string().optional(),
+  configFilePath: z.record(z.string(), z.string()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
+  envVarsNeeded: z.array(z.record(z.string(), z.unknown())).optional(),
+  safe_to_autoinstall: z.boolean().optional(),
+  requires_user_secrets: z.boolean().optional(),
+  warningFlags: z.array(z.string()).optional(),
+  next_actions: nextActionsSchema,
+};
+
+const browseOutputSchema = {
+  category: z.string().optional(),
+  categories: z
+    .array(z.object({ name: z.string(), count: z.number() }))
+    .optional(),
+  results: z.array(z.record(z.string(), z.unknown())).optional(),
+  next_actions: nextActionsSchema,
+};
+
 // ─── Tool: search_mcp_servers ───────────────────────────────────────────────
 
-server.tool(
+server.registerTool(
   'search_mcp_servers',
-  'Use when the user needs a capability you don\'t have. Search 25000+ MCP servers by keyword, use case, or technology from Official MCP Registry, Glama, and Smithery. Returns ranked results with install info.',
   {
-    query: z.string().default('').describe(
-      'Search query — a keyword (e.g., "filesystem"), use case ("query databases"), or technology ("postgres"). ' +
-      'Common aliases work: "gh" → github, "pg" → postgres, "k8s" → kubernetes, "db" → database. ' +
-      'Leave empty to see the most popular servers.',
-    ),
-    limit: z.number().min(1).max(50).default(10).describe('Maximum results to return (default: 10, max: 50)'),
-    transportType: z
-      .enum(['stdio', 'streamable-http', 'sse', 'any'])
-      .default('any')
-      .describe('Filter by transport type'),
-    registryType: z
-      .enum(['npm', 'pypi', 'oci', 'any'])
-      .default('any')
-      .describe('Filter by package registry type'),
-    registrySource: z
-      .enum(['official', 'glama', 'smithery', 'any'])
-      .default('any')
-      .describe('Filter by registry source'),
+    description:
+      'Call this first whenever the user needs a capability you do not already have. Use it when the user mentions an external service, a database, a filesystem, a SaaS tool, or asks "can you connect to X?". Examples: "connect to postgres" -> query "postgres"; "read my Slack" -> query "slack"; "browse local files" -> query "filesystem". If results are weak, retry with a broader term. After choosing a candidate, call get_server_details before recommending or installing it.',
+    inputSchema: {
+      query: z.string().default('').describe(
+        'Search query — a keyword (e.g., "filesystem"), use case ("query databases"), or technology ("postgres"). ' +
+          'Common aliases work: "gh" → github, "pg" → postgres, "k8s" → kubernetes, "db" → database. ' +
+          'Leave empty to see the most popular servers.',
+      ),
+      limit: z.number().min(1).max(50).default(10).describe('Maximum results to return (default: 10, max: 50)'),
+      transportType: z
+        .enum(['stdio', 'streamable-http', 'sse', 'any'])
+        .default('any')
+        .describe('Filter by transport type'),
+      registryType: z
+        .enum(['npm', 'pypi', 'oci', 'any'])
+        .default('any')
+        .describe('Filter by package registry type'),
+      registrySource: z
+        .enum(['official', 'glama', 'smithery', 'any'])
+        .default('any')
+        .describe('Filter by registry source'),
+    },
+    outputSchema: searchOutputSchema,
   },
   async ({ query, limit, transportType, registryType, registrySource }) => {
     await ensureSync();
@@ -173,14 +254,14 @@ server.tool(
     });
 
     if (results.length === 0) {
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: `No servers found for "${query}". Try a different search term or browse categories with list_categories.`,
-          },
-        ],
-      };
+      return makeTextResponse(
+        `No servers found for "${query}". Try a broader term, a synonym, or browse categories.`,
+        {
+          query,
+          results: [],
+          next_actions: ['browse_categories()', 'search_mcp_servers(query="<broader term>")'],
+        },
+      );
     }
 
     const formatted = results
@@ -196,40 +277,54 @@ server.tool(
       })
       .join('\n\n');
 
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: query
-            ? `Found ${results.length} MCP server(s) for "${query}":\n\n${formatted}\n\nUse get_server_details for full info, or get_install_command to generate install config for any platform.`
-            : `Top ${results.length} most popular MCP servers:\n\n${formatted}\n\nUse search_mcp_servers with a query to find specific servers, or get_install_command to install any of these.`,
-        },
-      ],
-    };
+    return makeTextResponse(
+      query
+        ? `Found ${results.length} MCP server(s) for "${query}":\n\n${formatted}\n\nCall get_server_details on the best candidate before recommending or installing it.`
+        : `Top ${results.length} most popular MCP servers:\n\n${formatted}\n\nCall get_server_details on a candidate before recommending or installing it.`,
+      {
+        query,
+        results: results.map((r) => ({
+          name: r.name,
+          packageIdentifier: r.packageIdentifier,
+          registryType: r.registryType,
+          transportType: r.transportType,
+          hasRemote: r.hasRemote,
+          sources: r.sources,
+          updatedAt: r.updatedAt,
+          confidenceScore: r.confidenceScore,
+          recommendationReason: r.recommendationReason,
+          warningFlags: r.warningFlags,
+        })),
+        next_actions: results.slice(0, 3).map((r) => `get_server_details(name="${r.name}")`),
+      },
+    );
   },
 );
 
 // ─── Tool: get_server_details ───────────────────────────────────────────────
 
-server.tool(
+server.registerTool(
   'get_server_details',
-  'Get full details about a specific MCP server before installing — description, tools, required environment variables, popularity, and source registries. Use this to evaluate a server before generating install config.',
   {
-    name: z.string().describe('Server name (e.g., "io.modelcontextprotocol/filesystem") or slug (e.g., "filesystem")'),
+    description:
+      'Always call this before recommending or installing a server. It returns the metadata you need to judge safety and fit: install method, transport, environment variables, source count, trust signals, warnings, and any discovered tools/capabilities. Use it to warn the user about secrets, stale projects, or weak metadata before calling get_install_config.',
+    inputSchema: {
+      name: z
+        .string()
+        .describe('Server name (e.g., "io.modelcontextprotocol/filesystem") or slug (e.g., "filesystem")'),
+    },
+    outputSchema: detailsOutputSchema,
   },
   async ({ name }) => {
     await ensureSync();
 
     const detail = getServerDetails(db, name);
     if (!detail) {
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: `Server "${name}" not found. Try searching with search_mcp_servers first.`,
-          },
-        ],
-      };
+      return makeTextResponse(`Server "${name}" not found. Search first with search_mcp_servers.`, {
+        name,
+        found: false,
+        next_actions: ['search_mcp_servers(query="<keyword>")'],
+      });
     }
 
     const envSection =
@@ -244,6 +339,34 @@ server.tool(
         : '';
 
     const badges = sourceBadges(detail.sources, detail.useCount, detail.verified);
+    const toolSection =
+      detail.toolsExposed.length > 0
+        ? '\n\n**Tools Exposed:**\n' +
+          detail.toolsExposed
+            .slice(0, 15)
+            .map((tool) => `- \`${tool.name}\`${tool.description ? `: ${tool.description}` : ''}`)
+            .join('\n')
+        : '';
+    const warningsSection =
+      detail.warningFlags.length > 0 ? `**Warnings:** ${detail.warningFlags.join(', ')}` : '';
+    const trustSection = [
+      `**Freshness:** ${detail.freshnessLabel}${detail.freshnessDays !== null ? ` (${detail.freshnessDays}d)` : ''}`,
+      `**Install Complexity:** ${detail.installComplexity}`,
+      `**Secrets Required:** ${detail.secretCount}`,
+      `**Capabilities Discovered:** ${detail.capabilityCount}`,
+      `**Trust Signals:** ${
+        [
+          detail.trustSignals.hasOfficialSource ? 'official' : '',
+          detail.trustSignals.isVerified ? 'verified' : '',
+          detail.trustSignals.multiSource ? 'multi-source' : '',
+          detail.trustSignals.hasRepository ? 'repository' : '',
+          detail.trustSignals.hasRemote ? 'remote' : '',
+          detail.trustSignals.hasRecentUpdate ? 'recent-update' : '',
+        ]
+          .filter(Boolean)
+          .join(', ') || 'none'
+      }`,
+    ].join('\n');
 
     const text = [
       `# ${detail.name}`,
@@ -260,218 +383,263 @@ server.tool(
       `**Updated:** ${detail.updatedAt || 'N/A'}`,
       detail.categories.length > 0 ? `**Categories:** ${detail.categories.join(', ')}` : '',
       badges ? `**Sources:** ${badges}` : '',
+      `**Source Count:** ${detail.sourceCount}`,
+      `**Confidence:** ${detail.confidenceScore}`,
+      `**Why recommended:** ${detail.recommendationReason}`,
       detail.useCount > 0 ? `**Popularity:** ${formatUseCount(detail.useCount)} uses` : '',
       detail.verified ? '**Verified:** ✓' : '',
+      trustSection,
+      warningsSection,
+      toolSection,
       envSection,
       '',
-      'Use get_install_command to generate ready-to-use config for any platform.',
+      'If this looks acceptable, call get_install_config to generate a client-specific JSON config snippet.',
     ]
       .filter(Boolean)
       .join('\n');
 
-    return {
-      content: [{ type: 'text' as const, text }],
-    };
+    return makeTextResponse(text, {
+      found: true,
+      server: {
+        name: detail.name,
+        registryType: detail.registryType,
+        packageIdentifier: detail.packageIdentifier,
+        transportType: detail.transportType,
+        repositoryUrl: detail.repositoryUrl,
+        remoteUrl: detail.remoteUrl,
+        categories: detail.categories,
+        sources: detail.sources,
+        sourceCount: detail.sourceCount,
+        useCount: detail.useCount,
+        verified: detail.verified,
+        confidenceScore: detail.confidenceScore,
+        recommendationReason: detail.recommendationReason,
+        warningFlags: detail.warningFlags,
+        trustSignals: detail.trustSignals,
+        freshnessDays: detail.freshnessDays,
+        freshnessLabel: detail.freshnessLabel,
+        installComplexity: detail.installComplexity,
+        secretCount: detail.secretCount,
+        capabilityCount: detail.capabilityCount,
+        environmentVariables: detail.environmentVariables,
+        toolsExposed: detail.toolsExposed,
+      },
+      next_actions: [`get_install_config(name="${detail.name}", platform="claude-desktop")`],
+    });
   },
 );
 
-// ─── Tool: get_install_command ──────────────────────────────────────────────
+// ─── Tool: get_install_config ───────────────────────────────────────────────
 
-server.tool(
-  'get_install_command',
-  'Generate ready-to-use install config for any MCP platform: Claude Desktop, Cursor, Claude Code, Cline (VS Code), or Windsurf. Returns the JSON config snippet, config file path (OS-specific), required env vars, and post-install instructions. Supports both local (npx/uvx/docker) and remote (SSE) servers.',
-  {
-    name: z.string().describe('Server name or slug (e.g., "filesystem", "io.modelcontextprotocol/filesystem")'),
-    platform: z
-      .enum(['claude-desktop', 'cursor', 'claude-code', 'cline', 'windsurf'])
-      .default('claude-desktop')
-      .describe('Target platform for install config'),
-  },
-  async ({ name, platform }) => {
-    await ensureSync();
+async function buildInstallConfigResponse(name: string, platform: Platform) {
+  await ensureSync();
 
-    const detail = getServerDetails(db, name);
-    if (!detail) {
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: `Server "${name}" not found. Try searching with search_mcp_servers first.`,
-          },
-        ],
-      };
-    }
+  const detail = getServerDetails(db, name);
+  if (!detail) {
+    return makeTextResponse(`Server "${name}" not found. Try searching with search_mcp_servers first.`, {
+      name,
+      found: false,
+      next_actions: ['search_mcp_servers(query="<keyword>")'],
+    });
+  }
 
-    const serverKey = detail.name.includes('/') ? (detail.name.split('/').pop() || detail.name) : detail.name;
-    const envVars = detail.environmentVariables || [];
-    const env = buildEnvMap(envVars);
-    const platformInfo = PLATFORMS[platform];
-    const isRemote = detail.hasRemote && detail.remoteUrl;
+  const serverKey = detail.name.includes('/') ? detail.name.split('/').pop() || detail.name : detail.name;
+  const envVars = detail.environmentVariables || [];
+  const env = buildEnvMap(envVars);
+  const platformInfo = PLATFORMS[platform];
+  const isRemote = detail.hasRemote && detail.remoteUrl;
 
-    let serverConfig: Record<string, unknown>;
-    let installType: string;
+  let serverConfig: Record<string, unknown>;
+  let installType: string;
 
-    if (isRemote && detail.remoteUrl) {
-      // Remote/hosted server — use SSE URL
-      serverConfig = { url: detail.remoteUrl };
-      if (Object.keys(env).length > 0) {
-        serverConfig.env = env;
-      }
-      installType = 'remote';
-    } else if (detail.registryType === 'npm' && detail.packageIdentifier) {
-      serverConfig = { command: 'npx', args: ['-y', detail.packageIdentifier] };
-      if (Object.keys(env).length > 0) {
-        serverConfig.env = env;
-      }
-      installType = 'npm';
-    } else if (detail.registryType === 'pypi' && detail.packageIdentifier) {
-      serverConfig = { command: 'uvx', args: [detail.packageIdentifier] };
-      if (Object.keys(env).length > 0) {
-        serverConfig.env = env;
-      }
-      installType = 'pypi';
-    } else if (detail.registryType === 'oci' && detail.packageIdentifier) {
-      serverConfig = {
-        command: 'docker',
-        args: ['run', '-i', ...envVars.flatMap((v) => ['-e', `${v.name}=<YOUR_VALUE>`]), detail.packageIdentifier],
-      };
-      installType = 'docker';
-    } else {
-      // Fallback — no auto-config available
-      const fallbackLines = [
-        `# Install ${detail.name} on ${platformInfo.name}`,
-        '',
-        `⚠️ Auto-config not available for this server (registry type: ${detail.registryType || 'unknown'}).`,
-        '',
-        detail.repositoryUrl ? `Check the repository for manual install instructions: ${detail.repositoryUrl}` : 'No repository URL available.',
-      ];
-      if (envVars.length > 0) {
-        fallbackLines.push('', '**Required environment variables:**');
-        for (const v of envVars) {
-          fallbackLines.push(`- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' ⚠️ secret' : ''}`);
-        }
-      }
-      return { content: [{ type: 'text' as const, text: fallbackLines.join('\n') }] };
-    }
-
-    // Build the config snippet with the platform's top-level key
-    const wrapper: Record<string, unknown> = {
-      [platformInfo.topLevelKey]: { [serverKey]: serverConfig },
-    };
-    const snippet = JSON.stringify(wrapper, null, 2);
-
-    const configPath = `  macOS: ${platformInfo.configPaths.mac}\n  Windows: ${platformInfo.configPaths.windows}\n  Linux: ${platformInfo.configPaths.linux}`;
-
-    // Build response
-    const sections: string[] = [
-      `# Install ${detail.name} on ${platformInfo.name}`,
-      '',
-      installType === 'remote'
-        ? '🌐 **Remote server** — connects via SSE, no local install needed.'
-        : `📦 **Local server** — runs via ${installType === 'npm' ? 'npx' : installType === 'pypi' ? 'uvx' : 'docker'}.`,
-      '',
-      '## Config file',
-      configPath,
-      '',
-      '## JSON to add',
-      '```json',
-      snippet,
-      '```',
-    ];
-
-    if (envVars.length > 0) {
-      sections.push('', '## Required environment variables');
-      for (const v of envVars) {
-        sections.push(`- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' ⚠️ secret — replace <YOUR_VALUE> with your actual key' : ''}`);
-      }
-    }
-
-    sections.push('', '## After adding the config', platformInfo.postInstall);
-
-    if (platform === 'claude-code') {
-      sections.push('', '**Tip:** Use `.mcp.json` in your project root for project-level config, or `~/.claude.json` for global config.');
-    }
-
-    return {
-      content: [{ type: 'text' as const, text: sections.join('\n') }],
-    };
-  },
-);
-
-// ─── Tool: list_categories ──────────────────────────────────────────────────
-
-server.tool(
-  'list_categories',
-  'Explore available MCP servers by category when you\'re not sure what to search for. Returns all categories (database, filesystem, ai, security, etc.) with server counts. Great for discovery.',
-  {},
-  async () => {
-    await ensureSync();
-
-    const categories = listCategories(db);
-
-    if (categories.length === 0) {
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: 'No categories found. The database may be empty — try searching with search_mcp_servers to trigger a sync.',
-          },
-        ],
-      };
-    }
-
-    const formatted = categories
-      .map((c: { name: string; count: number }) => `- **${c.name}** (${c.count} servers)`)
-      .join('\n');
-
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: `MCP Server Categories:\n\n${formatted}\n\nUse browse_category to see servers in a category, or search_mcp_servers for keyword search.`,
-        },
+  if (isRemote && detail.remoteUrl) {
+    serverConfig = { url: detail.remoteUrl };
+    if (Object.keys(env).length > 0) serverConfig.env = env;
+    installType = 'remote';
+  } else if (detail.registryType === 'npm' && detail.packageIdentifier) {
+    serverConfig = { command: 'npx', args: ['-y', detail.packageIdentifier] };
+    if (Object.keys(env).length > 0) serverConfig.env = env;
+    installType = 'npm';
+  } else if (detail.registryType === 'pypi' && detail.packageIdentifier) {
+    serverConfig = { command: 'uvx', args: [detail.packageIdentifier] };
+    if (Object.keys(env).length > 0) serverConfig.env = env;
+    installType = 'pypi';
+  } else if (detail.registryType === 'oci' && detail.packageIdentifier) {
+    serverConfig = {
+      command: 'docker',
+      args: [
+        'run',
+        '-i',
+        ...envVars.flatMap((v) => ['-e', `${v.name}=<YOUR_VALUE>`]),
+        detail.packageIdentifier,
       ],
     };
+    installType = 'docker';
+  } else {
+    const fallbackLines = [
+      `# Install ${detail.name} on ${platformInfo.name}`,
+      '',
+      `Auto-config is not available for this server (registry type: ${detail.registryType || 'unknown'}).`,
+      '',
+      detail.repositoryUrl
+        ? `Check the repository for manual install instructions: ${detail.repositoryUrl}`
+        : 'No repository URL available.',
+    ];
+    if (envVars.length > 0) {
+      fallbackLines.push('', '**Required environment variables:**');
+      for (const v of envVars) {
+        fallbackLines.push(
+          `- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' (secret)' : ''}`,
+        );
+      }
+    }
+    return makeTextResponse(fallbackLines.join('\n'), {
+      found: true,
+      autoInstallable: false,
+      warningFlags: detail.warningFlags,
+      next_actions: [],
+    });
+  }
+
+  const wrapper: Record<string, unknown> = {
+    [platformInfo.topLevelKey]: { [serverKey]: serverConfig },
+  };
+  const snippet = JSON.stringify(wrapper, null, 2);
+
+  const configPath = `  macOS: ${platformInfo.configPaths.mac}\n  Windows: ${platformInfo.configPaths.windows}\n  Linux: ${platformInfo.configPaths.linux}`;
+
+  const sections: string[] = [
+    `# Install ${detail.name} on ${platformInfo.name}`,
+    '',
+    installType === 'remote'
+      ? 'Hosted/remote server. No local package install is needed.'
+      : `Local server run via ${installType === 'npm' ? 'npx' : installType === 'pypi' ? 'uvx' : 'docker'}.`,
+    '',
+    '## Config file',
+    configPath,
+    '',
+    '## JSON to add',
+    '```json',
+    snippet,
+    '```',
+  ];
+
+  if (envVars.length > 0) {
+    sections.push('', '## Required environment variables');
+    for (const v of envVars) {
+      sections.push(
+        `- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' ⚠️ secret — replace <YOUR_VALUE> with your actual value' : ''}`,
+      );
+    }
+  }
+
+  sections.push('', '## After adding the config', platformInfo.postInstall);
+
+  return makeTextResponse(sections.join('\n'), {
+    found: true,
+    autoInstallable: true,
+    server: detail.name,
+    platform,
+    installType,
+    configFilePath: platformInfo.configPaths,
+    config: wrapper,
+    envVarsNeeded: envVars,
+    safe_to_autoinstall: envVars.length === 0,
+    requires_user_secrets: envVars.some((v) => v.isSecret),
+    warningFlags: detail.warningFlags,
+    next_actions: [],
+  });
+}
+
+server.registerTool(
+  'get_install_config',
+  {
+    description:
+      'Use this after get_server_details to generate a ready-to-paste JSON config snippet for the target client. Returns structured config, file paths, required env vars, restart guidance, and safety flags like requires_user_secrets and safe_to_autoinstall.',
+    inputSchema: {
+      name: z
+        .string()
+        .describe('Server name or slug (e.g., "filesystem", "io.modelcontextprotocol/filesystem")'),
+      platform: z
+        .enum(['claude-desktop', 'cursor', 'claude-code', 'cline', 'windsurf'])
+        .default('claude-desktop')
+        .describe('Target platform for install config'),
+    },
+    outputSchema: installOutputSchema,
   },
+  async ({ name, platform }) => buildInstallConfigResponse(name, platform),
 );
 
-// ─── Tool: browse_category ─────────────────────────────────────────────────
+// ─── Tool: browse_categories ────────────────────────────────────────────────
 
-server.tool(
-  'browse_category',
-  'See the most popular and trusted MCP servers in a specific category (e.g., database, filesystem, api, ai, security). Servers are ranked by community usage. Use list_categories first to see available categories.',
+server.registerTool(
+  'browse_categories',
   {
-    category: z.string().describe('Category name from list_categories output'),
-    limit: z.number().min(1).max(50).default(20).describe('Maximum results to return (default: 20, max: 50)'),
+    description:
+      'Single-call category browser for broad discovery. Call with no `category` to list all categories with counts; call with a `category` to get the highest-signal servers in that category. Prefer search_mcp_servers when the user names a concrete technology like Slack, Postgres, GitHub, or Notion; use this when discovery is domain-driven (database, filesystem, communication, security, ai, etc.).',
+    inputSchema: {
+      category: z
+        .string()
+        .optional()
+        .describe('Optional category name; omit to list all categories'),
+      limit: z
+        .number()
+        .min(1)
+        .max(50)
+        .default(20)
+        .describe('Maximum results when category is provided (default: 20, max: 50)'),
+    },
+    outputSchema: browseOutputSchema,
   },
   async ({ category, limit }) => {
     await ensureSync();
 
-    const servers = getServersByCategory(db, category.toLowerCase(), limit);
-
-    if (servers.length === 0) {
-      return {
-        content: [
+    if (!category) {
+      const categories = listCategories(db);
+      if (categories.length === 0) {
+        return makeTextResponse(
+          'No categories found. The database may be empty; try search_mcp_servers to trigger a sync.',
           {
-            type: 'text' as const,
-            text: `No servers found in category "${category}". Use list_categories to see available categories.`,
+            categories: [],
+            next_actions: ['search_mcp_servers(query="filesystem")'],
           },
-        ],
-      };
+        );
+      }
+      const formatted = categories
+        .map((c: { name: string; count: number }) => `- **${c.name}** (${c.count} servers)`)
+        .join('\n');
+      return makeTextResponse(
+        `MCP Server Categories:\n\n${formatted}\n\nCall browse_categories(category="<name>") to see top servers in a category.`,
+        {
+          categories,
+          next_actions: categories.slice(0, 3).map((c) => `browse_categories(category="${c.name}")`),
+        },
+      );
+    }
+
+    const servers = getServersByCategory(db, category.toLowerCase(), limit);
+    if (servers.length === 0) {
+      return makeTextResponse(
+        `No servers found in category "${category}". Call browse_categories() with no argument to list available categories.`,
+        {
+          category,
+          results: [],
+          next_actions: ['browse_categories()'],
+        },
+      );
     }
 
     const formatted = servers
       .map((s, idx) => `${idx + 1}. **${s.name}** (v${s.version})\n   ${s.description}`)
       .join('\n\n');
-
-    return {
-      content: [
-        {
-          type: 'text' as const,
-          text: `Servers in category "${category}" (${servers.length}):\n\n${formatted}\n\nUse get_install_command to generate config for any of these servers.`,
-        },
-      ],
-    };
+    return makeTextResponse(
+      `Servers in category "${category}" (${servers.length}):\n\n${formatted}\n\nCall get_server_details on a candidate before installation.`,
+      {
+        category,
+        results: servers,
+        next_actions: servers.slice(0, 3).map((s) => `get_server_details(name="${s.name}")`),
+      },
+    );
   },
 );
 

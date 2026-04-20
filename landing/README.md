@@ -12,6 +12,10 @@ on 2026-04-20 so the site lives alongside the code.
 landing/
 ├── public/
 │   ├── index.html                          # one-pager, fully self-contained (inline CSS)
+│   ├── llms.txt                            # short AI-facing discovery guide
+│   ├── llms-full.txt                       # expanded AI-facing manual
+│   ├── robots.txt
+│   ├── sitemap.xml
 │   └── .well-known/
 │       └── mcp-registry-auth              # ed25519 pubkey for the MCP Registry proof
 └── wrangler.toml
@@ -45,9 +49,10 @@ confident, delete it in the dashboard.
 ## Content state
 
 Reconciled with the 1.0.0 release on 2026-04-20: version, license
-(AGPL-3.0), server count (5000+), and registry list (Official + Glama +
-Smithery) all match the code. Live production still serves the older
-v0.4.1 / MIT / 500+ copy — deploy this `landing/` to cut over.
+(AGPL-3.0), registry list (Official + Glama + Smithery), AI-facing docs,
+and canonical stdio positioning all match the code. Avoid hard-coding raw
+server counts in copy unless they are driven from snapshot metadata or a
+build-time source of truth.
 
 The `.well-known/mcp-registry-auth` file is load-bearing — it's how
 `mcp-publisher login http --domain=mcpfinder.dev` proves ownership. Don't

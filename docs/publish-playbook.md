@@ -86,7 +86,7 @@ npm name:         @mcpfinder/server
 MCP Registry:     dev.mcpfinder/server
 Auth domain:      mcpfinder.dev
 Auth mechanism:   HTTP well-known (ed25519)
-Repository:       https://github.com/lksrz/mcpfinder (subfolder: packages/mcp-server)
+Repository:       https://github.com/mcpfinder/mcpfinder (subfolder: packages/mcp-server)
 ```
 
 ## CI automation (not set up yet)

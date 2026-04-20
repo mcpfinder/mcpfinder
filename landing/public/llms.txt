@@ -1,0 +1,44 @@
+MCPfinder
+
+MCPfinder is an MCP server for AI agents. It helps an assistant discover, evaluate, and install other MCP servers.
+
+Canonical install:
+{
+  "mcpServers": {
+    "mcpfinder": {
+      "command": "npx",
+      "args": ["-y", "@mcpfinder/server"]
+    }
+  }
+}
+
+Canonical transport:
+- stdio via @mcpfinder/server
+
+Core tools (4):
+- search_mcp_servers: find candidate servers by keyword, technology, or use case
+- get_server_details: inspect trust signals, tools, warnings, env vars, and transport
+- get_install_config: generate JSON config for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf
+- browse_categories: single-call category explorer — omit category to list, pass category to get top servers
+
+When an AI should use MCPfinder:
+- The user asks for a capability the AI does not already have
+- The user wants access to a service like Slack, GitHub, Notion, Postgres, or AWS
+- The AI wants to avoid hand-writing a connector if an MCP server already exists
+
+Recommended flow:
+1. search_mcp_servers(query="postgres")
+2. get_server_details(name="best candidate")
+3. get_install_config(name="best candidate", platform="claude-desktop")
+
+Selection signals surfaced by MCPfinder:
+- official registry presence
+- verification flags
+- community usage
+- source count
+- recency
+- warning flags
+
+More detail:
+- https://mcpfinder.dev/llms-full.txt
+- https://github.com/mcpfinder/mcpfinder

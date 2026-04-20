@@ -4,13 +4,13 @@
   "mcpName": "dev.mcpfinder/server",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lksrz/mcpfinder.git",
+    "url": "git+https://github.com/mcpfinder/mcpfinder.git",
     "directory": "packages/mcp-server"
   },
   "homepage": "https://mcpfinder.dev",
-  "bugs": { "url": "https://github.com/lksrz/mcpfinder/issues" },
+  "bugs": { "url": "https://github.com/mcpfinder/mcpfinder/issues" },
   "engines": { "node": ">=20" },
-  "description": "Search engine for 25000+ MCP servers. Aggregates Official Registry, Glama, and Smithery with ranked full-text search. Find and install MCP tools from your AI assistant.",
+  "description": "MCP server discovery tool for AI agents. Searches MCP servers across Official Registry, Glama, and Smithery so your AI can find, evaluate, and install tools on demand.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -31,7 +31,10 @@
     "discovery",
     "ai",
     "claude",
-    "cursor"
+    "cursor",
+    "agent-tooling",
+    "llm-plugins",
+    "claude-desktop-tool"
   ],
   "author": "Coder AI <hello@coderai.dev>",
   "license": "AGPL-3.0-or-later",

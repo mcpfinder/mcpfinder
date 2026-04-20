@@ -1,0 +1,94 @@
+MCPfinder
+
+Overview
+MCPfinder is an AI-first discovery layer over the Official MCP Registry, Glama, and Smithery. Its job is to help an assistant find missing capabilities, inspect trust signals, review required secrets, and generate install-ready config snippets for MCP clients.
+
+Canonical interface
+- Canonical package: @mcpfinder/server
+- Canonical transport: stdio
+- Registry entry: dev.mcpfinder/server
+
+Important product note
+Use the local stdio server as the canonical experience. Do not assume any public HTTP endpoint is feature-equivalent unless the product explicitly says so.
+
+Tools (4 canonical)
+1. search_mcp_servers
+Purpose: search by keyword, technology, or use case.
+Use when: the user needs a capability you do not already have.
+Examples:
+- postgres
+- slack
+- filesystem
+- github issues
+
+2. get_server_details
+Purpose: inspect trust signals, environment variables, tools, warnings, and install method.
+Use when: before recommending or installing a candidate.
+This is the gate that should catch stale projects, missing repositories, and secrets.
+
+3. get_install_config
+Purpose: generate a client-specific JSON config snippet.
+Use when: after selecting a candidate and choosing a client platform.
+
+4. browse_categories
+Purpose: single-call category exploration. Omit `category` to list all categories with counts; provide `category` to get top servers in that category. Use when the user knows a domain (database, filesystem, security, communication) but not a specific technology.
+
+Recommended agent workflow
+1. Search for candidate servers.
+2. Read the details of the top one or two results.
+3. Prefer servers with stronger trust signals:
+- official registry presence
+- verification
+- multiple sources
+- recent updates
+- clear repository URL
+- install method that is easy to explain
+4. Warn the user if secrets are required.
+5. Only then generate install config.
+
+What structured data MCPfinder exposes
+- confidenceScore
+- recommendationReason
+- warningFlags
+- sourceCount
+- environmentVariables
+- toolsExposed when available
+- next_actions for chaining
+
+How to interpret warningFlags
+- single-source-only: only one registry knows about this server
+- missing-update-date: no recency signal
+- missing-repository-url: weak inspection path
+- install-method-unclear: no clean auto-generated config path
+- stale-over-12-months / stale-over-18-months: review carefully before recommending
+
+How to interpret installComplexity
+- low: zero or one non-secret environment variable; runs cleanly via npx/uvx/docker or a remote URL
+- medium: a few environment variables, some of them secrets — warn the user and ask for values
+- high: many required secrets or the registry does not expose a clean auto-install path — expect the user to follow the upstream repository's setup docs
+
+How to interpret capabilityCount
+- Number of tools/capabilities the downstream MCP server itself exposes, when the upstream registry publishes a tool manifest. 0 means MCPfinder has no tool manifest from upstream — it does not mean the server has no tools; it means you cannot pre-advertise them to the user.
+
+Install example
+{
+  "mcpServers": {
+    "mcpfinder": {
+      "command": "npx",
+      "args": ["-y", "@mcpfinder/server"]
+    }
+  }
+}
+
+Platforms supported for generated install config
+- claude-desktop
+- cursor
+- claude-code
+- cline
+- windsurf
+
+Project links
+- Website: https://mcpfinder.dev
+- README: https://github.com/mcpfinder/mcpfinder/blob/main/README.md
+- npm: https://www.npmjs.com/package/@mcpfinder/server
+- Registry: https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder

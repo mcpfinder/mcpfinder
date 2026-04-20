@@ -115,5 +115,4 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
 
 [AGPL-3.0-or-later](https://www.gnu.org/licenses/agpl-3.0.en.html) — free for
 personal, internal, and commercial use; modifications exposed as a network
-service must be published under the same license. Contact
-`hello@coderai.dev` for a non-AGPL license.
+service must be published under the same license.

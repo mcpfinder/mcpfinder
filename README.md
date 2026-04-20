@@ -32,7 +32,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) o
   "mcpServers": {
     "mcpfinder": {
       "command": "npx",
-      "args": ["-y", "@mcpfinder/server@beta"]
+      "args": ["-y", "@mcpfinder/server"]
     }
   }
 }
@@ -48,7 +48,7 @@ Add to `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
   "mcpServers": {
     "mcpfinder": {
       "command": "npx",
-      "args": ["-y", "@mcpfinder/server@beta"]
+      "args": ["-y", "@mcpfinder/server"]
     }
   }
 }
@@ -64,7 +64,7 @@ Add to `.mcp.json` (project) or `~/.claude.json` (global):
   "mcpServers": {
     "mcpfinder": {
       "command": "npx",
-      "args": ["-y", "@mcpfinder/server@beta"]
+      "args": ["-y", "@mcpfinder/server"]
     }
   }
 }
@@ -79,7 +79,7 @@ Add to `.vscode/mcp.json`:
   "mcpServers": {
     "mcpfinder": {
       "command": "npx",
-      "args": ["-y", "@mcpfinder/server@beta"]
+      "args": ["-y", "@mcpfinder/server"]
     }
   }
 }
@@ -94,7 +94,7 @@ Add to `~/.windsurf/mcp.json`:
   "mcpServers": {
     "mcpfinder": {
       "command": "npx",
-      "args": ["-y", "@mcpfinder/server@beta"]
+      "args": ["-y", "@mcpfinder/server"]
     }
   }
 }
@@ -181,13 +181,14 @@ node packages/mcp-server/dist/index.js
 - [x] Popularity ranking (Smithery useCount)
 - [x] Source badges and deduplication
 - [x] Multi-platform install configs (6 platforms)
-- [x] Published to npm (beta)
+- [x] Published to npm as `@mcpfinder/server@1.0.0`
+- [x] Published to the Official MCP Registry as `dev.mcpfinder/server@1.0.0`
 - [ ] Web UI at findmcp.dev
-- [ ] Stable v1.0.0 release
 
 ## Links
 
 - **npm:** [@mcpfinder/server](https://www.npmjs.com/package/@mcpfinder/server)
+- **MCP Registry:** [`dev.mcpfinder/server`](https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder)
 - **Website:** [mcpfinder.dev](https://mcpfinder.dev) · [findmcp.dev](https://findmcp.dev)
 - **GitHub:** [lksrz/mcpfinder](https://github.com/lksrz/mcpfinder)
 

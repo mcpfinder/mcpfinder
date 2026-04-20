@@ -9,6 +9,7 @@
   },
   "homepage": "https://mcpfinder.dev",
   "bugs": { "url": "https://github.com/lksrz/mcpfinder/issues" },
+  "engines": { "node": ">=20" },
   "description": "Search engine for 5000+ MCP servers. Aggregates Official Registry, Glama, and Smithery with ranked full-text search. Find and install MCP tools from your AI assistant.",
   "type": "module",
   "main": "./dist/index.js",

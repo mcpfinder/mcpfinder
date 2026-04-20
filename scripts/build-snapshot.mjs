@@ -108,12 +108,7 @@ await pipeline(createReadStream(dbPath), createGzip({ level: 9 }), createWriteSt
 
 // Hash the gz file (clients verify this)
 const hash = createHash('sha256');
-await pipeline(createReadStream(gzPath), async function* (stream) {
-  for await (const chunk of stream) {
-    hash.update(chunk);
-    yield chunk;
-  }
-});
+for await (const chunk of createReadStream(gzPath)) hash.update(chunk);
 const sha256 = hash.digest('hex');
 
 const [rawSize, gzSize] = await Promise.all([

@@ -41,6 +41,10 @@ jobs:
         run: node scripts/build-snapshot.mjs
         env:
           GITHUB_SHA: ${{ github.sha }}
+          # Enables Fix 3 enrichment (GitHub repo probe for Smithery rows).
+          # GITHUB_TOKEN is auto-provided per run, 1000 API req/hr unauth is the
+          # limit but Actions raises it via the token.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload to R2
         env:

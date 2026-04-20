@@ -1,6 +1,14 @@
 {
   "name": "@mcpfinder/core",
-  "version": "1.0.0-beta.6",
+  "version": "1.0.0",
+  "description": "Core library for MCPfinder: multi-registry sync (Official, Glama, Smithery), SQLite+FTS5 ranked search, and install config generation.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lksrz/mcpfinder.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://mcpfinder.dev",
+  "bugs": { "url": "https://github.com/lksrz/mcpfinder/issues" },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

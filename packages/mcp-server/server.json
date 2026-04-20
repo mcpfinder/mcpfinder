@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "dev.mcpfinder/server",
+  "title": "MCPfinder",
+  "description": "The MCP server that finds MCP servers. Aggregates Official Registry, Glama, and Smithery.",
+  "version": "1.0.0",
+  "websiteUrl": "https://mcpfinder.dev",
+  "repository": {
+    "url": "https://github.com/lksrz/mcpfinder",
+    "source": "github",
+    "subfolder": "packages/mcp-server"
+  },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@mcpfinder/server",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcpfinder.dev/mcp"
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "protocolVersion": "2024-11-05",
+      "authentication": "none",
+      "tools": [
+        "search_mcp_servers",
+        "get_server_details",
+        "get_install_command",
+        "list_categories",
+        "browse_category"
+      ],
+      "documentation": "https://github.com/lksrz/mcpfinder/blob/main/README.md"
+    }
+  }
+}

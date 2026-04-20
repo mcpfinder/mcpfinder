@@ -1,6 +1,14 @@
 {
   "name": "@mcpfinder/server",
-  "version": "1.0.0-beta.8",
+  "version": "1.0.0",
+  "mcpName": "dev.mcpfinder/server",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lksrz/mcpfinder.git",
+    "directory": "packages/mcp-server"
+  },
+  "homepage": "https://mcpfinder.dev",
+  "bugs": { "url": "https://github.com/lksrz/mcpfinder/issues" },
   "description": "Search engine for 5000+ MCP servers. Aggregates Official Registry, Glama, and Smithery with ranked full-text search. Find and install MCP tools from your AI assistant.",
   "type": "module",
   "main": "./dist/index.js",
@@ -27,7 +35,7 @@
   "author": "Coder AI <hello@coderai.dev>",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "@mcpfinder/core": "^1.0.0-beta.4",
+    "@mcpfinder/core": "workspace:^",
     "@modelcontextprotocol/sdk": "^1.11.0",
     "zod": "^3.23.8"
   },

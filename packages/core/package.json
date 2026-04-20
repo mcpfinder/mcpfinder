@@ -1,6 +1,6 @@
 {
   "name": "@mcpfinder/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Core library for MCPfinder: multi-registry MCP server sync, ranked discovery, trust signals, and install-config generation for AI agents.",
   "repository": {
     "type": "git",

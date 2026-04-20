@@ -196,3 +196,10 @@ packages/*/node_modules/
 *.db-wal
 *.db-shm
 .mcpfinder/
+
+# Diagnostic / exploratory scripts
+packages/*/test-dedup-*.mjs
+
+# Claude Code local state
+.claude/
+!.claude/settings.json

@@ -1,0 +1,5 @@
+test-dedup-*.mjs
+test-*.js
+*.test.ts
+*.test.js
+*.tsbuildinfo

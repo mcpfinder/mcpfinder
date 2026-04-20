@@ -1,0 +1,22 @@
+# Cloudflare Worker (static assets) for the mcpfinder.dev landing page.
+#
+# To deploy as a preview on workers.dev:
+#   cd landing && npx wrangler deploy
+#
+# To cut over from the existing `mcpfinder-landing` Cloudflare Pages project:
+#   1. Detach `mcpfinder.dev` custom domain from the Pages project in CF dash.
+#   2. Uncomment the `routes` block below.
+#   3. Run `npx wrangler deploy` again.
+
+name = "mcpfinder-landing-www"
+compatibility_date = "2024-11-05"
+
+[assets]
+directory = "./public"
+
+[observability]
+enabled = true
+
+# routes = [
+#   { pattern = "mcpfinder.dev/*", zone_name = "mcpfinder.dev" }
+# ]

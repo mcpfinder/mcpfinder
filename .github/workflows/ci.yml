@@ -1,0 +1,49 @@
+name: ci
+
+# Runs on every PR to main and every push to main. Keeps the tool contract
+# stable (scripts/test-contracts.mjs asserts the 4 canonical tools and the
+# absence of removed aliases) and catches type-check regressions in
+# @mcpfinder/core and @mcpfinder/server.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: false # mcp-inspector submodule is dev-only, skip for CI speed
+
+      - uses: pnpm/action-setup@v5
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install workspace deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm --filter @mcpfinder/core build
+
+      - name: Build mcp-server
+        run: pnpm --filter @mcpfinder/server build
+
+      - name: Contract tests (4 canonical tools, no deprecated aliases)
+        run: node scripts/test-contracts.mjs
+
+      - name: Verify server.json shape
+        run: node -e "const m=require('./packages/mcp-server/server.json'); if(m.version!==require('./packages/mcp-server/package.json').version){throw new Error('server.json version does not match package.json')}; console.log('server.json version matches package.json:', m.version)"

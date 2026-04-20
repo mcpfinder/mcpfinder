@@ -209,3 +209,8 @@ packages/*/test-dedup-*.mjs
 .idea/
 *.swp
 *.swo
+
+# Local project notes (not for public repo)
+TODO.md
+NOTES.md
+SCRATCH.md

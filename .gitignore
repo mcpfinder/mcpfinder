@@ -203,3 +203,9 @@ packages/*/test-dedup-*.mjs
 # Claude Code local state
 .claude/
 !.claude/settings.json
+
+# Editor local state (personal prefs, not shared project config)
+.vscode/
+.idea/
+*.swp
+*.swo

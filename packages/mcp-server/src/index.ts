@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * MCPfinder MCP Server
- * Your AI's app store for MCP tools — discover and install 10K+ MCP servers on demand.
+ * Your AI's app store for MCP tools — discover and install 25K+ MCP servers on demand.
  * Aggregates Official MCP Registry, Glama, and Smithery into a fast, searchable index.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';

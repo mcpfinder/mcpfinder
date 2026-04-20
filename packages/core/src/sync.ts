@@ -37,6 +37,34 @@ function slugify(name: string): string {
 }
 
 /**
+ * Normalize a repository URL: lowercase, strip `.git` suffix, strip trailing slashes,
+ * strip SCP-style `git@host:` prefix.
+ * Returns null if the input is empty / not a usable URL.
+ */
+function normalizeRepoUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  let u = url.trim().toLowerCase();
+  if (!u) return null;
+  // git@github.com:owner/repo[.git] -> https://github.com/owner/repo
+  const scp = u.match(/^git@([^:]+):(.+)$/);
+  if (scp) u = `https://${scp[1]}/${scp[2]}`;
+  u = u.replace(/\.git$/, '').replace(/\/+$/, '');
+  return u || null;
+}
+
+/**
+ * Extract the canonical `owner/repo` tail from a known code-host URL.
+ * Used as a cross-registry dedup key — matches GitHub, GitLab, Bitbucket.
+ * Returns null if URL doesn't resemble a known code host.
+ */
+function extractRepoKey(url: string | null | undefined): string | null {
+  const n = normalizeRepoUrl(url);
+  if (!n) return null;
+  const m = n.match(/\b(?:github|gitlab|bitbucket|codeberg)\.(?:com|org|io)\/([^/]+)\/([^/?#]+)/);
+  return m ? `${m[1]}/${m[2]}` : null;
+}
+
+/**
  * Merge sources arrays. Returns sorted, deduplicated list.
  */
 function mergeSources(existing: string[], newSource: string): string[] {
@@ -72,7 +100,7 @@ function normalizeOfficialEntry(entry: RegistryServerEntry) {
     registry_type: pkg?.registryType || null,
     package_identifier: pkg?.identifier || null,
     transport_type: pkg?.transport?.type || null,
-    repository_url: s.repository?.url || null,
+    repository_url: normalizeRepoUrl(s.repository?.url),
     repository_source: s.repository?.source || null,
     published_at: meta?.publishedAt || null,
     updated_at: meta?.updatedAt || null,
@@ -202,7 +230,7 @@ function normalizeGlamaEntry(entry: GlamaServer) {
     registry_type: null,
     package_identifier: null,
     transport_type: null,
-    repository_url: entry.repository?.url || null,
+    repository_url: normalizeRepoUrl(entry.repository?.url),
     repository_source: entry.repository?.url ? 'github' : null,
     published_at: null,
     updated_at: null,
@@ -272,7 +300,14 @@ export async function syncGlamaRegistry(db: Database.Database): Promise<number> 
         for (const entry of entries) {
           const row = normalizeGlamaEntry(entry);
           // Try to find existing server by repo URL for dedup
-          const existingId = findExistingServer(db, row.repository_url, row.name, row.slug);
+          const existingId = findExistingServer(
+            db,
+            row.repository_url,
+            row.package_identifier,
+            row.registry_type,
+            row.slug,
+            row.name,
+          );
           if (existingId) {
             mergeServerSources(db, existingId, 'glama');
             // Also update with richer data from Glama if applicable
@@ -311,6 +346,12 @@ function normalizeSmitheryEntry(entry: SmitheryServer) {
   const slug = slugify(entry.qualifiedName);
   const keywords = extractKeywords(entry.displayName || entry.qualifiedName, entry.description || '');
 
+  // Smithery stores a "homepage" field that is sometimes a real code repo and
+  // sometimes a product landing page — only lift it into repository_url when it
+  // looks like a known code host, so dedup keys stay clean.
+  const homepageIsRepo = extractRepoKey(entry.homepage) !== null;
+  const repoUrl = homepageIsRepo ? normalizeRepoUrl(entry.homepage) : null;
+
   return {
     id: `smithery:${entry.qualifiedName}`,
     slug,
@@ -320,8 +361,8 @@ function normalizeSmitheryEntry(entry: SmitheryServer) {
     registry_type: null,
     package_identifier: null,
     transport_type: null,
-    repository_url: entry.homepage || null,
-    repository_source: entry.homepage?.includes('github.com') ? 'github' : null,
+    repository_url: repoUrl,
+    repository_source: homepageIsRepo ? 'github' : null,
     published_at: entry.createdAt || null,
     updated_at: entry.createdAt || null,
     status: 'active',
@@ -392,8 +433,19 @@ export async function syncSmitheryRegistry(db: Database.Database): Promise<numbe
       const insertBatch = db.transaction((entries: SmitheryServer[]) => {
         for (const entry of entries) {
           const row = normalizeSmitheryEntry(entry);
-          // Try to find existing server by repo URL or name for dedup
-          const existingId = findExistingServer(db, row.repository_url, row.name, row.slug);
+          // Fix 2: prefer Official's ai.smithery/* mirror when it exists.
+          // This single heuristic catches the largest slice of cross-registry
+          // matches that Smithery's sparse repo URL can't surface.
+          const existingId =
+            findOfficialFromSmitheryQualifiedName(db, entry.qualifiedName) ??
+            findExistingServer(
+              db,
+              row.repository_url,
+              row.package_identifier,
+              row.registry_type,
+              row.slug,
+              row.name,
+            );
           if (existingId) {
             mergeServerSources(db, existingId, 'smithery');
             mergeServerData(db, existingId, row);
@@ -434,33 +486,137 @@ export async function syncSmitheryRegistry(db: Database.Database): Promise<numbe
 // ─── Deduplication Helpers ──────────────────────────────────────────────────
 
 /**
- * Find an existing server by repository URL, name, or slug.
- * Returns the server ID if found, null otherwise.
+ * Strip common MCP-ish prefixes/suffixes and non-alnum chars so that
+ * `mcp-foo-server`, `foo-mcp`, `foo_server` and `Foo Server` all collapse
+ * to the same token. Used to rescue monorepo matches when one side has no
+ * package_identifier.
+ */
+function canonicalNameToken(s: string): string {
+  if (!s) return '';
+  let t = s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  for (;;) {
+    const before = t;
+    t = t.replace(/^(mcp|server)+/, '').replace(/(mcp|server)+$/, '');
+    if (t === before) break;
+  }
+  return t;
+}
+
+/**
+ * Find an existing server that should be considered "the same project" as the
+ * candidate row. Tried keys, in decreasing reliability:
+ *   1. Canonical repo key (`owner/repo` on github/gitlab/bitbucket/codeberg).
+ *      When the repo hosts a monorepo (>1 existing row share it), we require a
+ *      secondary signal — package_identifier, slug, or canonicalized name token —
+ *      before merging. If the monorepo is ambiguous we skip, to avoid the bug
+ *      where `waystation-ai/mcp` (12 distinct Official servers) would eat any
+ *      incoming Glama/Smithery entry pointing at the same repo.
+ *   2. `(package_identifier, registry_type)` — deterministic match when both
+ *      sides ship the same package.
+ *   3. Slug (only when unique) — weakest, but catches cases where neither URL
+ *      nor package id exists.
  */
 function findExistingServer(
   db: Database.Database,
   repoUrl: string | null,
-  name: string,
+  packageIdentifier: string | null,
+  registryType: string | null,
   slug: string,
+  name?: string | null,
 ): string | null {
-  // Match by repo URL (most reliable)
-  if (repoUrl) {
-    const normalizedUrl = repoUrl.replace(/\.git$/, '').replace(/\/$/, '').toLowerCase();
+  // 1) Repo URL match with monorepo disambiguation
+  const repoKey = extractRepoKey(repoUrl);
+  if (repoKey) {
+    const tail = `/${repoKey}`;
+    const candidates = db
+      .prepare(
+        `SELECT id, slug, name, package_identifier
+         FROM servers
+         WHERE LOWER(repository_url) LIKE ? OR LOWER(repository_url) LIKE ?`,
+      )
+      .all(`%${tail}`, `%${tail}.git`) as Array<{
+      id: string;
+      slug: string;
+      name: string;
+      package_identifier: string | null;
+    }>;
+
+    if (candidates.length === 1) return candidates[0].id;
+
+    if (candidates.length > 1) {
+      // Monorepo: need a secondary match inside the group
+      if (packageIdentifier) {
+        const hit = candidates.find(
+          (c) =>
+            c.package_identifier &&
+            c.package_identifier.toLowerCase() === packageIdentifier.toLowerCase(),
+        );
+        if (hit) return hit.id;
+      }
+      if (slug) {
+        const hit = candidates.find((c) => c.slug === slug);
+        if (hit) return hit.id;
+      }
+      if (name) {
+        const token = canonicalNameToken(name);
+        if (token) {
+          const hit = candidates.find((c) => {
+            const ct = canonicalNameToken(c.name);
+            return ct && (ct === token || ct.endsWith(token) || token.endsWith(ct));
+          });
+          if (hit) return hit.id;
+        }
+      }
+      // Ambiguous — don't merge, safer to keep as a new row
+      return null;
+    }
+  }
+
+  // 2) Package identifier (+ registry type)
+  if (packageIdentifier) {
     const row = db
       .prepare(
-        `SELECT id FROM servers WHERE LOWER(REPLACE(REPLACE(repository_url, '.git', ''), '/', '')) LIKE ? LIMIT 1`,
+        `SELECT id FROM servers
+         WHERE LOWER(package_identifier) = LOWER(?)
+           AND (? IS NULL OR registry_type IS NULL OR registry_type = ?)
+         LIMIT 1`,
       )
-      .get(`%${normalizedUrl.split('/').slice(-2).join('/')}%`) as { id: string } | undefined;
+      .get(packageIdentifier, registryType, registryType) as { id: string } | undefined;
     if (row) return row.id;
   }
 
-  // Match by slug
-  const bySlug = db
-    .prepare('SELECT id FROM servers WHERE slug = ? AND source != ? LIMIT 1')
-    .get(slug, 'unknown') as { id: string } | undefined;
-  if (bySlug) return bySlug.id;
+  // 3) Slug — require uniqueness within the DB to avoid tying unrelated servers
+  if (slug) {
+    const rows = db
+      .prepare('SELECT id FROM servers WHERE slug = ? AND source != ? LIMIT 2')
+      .all(slug, 'unknown') as Array<{ id: string }>;
+    if (rows.length === 1) return rows[0].id;
+  }
 
   return null;
+}
+
+/**
+ * Smithery-specific heuristic: the Official registry re-publishes many Smithery
+ * servers under `ai.smithery/<qualifiedName with / → ->`. If we see Smithery
+ * `owner/name`, try that exact Official id first — it is by far the most common
+ * cross-registry link and no other signal in Smithery carries it.
+ */
+function findOfficialFromSmitheryQualifiedName(
+  db: Database.Database,
+  qualifiedName: string | null | undefined,
+): string | null {
+  if (!qualifiedName) return null;
+  const tail = qualifiedName.toLowerCase().replace(/\//g, '-').replace(/[^a-z0-9-]/g, '');
+  if (!tail) return null;
+  const row = db
+    .prepare(
+      `SELECT id FROM servers
+       WHERE LOWER(name) = ? AND source = 'official'
+       LIMIT 1`,
+    )
+    .get(`ai.smithery/${tail}`) as { id: string } | undefined;
+  return row?.id ?? null;
 }
 
 /**
@@ -516,10 +672,93 @@ function mergeServerData(
     }
   }
 
+  // Prefer newer updated/published dates when available
+  if (typeof newRow.updated_at === 'string' && (!existing.updated_at || String(newRow.updated_at) > String(existing.updated_at))) {
+    updates.push('updated_at = ?');
+    values.push(newRow.updated_at);
+  }
+  if (typeof newRow.published_at === 'string' && !existing.published_at) {
+    updates.push('published_at = ?');
+    values.push(newRow.published_at);
+  }
+
+  // Merge env vars arrays rather than keeping only one source.
+  if (typeof newRow.env_vars === 'string') {
+    const mergedEnvVars = mergeJsonArrayStrings(existing.env_vars, newRow.env_vars, 'name');
+    if (mergedEnvVars) {
+      updates.push('env_vars = ?');
+      values.push(mergedEnvVars);
+    }
+  }
+
+  // Preserve source-specific raw payloads so search/details can extract tools later.
+  const mergedRawData = mergeRawData(existing.raw_data, newRow.raw_data, String(newRow.source || 'unknown'));
+  if (mergedRawData) {
+    updates.push('raw_data = ?');
+    values.push(mergedRawData);
+  }
+
   if (updates.length > 0) {
     values.push(existingId);
     db.prepare(`UPDATE servers SET ${updates.join(', ')} WHERE id = ?`).run(...values);
   }
+}
+
+function mergeJsonArrayStrings(
+  existingJson: unknown,
+  incomingJson: unknown,
+  key: string,
+): string | null {
+  try {
+    const existing = Array.isArray(JSON.parse(String(existingJson || '[]')))
+      ? JSON.parse(String(existingJson || '[]')) as Array<Record<string, unknown>>
+      : [];
+    const incoming = Array.isArray(JSON.parse(String(incomingJson || '[]')))
+      ? JSON.parse(String(incomingJson || '[]')) as Array<Record<string, unknown>>
+      : [];
+
+    const merged = new Map<string, Record<string, unknown>>();
+    for (const item of [...existing, ...incoming]) {
+      const itemKey = typeof item?.[key] === 'string' ? String(item[key]) : JSON.stringify(item);
+      const prev = merged.get(itemKey) || {};
+      merged.set(itemKey, { ...prev, ...item });
+    }
+    return JSON.stringify([...merged.values()]);
+  } catch {
+    return null;
+  }
+}
+
+function mergeRawData(existingRaw: unknown, incomingRaw: unknown, incomingSource: string): string | null {
+  try {
+    const existingParsed = existingRaw ? JSON.parse(String(existingRaw)) : null;
+    const incomingParsed = incomingRaw ? JSON.parse(String(incomingRaw)) : null;
+    const existingEnvelope: { primary: unknown; bySource: Record<string, unknown> } = isRawEnvelope(existingParsed)
+      ? existingParsed
+      : {
+          primary: existingParsed,
+          bySource: {} as Record<string, unknown>,
+        };
+
+    if (incomingParsed) {
+      existingEnvelope.bySource[incomingSource] = incomingParsed;
+      if (!existingEnvelope.primary) existingEnvelope.primary = incomingParsed;
+    }
+
+    return JSON.stringify(existingEnvelope);
+  } catch {
+    return null;
+  }
+}
+
+function isRawEnvelope(value: unknown): value is { primary: unknown; bySource: Record<string, unknown> } {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      'bySource' in value &&
+      value.bySource &&
+      typeof (value as { bySource: unknown }).bySource === 'object',
+  );
 }
 
 // ─── Utility Functions ──────────────────────────────────────────────────────

@@ -14,6 +14,8 @@ export type {
   SearchResult,
   ServerDetail,
   Category,
+  ToolSummary,
+  TrustSignals,
   GlamaServer,
   GlamaListResponse,
   SmitheryServer,
@@ -25,6 +27,14 @@ export { initDatabase, getDataDir, getLastSyncTimestamp, updateSyncLog } from '.
 
 // Sync
 export { syncOfficialRegistry, syncGlamaRegistry, syncSmitheryRegistry, isSyncNeeded, getServerCount } from './sync.js';
+
+// Snapshot bootstrap (fast cold-start)
+export { bootstrapFromSnapshot, fetchSnapshotManifest, DEFAULT_SNAPSHOT_BASE } from './snapshot.js';
+export type { SnapshotManifest, BootstrapResult, BootstrapOptions } from './snapshot.js';
+
+// Build-time enrichment (GitHub probe, post-sync dedup pass)
+export { enrichSmitheryRepoUrls } from './enrich.js';
+export type { EnrichResult } from './enrich.js';
 
 // Search
 export { searchServers, getServerDetails, findServerByNameOrSlug } from './search.js';

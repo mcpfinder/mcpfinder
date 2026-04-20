@@ -3,7 +3,8 @@
  * Ranking formula: fts_rank * 0.4 + log(useCount+1) * 0.3 + source_count * 0.2 + official_boost * 0.1
  */
 import type Database from 'better-sqlite3';
-import type { McpServer, SearchResult, ServerDetail } from './types.js';
+import type { McpServer, SearchResult, ServerDetail, ToolSummary, TrustSignals } from './types.js';
+import { categorizeServer } from './categories.js';
 
 /**
  * Alias dictionary: common abbreviations → full terms.
@@ -304,6 +305,12 @@ function formatSearchResult(row: McpServer, idx: number): SearchResult {
     sources = [];
   }
 
+  const warningFlags = getWarningFlags(row, sources);
+  const confidenceScore = getConfidenceScore(row, sources, warningFlags);
+  const toolsExposed = extractTools(row);
+  const trustSignals = getTrustSignals(row, sources);
+  const freshnessDays = getFreshnessDays(row);
+
   return {
     name: row.name,
     description: row.description,
@@ -318,6 +325,18 @@ function formatSearchResult(row: McpServer, idx: number): SearchResult {
     useCount: row.use_count || 0,
     verified: row.verified === 1,
     iconUrl: row.icon_url,
+    updatedAt: row.updated_at,
+    publishedAt: row.published_at,
+    sourceCount: sources.length,
+    confidenceScore,
+    recommendationReason: getRecommendationReason(row, sources),
+    warningFlags,
+    trustSignals,
+    freshnessDays,
+    freshnessLabel: getFreshnessLabel(freshnessDays),
+    installComplexity: getInstallComplexity(row, [], toolsExposed),
+    secretCount: 0,
+    capabilityCount: toolsExposed.length,
   };
 }
 
@@ -345,6 +364,9 @@ export function getServerDetails(
   } catch {
     categories = [];
   }
+  if (categories.length === 0) {
+    categories = categorizeServer(row.name, row.description);
+  }
 
   let sources: string[] = [];
   try {
@@ -352,6 +374,13 @@ export function getServerDetails(
   } catch {
     sources = [];
   }
+
+  const warningFlags = getWarningFlags(row, sources);
+  const confidenceScore = getConfidenceScore(row, sources, warningFlags);
+  const toolsExposed = extractTools(row);
+  const trustSignals = getTrustSignals(row, sources, envVars);
+  const freshnessDays = getFreshnessDays(row);
+  const secretCount = envVars.filter((envVar: { isSecret?: boolean }) => envVar.isSecret).length;
 
   return {
     name: row.name,
@@ -373,6 +402,17 @@ export function getServerDetails(
     useCount: row.use_count || 0,
     verified: row.verified === 1,
     iconUrl: row.icon_url,
+    sourceCount: sources.length,
+    confidenceScore,
+    recommendationReason: getRecommendationReason(row, sources),
+    warningFlags,
+    trustSignals,
+    freshnessDays,
+    freshnessLabel: getFreshnessLabel(freshnessDays),
+    installComplexity: getInstallComplexity(row, envVars, toolsExposed),
+    secretCount,
+    capabilityCount: toolsExposed.length,
+    toolsExposed,
   };
 }
 
@@ -389,4 +429,224 @@ function sanitizeFtsQuery(query: string, useOr: boolean = false): string {
 
   if (words.length === 0) return '';
   return useOr ? words.join(' OR ') : words.join(' ');
+}
+
+function extractTools(row: McpServer): ToolSummary[] {
+  try {
+    const raw = JSON.parse(row.raw_data || '{}') as Record<string, unknown>;
+    const sources = getRawSources(raw);
+    const tools = new Map<string, ToolSummary>();
+
+    for (const sourcePayload of sources) {
+      for (const tool of extractToolSummariesFromPayload(sourcePayload)) {
+        const prev = tools.get(tool.name);
+        tools.set(tool.name, {
+          name: tool.name,
+          description: tool.description || prev?.description,
+          kind: tool.kind || prev?.kind,
+        });
+      }
+    }
+
+    return [...tools.values()];
+  } catch {
+    return [];
+  }
+}
+
+function getRawSources(raw: Record<string, unknown>): Record<string, unknown>[] {
+  if (isRawEnvelope(raw)) {
+    const bySource = Object.values(raw.bySource).filter((value): value is Record<string, unknown> => Boolean(value && typeof value === 'object'));
+    const primary = raw.primary && typeof raw.primary === 'object' ? [raw.primary as Record<string, unknown>] : [];
+    return [...primary, ...bySource];
+  }
+  return [raw];
+}
+
+function extractToolSummariesFromPayload(payload: Record<string, unknown>): ToolSummary[] {
+  const found: ToolSummary[] = [];
+
+  if (Array.isArray(payload.tools)) {
+    for (const tool of payload.tools) {
+      if (!tool || typeof tool !== 'object') continue;
+      const record = tool as Record<string, unknown>;
+      const name = typeof record.name === 'string'
+        ? record.name
+        : typeof record.id === 'string'
+          ? record.id
+          : null;
+      if (!name) continue;
+      found.push({
+        name,
+        description: typeof record.description === 'string' ? record.description : undefined,
+        kind: 'tool',
+      });
+    }
+  }
+
+  if (Array.isArray(payload.capabilities)) {
+    for (const capability of payload.capabilities) {
+      if (!capability || typeof capability !== 'object') continue;
+      const record = capability as Record<string, unknown>;
+      const name = typeof record.name === 'string'
+        ? record.name
+        : typeof record.id === 'string'
+          ? record.id
+          : null;
+      if (!name) continue;
+      found.push({
+        name,
+        description: typeof record.description === 'string' ? record.description : undefined,
+        kind: typeof record.type === 'string' && ['tool', 'resource', 'prompt'].includes(record.type)
+          ? record.type as 'tool' | 'resource' | 'prompt'
+          : 'unknown',
+      });
+    }
+  }
+
+  const meta = payload._meta;
+  if (meta && typeof meta === 'object') {
+    for (const value of Object.values(meta as Record<string, unknown>)) {
+      if (!value || typeof value !== 'object') continue;
+      const metaRecord = value as Record<string, unknown>;
+      if (Array.isArray(metaRecord.tools)) {
+        for (const tool of metaRecord.tools) {
+          if (typeof tool === 'string') {
+            found.push({ name: tool, kind: 'tool' });
+          } else if (tool && typeof tool === 'object') {
+            const record = tool as Record<string, unknown>;
+            const name = typeof record.name === 'string' ? record.name : null;
+            if (!name) continue;
+            found.push({
+              name,
+              description: typeof record.description === 'string' ? record.description : undefined,
+              kind: 'tool',
+            });
+          }
+        }
+      }
+      if (Array.isArray(metaRecord.toolHints)) {
+        for (const hint of metaRecord.toolHints) {
+          if (!hint || typeof hint !== 'object') continue;
+          const record = hint as Record<string, unknown>;
+          const name = typeof record.name === 'string' ? record.name : null;
+          if (!name) continue;
+          found.push({
+            name,
+            description: typeof record.description === 'string' ? record.description : undefined,
+            kind: 'tool',
+          });
+        }
+      }
+    }
+  }
+
+  return found;
+}
+
+function isRawEnvelope(value: unknown): value is { primary?: unknown; bySource: Record<string, unknown> } {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      'bySource' in value &&
+      (value as { bySource?: unknown }).bySource &&
+      typeof (value as { bySource?: unknown }).bySource === 'object',
+  );
+}
+
+function getRecommendationReason(row: McpServer, sources: string[]): string {
+  if (sources.includes('official') && row.verified === 1 && (row.use_count || 0) > 0) {
+    return 'official registry presence, verified publisher metadata, and community usage';
+  }
+  if (sources.includes('official')) {
+    return 'official registry presence and metadata completeness';
+  }
+  if (row.verified === 1) {
+    return 'verified listing and strong discovery signals';
+  }
+  if ((row.use_count || 0) > 0) {
+    return 'community usage and text relevance';
+  }
+  return 'text relevance and available metadata';
+}
+
+function getWarningFlags(row: McpServer, sources: string[]): string[] {
+  const warnings: string[] = [];
+
+  if (sources.length <= 1) warnings.push('single-source-only');
+  if (!row.updated_at) warnings.push('missing-update-date');
+  if (!row.repository_url) warnings.push('missing-repository-url');
+  if (!row.package_identifier && row.has_remote !== 1) warnings.push('install-method-unclear');
+  if (row.status && row.status !== 'active') warnings.push(`status:${row.status}`);
+
+  if (row.updated_at) {
+    const updatedTime = Date.parse(row.updated_at);
+    if (!Number.isNaN(updatedTime)) {
+      const ageDays = (Date.now() - updatedTime) / (1000 * 60 * 60 * 24);
+      if (ageDays > 540) warnings.push('stale-over-18-months');
+      else if (ageDays > 365) warnings.push('stale-over-12-months');
+    }
+  }
+
+  return warnings;
+}
+
+function getConfidenceScore(row: McpServer, sources: string[], warningFlags: string[]): number {
+  let score = 0.4;
+  if (sources.includes('official')) score += 0.2;
+  if (row.verified === 1) score += 0.15;
+  if ((row.use_count || 0) >= 100) score += 0.15;
+  else if ((row.use_count || 0) > 0) score += 0.1;
+  if (sources.length > 1) score += 0.05;
+  if (warningFlags.includes('stale-over-18-months')) score -= 0.15;
+  if (warningFlags.includes('install-method-unclear')) score -= 0.1;
+  if (warningFlags.includes('missing-repository-url')) score -= 0.05;
+  return Math.max(0, Math.min(1, Number(score.toFixed(2))));
+}
+
+function getTrustSignals(
+  row: McpServer,
+  sources: string[],
+  envVars: Array<{ isSecret?: boolean }> = [],
+): TrustSignals {
+  const freshnessDays = getFreshnessDays(row);
+  return {
+    hasOfficialSource: sources.includes('official'),
+    isVerified: row.verified === 1,
+    hasRepository: Boolean(row.repository_url),
+    hasRemote: row.has_remote === 1,
+    multiSource: sources.length > 1,
+    hasRecentUpdate: freshnessDays !== null && freshnessDays <= 180,
+    requiresSecrets: envVars.some((envVar) => envVar.isSecret),
+  };
+}
+
+function getFreshnessDays(row: McpServer): number | null {
+  const candidate = row.updated_at || row.published_at;
+  if (!candidate) return null;
+  const time = Date.parse(candidate);
+  if (Number.isNaN(time)) return null;
+  return Math.max(0, Math.floor((Date.now() - time) / (1000 * 60 * 60 * 24)));
+}
+
+function getFreshnessLabel(freshnessDays: number | null): string {
+  if (freshnessDays === null) return 'unknown';
+  if (freshnessDays <= 30) return 'recent';
+  if (freshnessDays <= 180) return 'active';
+  if (freshnessDays <= 365) return 'aging';
+  return 'stale';
+}
+
+function getInstallComplexity(
+  row: McpServer,
+  envVars: Array<{ isSecret?: boolean }> = [],
+  toolsExposed: ToolSummary[] = [],
+): 'low' | 'medium' | 'high' {
+  const secretCount = envVars.filter((envVar) => envVar.isSecret).length;
+  if (row.has_remote === 1 && secretCount === 0) return 'low';
+  if (secretCount >= 2) return 'high';
+  if (!row.package_identifier && row.has_remote !== 1) return 'high';
+  if (row.registry_type === 'oci') return 'medium';
+  if (toolsExposed.length > 15 || secretCount === 1) return 'medium';
+  return 'low';
 }

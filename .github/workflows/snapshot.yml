@@ -1,0 +1,66 @@
+name: build-snapshot
+
+# Builds a fresh SQLite snapshot from all three registries and uploads it to
+# the R2 bucket mcp-finder-db-snapshots. Clients download this instead of
+# running the ~11 min live sync on first start.
+#
+# Required repo secrets:
+#   CLOUDFLARE_API_TOKEN    — token with R2 edit permission
+#   CLOUDFLARE_ACCOUNT_ID   — Cloudflare account ID
+
+on:
+  schedule:
+    - cron: '17 */6 * * *' # every 6 hours at :17
+  workflow_dispatch: {} # manual run from Actions tab
+
+concurrency:
+  group: snapshot
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @mcpfinder/core build
+
+      - name: Build snapshot
+        run: node scripts/build-snapshot.mjs
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+
+      - name: Upload to R2
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@4 r2 object put \
+            mcp-finder-db-snapshots/data.sqlite.gz \
+            --file=dist/snapshot/data.sqlite.gz \
+            --content-type=application/octet-stream \
+            --remote
+          npx --yes wrangler@4 r2 object put \
+            mcp-finder-db-snapshots/manifest.json \
+            --file=dist/snapshot/manifest.json \
+            --content-type=application/json \
+            --remote
+
+      - name: Summary
+        run: |
+          echo '### Snapshot manifest' >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          cat dist/snapshot/manifest.json >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

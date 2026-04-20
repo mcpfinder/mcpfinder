@@ -38,6 +38,22 @@ export interface RegistryEnvVar {
   isSecret?: boolean;
 }
 
+export interface ToolSummary {
+  name: string;
+  description?: string;
+  kind?: 'tool' | 'resource' | 'prompt' | 'unknown';
+}
+
+export interface TrustSignals {
+  hasOfficialSource: boolean;
+  isVerified: boolean;
+  hasRepository: boolean;
+  hasRemote: boolean;
+  multiSource: boolean;
+  hasRecentUpdate: boolean;
+  requiresSecrets: boolean;
+}
+
 export interface RegistryMeta {
   status?: string;
   publishedAt?: string;
@@ -99,6 +115,18 @@ export interface SearchResult {
   useCount: number;
   verified: boolean;
   iconUrl: string | null;
+  updatedAt: string | null;
+  publishedAt: string | null;
+  sourceCount: number;
+  confidenceScore: number;
+  recommendationReason: string;
+  warningFlags: string[];
+  trustSignals: TrustSignals;
+  freshnessDays: number | null;
+  freshnessLabel: string;
+  installComplexity: 'low' | 'medium' | 'high';
+  secretCount: number;
+  capabilityCount: number;
 }
 
 /** Server detail returned to MCP clients */
@@ -122,6 +150,17 @@ export interface ServerDetail {
   useCount: number;
   verified: boolean;
   iconUrl: string | null;
+  sourceCount: number;
+  confidenceScore: number;
+  recommendationReason: string;
+  warningFlags: string[];
+  trustSignals: TrustSignals;
+  freshnessDays: number | null;
+  freshnessLabel: string;
+  installComplexity: 'low' | 'medium' | 'high';
+  secretCount: number;
+  capabilityCount: number;
+  toolsExposed: ToolSummary[];
 }
 
 /** Category with server count */

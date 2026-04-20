@@ -11,12 +11,16 @@
 name = "mcpfinder-landing-www"
 compatibility_date = "2024-11-05"
 
+# mcpfinder.dev is bound to this worker as a Cloudflare Custom Domain
+# (Workers & Pages → mcpfinder-landing-www → Custom Domains).
+# Do NOT also set it as a `routes` entry here — that creates a duplicate
+# binding. Custom Domain catches the hostname; Routes on sibling workers
+# with more specific patterns still preempt it (e.g. api-worker owns
+# mcpfinder.dev/api/* and serves /api/v1/snapshot/*). Custom Domain +
+# specific Routes coexist cleanly.
+
 [assets]
 directory = "./public"
 
 [observability]
 enabled = true
-
-# routes = [
-#   { pattern = "mcpfinder.dev/*", zone_name = "mcpfinder.dev" }
-# ]

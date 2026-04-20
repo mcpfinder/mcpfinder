@@ -214,3 +214,7 @@ packages/*/test-dedup-*.mjs
 TODO.md
 NOTES.md
 SCRATCH.md
+
+# Root is a pnpm workspace — npm-managed lockfile should not appear here.
+# (api-worker/ is outside the workspace and keeps its own package-lock.json.)
+/package-lock.json

@@ -57,6 +57,22 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "CODER AI",
+    "url": "https://coderai.dev",
+    "sameAs": [
+      "https://cnvs.app",
+      "https://plugand.ai",
+      "https://plai.chat",
+      "https://maxcv.ai",
+      "https://whenmeet.me",
+      "https://mcpfinder.dev"
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
       {
@@ -742,6 +758,70 @@
       color: var(--accent); 
     }
 
+    /* Cross-promo (CODER AI apps) */
+    .coder-ai-apps {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+    .coder-ai-apps h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .coder-ai-apps h2 a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .coder-ai-apps h2 a:hover {
+      color: var(--text-primary);
+    }
+    .coder-ai-apps .lead {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+    .coder-ai-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+    .coder-ai-card {
+      display: block;
+      padding: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .coder-ai-card:hover {
+      border-color: var(--accent);
+      background: rgba(212, 255, 0, 0.03);
+      color: var(--text-primary);
+    }
+    .coder-ai-card h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .coder-ai-card p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin: 0;
+    }
+    @media (max-width: 900px) {
+      .coder-ai-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .coder-ai-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .nav-links { 
@@ -1191,6 +1271,55 @@
           <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
         </svg>
         VIEW SOURCE
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Cross-promo: CODER AI free productivity tools -->
+<section class="coder-ai-apps">
+  <div class="container">
+    <h2>Also free from
+      <a href="https://coderai.dev"
+         target="_blank" rel="noopener"
+         title="CODER AI — maker of cnvs.app, plugand.ai, plai.chat, maxcv.ai, whenmeet.me and mcpfinder.dev">CODER AI</a>
+    </h2>
+    <p class="lead">Small productivity tools we built for ourselves — each usable for free.</p>
+
+    <div class="coder-ai-grid">
+      <a class="coder-ai-card" href="https://cnvs.app"
+         target="_blank" rel="noopener"
+         title="cnvs.app — free no-signup real-time collaborative whiteboard with built-in MCP endpoint for AI agents">
+        <h3>cnvs.app →</h3>
+        <p>No-signup whiteboard, real-time, AI-ready</p>
+      </a>
+
+      <a class="coder-ai-card" href="https://plugand.ai"
+         target="_blank" rel="noopener"
+         title="plugand.ai — Slack AI bot with 300+ models, flat team pricing, no per-seat subscription">
+        <h3>plugand.ai →</h3>
+        <p>Whole-team Slack AI bot, no per-seat</p>
+      </a>
+
+      <a class="coder-ai-card" href="https://plai.chat"
+         target="_blank" rel="noopener"
+         title="plai.chat — private AI chat with 300+ models, zero data retention, browser-only storage">
+        <h3>plai.chat →</h3>
+        <p>Private AI chat, 300+ models</p>
+      </a>
+
+      <a class="coder-ai-card" href="https://maxcv.ai"
+         target="_blank" rel="noopener"
+         title="maxcv.ai — AI resume and CV tailoring per job posting, optimized for Applicant Tracking Systems">
+        <h3>maxcv.ai →</h3>
+        <p>AI CV tailored to each job, ATS-optimized</p>
+      </a>
+
+      <a class="coder-ai-card" href="https://whenmeet.me"
+         target="_blank" rel="noopener"
+         title="whenmeet.me — cross-company group meeting scheduling with built-in video calls and AI summaries">
+        <h3>whenmeet.me →</h3>
+        <p>Cross-company group scheduling + video</p>
       </a>
     </div>
   </div>

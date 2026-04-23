@@ -1,6 +1,6 @@
 {
   "name": "@mcpfinder/server",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "mcpName": "dev.mcpfinder/server",
   "repository": {
     "type": "git",
@@ -40,7 +40,7 @@
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@mcpfinder/core": "workspace:^",
-    "@modelcontextprotocol/sdk": "^1.11.0",
+    "@modelcontextprotocol/sdk": "^1.13.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

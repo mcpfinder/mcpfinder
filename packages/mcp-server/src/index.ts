@@ -6,6 +6,9 @@
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import {
   initDatabase,
@@ -21,6 +24,10 @@ import {
   bootstrapFromSnapshot,
 } from '@mcpfinder/core';
 import type { RegistryEnvVar } from '@mcpfinder/core';
+
+const pkg = JSON.parse(
+  readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf8'),
+) as { version: string };
 
 // Bootstrap from hosted snapshot on first run (much faster than live sync).
 // Disable with MCPFINDER_DISABLE_SNAPSHOT=1; override URL with MCPFINDER_SNAPSHOT_BASE.
@@ -48,7 +55,7 @@ const db = initDatabase();
 // Create MCP server
 const server = new McpServer({
   name: 'mcpfinder',
-  version: '1.0.4',
+  version: pkg.version,
 });
 
 // ─── Platform Configuration ─────────────────────────────────────────────────
@@ -168,9 +175,12 @@ function makeTextResponse(text: string, structuredContent?: Record<string, unkno
   return result;
 }
 
-async function ensureSync(): Promise<void> {
-  const count = getServerCount(db);
-  if (count === 0 || isSyncNeeded(db)) {
+// Tracks an in-flight sync so concurrent calls coalesce into one network fetch.
+let inFlightSync: Promise<void> | null = null;
+
+function runSync(): Promise<void> {
+  if (inFlightSync) return inFlightSync;
+  inFlightSync = (async () => {
     const results = await Promise.allSettled([
       syncOfficialRegistry(db),
       syncGlamaRegistry(db),
@@ -180,7 +190,23 @@ async function ensureSync(): Promise<void> {
     process.stderr.write(
       `[mcpfinder] Synced: Official=${counts[0]}, Glama=${counts[1]}, Smithery=${counts[2]} (${getServerCount(db)} total)\n`,
     );
+  })().finally(() => {
+    inFlightSync = null;
+  });
+  return inFlightSync;
+}
+
+// Block only when the DB is empty (first run, snapshot disabled). When data
+// exists but is stale, refresh in the background so tool calls return
+// immediately with last-known-good results — tens of thousands of registry
+// records take longer than the SDK's default 60s tool-call timeout.
+async function ensureSync(): Promise<void> {
+  const count = getServerCount(db);
+  if (count === 0) {
+    await runSync();
+    return;
   }
+  if (isSyncNeeded(db)) void runSync();
 }
 
 // ─── Output schemas (permissive — let record-shaped nested data through) ────
@@ -665,6 +691,9 @@ server.registerTool(
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  // Kick off a background refresh after connecting so the first tool call
+  // is served from the existing DB while a new snapshot lands.
+  if (getServerCount(db) > 0 && isSyncNeeded(db)) void runSync();
 }
 
 main().catch((err) => {

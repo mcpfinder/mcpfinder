@@ -24,7 +24,7 @@ import { createReadStream, createWriteStream } from 'node:fs';
 import { mkdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { pipeline } from 'node:stream/promises';
-import { createGzip } from 'node:zlib';
+import { createGzip, gunzipSync } from 'node:zlib';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -78,10 +78,69 @@ async function run(label, fn) {
   return n;
 }
 
+// Published snapshot, used as the persistent cache for incremental enrichment.
+const PREV_SNAPSHOT_URL = 'https://mcpfinder.dev/api/v1/snapshot/data.sqlite.gz';
+
+/**
+ * Seed deprecation/archived flags (and their probe timestamps) into the freshly
+ * built DB from the previously published snapshot, keyed by stable server id.
+ *
+ * The DB is rebuilt from scratch every run, so without this the enrichment
+ * probes would re-scan all ~25k repos each time and never finish within the
+ * GitHub API budget. Carrying flags forward makes `enrichDeprecationFlags`
+ * genuinely incremental — only new and stale rows get probed.
+ *
+ * Returns the number of rows seeded. Throws if the previous snapshot can't be
+ * fetched (e.g. the very first build) — the caller treats that as a soft skip.
+ */
+async function carryOverFlags(targetDb, workDir) {
+  const res = await fetch(PREV_SNAPSHOT_URL);
+  if (!res.ok) throw new Error(`fetch previous snapshot: HTTP ${res.status}`);
+  const prevPath = join(workDir, 'prev.sqlite');
+  await writeFile(prevPath, gunzipSync(Buffer.from(await res.arrayBuffer())));
+
+  targetDb.exec(`ATTACH DATABASE '${prevPath.replace(/'/g, "''")}' AS prev`);
+  try {
+    const prevCols = new Set(targetDb.pragma('prev.table_info(servers)').map((c) => c.name));
+    // Older snapshots predate the *_checked_at columns — carry whatever exists.
+    const cols = [
+      'archived_repo',
+      'archived_repo_checked_at',
+      'deprecated_npm',
+      'deprecated_npm_checked_at',
+    ].filter((c) => prevCols.has(c));
+    if (cols.length === 0) return 0;
+    const setClause = cols
+      .map((c) => `${c} = (SELECT p.${c} FROM prev.servers p WHERE p.id = servers.id)`)
+      .join(', ');
+    const info = targetDb
+      .prepare(`UPDATE servers SET ${setClause} WHERE id IN (SELECT id FROM prev.servers)`)
+      .run();
+    return info.changes;
+  } finally {
+    targetDb.exec('DETACH DATABASE prev');
+    await rm(prevPath, { force: true });
+  }
+}
+
 const counts = {};
 counts.official = await run('official', syncOfficialRegistry);
 if (!flag('--no-glama')) counts.glama = await run('glama   ', syncGlamaRegistry);
 if (!flag('--no-smithery')) counts.smithery = await run('smithery', syncSmitheryRegistry);
+
+// Carry deprecation/archived flags forward from the last published snapshot so
+// the enrichment probes stay incremental (skipped with --no-carryover).
+let carriedOver = 0;
+if (!flag('--no-carryover')) {
+  const c0 = Date.now();
+  try {
+    carriedOver = await carryOverFlags(db, outDir);
+    const cdt = ((Date.now() - c0) / 1000).toFixed(1);
+    console.log(`[build-snapshot] carry  : ${carriedOver} rows seeded from previous snapshot (${cdt}s)`);
+  } catch (err) {
+    console.warn(`[build-snapshot] carry  : skipped (${err?.message ?? err})`);
+  }
+}
 
 // Build-time enrichment passes (skipped with --no-enrich).
 let enrichStats = null;
@@ -137,6 +196,7 @@ const manifest = {
   url: 'data.sqlite.gz',
   builder: process.env.GITHUB_SHA || 'local',
   counts,
+  carriedOver,
   enrich: enrichStats,
   deprecation: deprecationStats,
 };

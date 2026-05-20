@@ -41,9 +41,10 @@ jobs:
         run: node scripts/build-snapshot.mjs
         env:
           GITHUB_SHA: ${{ github.sha }}
-          # Enables Fix 3 enrichment (GitHub repo probe for Smithery rows).
-          # GITHUB_TOKEN is auto-provided per run, 1000 API req/hr unauth is the
-          # limit but Actions raises it via the token.
+          # Powers the Smithery repo-probe and archived-repo enrichment. The
+          # Actions-provided GITHUB_TOKEN is capped at ~1000 REST req/hr, so the
+          # archived-repo pass is incremental: capped per run, with flags
+          # carried across builds (see scripts/build-snapshot.mjs).
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload to R2

@@ -127,6 +127,11 @@ function migrateSchema(db: Database.Database): void {
     // NULL = not checked yet, 0 = checked and clean, 1 = flagged.
     ['deprecated_npm', 'INTEGER DEFAULT NULL'],
     ['archived_repo', 'INTEGER DEFAULT NULL'],
+    // ISO timestamp of the last deprecation/archived probe. Drives the rolling
+    // re-probe window in enrichDeprecationFlags and is carried across snapshot
+    // rebuilds so probes stay incremental. NULL = never timestamped.
+    ['deprecated_npm_checked_at', 'TEXT DEFAULT NULL'],
+    ['archived_repo_checked_at', 'TEXT DEFAULT NULL'],
   ];
 
   for (const [col, def] of migrations) {

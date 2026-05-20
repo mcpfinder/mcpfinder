@@ -21,9 +21,63 @@ const GLAMA_BASE = 'https://glama.ai/api/mcp/v1';
 const SMITHERY_BASE = 'https://registry.smithery.ai';
 const PAGE_LIMIT = 100;
 
+/** Per-request timeout and retry policy for registry fetches. */
+const REQUEST_TIMEOUT_MS = 20_000;
+const REQUEST_RETRIES = 3;
+
+/**
+ * Wall-clock budget per registry. A degraded upstream that keeps responding
+ * just slowly enough to dodge the per-request timeout still can't drag the
+ * snapshot build into its 45-minute CI ceiling. Official overrun fails the
+ * build (a snapshot missing Official servers is worse than no new snapshot);
+ * Glama/Smithery overrun ships a best-effort partial, matching their existing
+ * error handling.
+ */
+const OFFICIAL_SYNC_BUDGET_MS = 8 * 60_000;
+const GLAMA_SYNC_BUDGET_MS = 12 * 60_000;
+const SMITHERY_SYNC_BUDGET_MS = 5 * 60_000;
+
 /** Delay helper for rate limiting */
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * `fetch()` with a per-request timeout and bounded retries. Retries on network
+ * errors, aborts (timeout), HTTP 429, and 5xx using exponential backoff; 4xx
+ * and success are returned as-is for the caller to handle. Throws once retries
+ * are exhausted, so a hung or failing upstream surfaces fast instead of
+ * blocking indefinitely.
+ */
+async function fetchWithRetry(
+  url: string,
+  opts: { timeoutMs?: number; retries?: number; label?: string } = {},
+): Promise<Response> {
+  const timeoutMs = opts.timeoutMs ?? REQUEST_TIMEOUT_MS;
+  const retries = opts.retries ?? REQUEST_RETRIES;
+  const label = opts.label ?? 'registry fetch';
+  let lastErr: unknown;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    if (attempt > 0) await delay(500 * 3 ** (attempt - 1)); // 0.5s, 1.5s, 4.5s
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      // Retry transient server-side failures; return everything else (incl. 4xx).
+      if (res.status === 429 || res.status >= 500) {
+        lastErr = new Error(`HTTP ${res.status}`);
+        continue;
+      }
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      lastErr = err;
+    }
+  }
+  const reason = lastErr instanceof Error ? lastErr.message : String(lastErr);
+  throw new Error(`${label}: giving up after ${retries + 1} attempts — ${reason}`);
 }
 
 /**
@@ -129,6 +183,7 @@ export async function syncOfficialRegistry(db: Database.Database): Promise<numbe
 
   let cursor: string | null = null;
   let totalUpserted = 0;
+  const deadline = Date.now() + OFFICIAL_SYNC_BUDGET_MS;
 
   const upsert = db.prepare(`
     INSERT INTO servers (
@@ -162,13 +217,20 @@ export async function syncOfficialRegistry(db: Database.Database): Promise<numbe
   `);
 
   do {
+    if (Date.now() > deadline) {
+      throw new Error(
+        `Official registry sync exceeded its ${OFFICIAL_SYNC_BUDGET_MS / 60_000}-minute budget ` +
+          `(upstream too slow) — aborting after ${totalUpserted} servers`,
+      );
+    }
+
     const url = new URL(`${REGISTRY_BASE}/v0.1/servers`);
     url.searchParams.set('version', 'latest');
     url.searchParams.set('limit', String(PAGE_LIMIT));
     if (lastSync) url.searchParams.set('updated_since', lastSync);
     if (cursor) url.searchParams.set('cursor', cursor);
 
-    const res = await fetch(url.toString());
+    const res = await fetchWithRetry(url.toString(), { label: 'Registry API' });
     if (!res.ok) {
       const errText = await res.text().catch(() => '');
       throw new Error(`Registry API error: ${res.status} ${res.statusText} — ${errText}`);
@@ -257,6 +319,7 @@ function normalizeGlamaEntry(entry: GlamaServer) {
 export async function syncGlamaRegistry(db: Database.Database): Promise<number> {
   let cursor: string | null = null;
   let totalUpserted = 0;
+  const deadline = Date.now() + GLAMA_SYNC_BUDGET_MS;
 
   const upsert = db.prepare(`
     INSERT INTO servers (
@@ -282,11 +345,18 @@ export async function syncGlamaRegistry(db: Database.Database): Promise<number> 
 
   try {
     do {
+      if (Date.now() > deadline) {
+        process.stderr.write(
+          `[mcpfinder] Glama sync budget exceeded — stopping with ${totalUpserted} servers\n`,
+        );
+        break;
+      }
+
       const url = new URL(`${GLAMA_BASE}/servers`);
       url.searchParams.set('first', String(PAGE_LIMIT));
       if (cursor) url.searchParams.set('after', cursor);
 
-      const res = await fetch(url.toString());
+      const res = await fetchWithRetry(url.toString(), { label: 'Glama API' });
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
         throw new Error(`Glama API error: ${res.status} ${res.statusText} — ${errText}`);
@@ -389,6 +459,7 @@ export async function syncSmitheryRegistry(db: Database.Database): Promise<numbe
   let page = 1;
   let totalUpserted = 0;
   let hasMore = true;
+  const deadline = Date.now() + SMITHERY_SYNC_BUDGET_MS;
 
   const upsert = db.prepare(`
     INSERT INTO servers (
@@ -416,11 +487,18 @@ export async function syncSmitheryRegistry(db: Database.Database): Promise<numbe
 
   try {
     while (hasMore) {
+      if (Date.now() > deadline) {
+        process.stderr.write(
+          `[mcpfinder] Smithery sync budget exceeded — stopping with ${totalUpserted} servers\n`,
+        );
+        break;
+      }
+
       const url = new URL(`${SMITHERY_BASE}/servers`);
       url.searchParams.set('page', String(page));
       url.searchParams.set('pageSize', String(PAGE_LIMIT));
 
-      const res = await fetch(url.toString());
+      const res = await fetchWithRetry(url.toString(), { label: 'Smithery API' });
       if (!res.ok) {
         const errText = await res.text().catch(() => '');
         throw new Error(`Smithery API error: ${res.status} ${res.statusText} — ${errText}`);

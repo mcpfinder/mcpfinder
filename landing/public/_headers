@@ -1,0 +1,77 @@
+# Default headers — applied to every response
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: cross-origin
+
+# HTML: short edge cache, revalidate
+/
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+  Link: </llms.txt>; rel="alternate"; type="text/plain"; title="llms.txt"
+  Link: </llms-full.txt>; rel="alternate"; type="text/plain"; title="llms-full.txt"
+
+/index.html
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+# AI-readable docs — let crawlers cache for an hour, revalidate cheaply
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=86400
+  X-Robots-Tag: all
+  Access-Control-Allow-Origin: *
+
+/llms-full.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=86400
+  X-Robots-Tag: all
+  Access-Control-Allow-Origin: *
+
+/.well-known/llms.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=86400
+  X-Robots-Tag: all
+  Access-Control-Allow-Origin: *
+
+# robots / sitemap / ai.txt — long edge cache, revalidate
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400
+
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400
+
+/ai.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400
+  X-Robots-Tag: all
+
+/.well-known/security.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400
+
+/.well-known/agents.json
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=86400
+  Access-Control-Allow-Origin: *
+
+# Agent skill — public, cache-friendly
+/skill/*
+  Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=86400
+  Access-Control-Allow-Origin: *
+
+# Web manifest
+/manifest.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
+  Cache-Control: public, max-age=3600, s-maxage=86400
+
+# Icons & images — long cache
+/*.png
+  Cache-Control: public, max-age=86400, s-maxage=604800, immutable
+
+/*.svg
+  Cache-Control: public, max-age=86400, s-maxage=604800, immutable

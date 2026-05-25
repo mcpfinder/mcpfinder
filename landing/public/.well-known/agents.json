@@ -1,0 +1,74 @@
+{
+  "$schema": "https://agents.json/schemas/0.1/agents.schema.json",
+  "name": "MCPfinder",
+  "description": "AI-first discovery layer over the Official MCP Registry, Glama, and Smithery. Exposes 4 MCP tools to AI agents.",
+  "version": "1.0.6",
+  "lastUpdated": "2026-05-25",
+  "publisher": {
+    "name": "CODER AI",
+    "url": "https://coderai.dev",
+    "email": "hello@coderai.dev"
+  },
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://mcpfinder.dev",
+  "repository": "https://github.com/mcpfinder/mcpfinder",
+  "docs": {
+    "human": "https://mcpfinder.dev",
+    "agentSummary": "https://mcpfinder.dev/llms.txt",
+    "agentFull": "https://mcpfinder.dev/llms-full.txt",
+    "readme": "https://github.com/mcpfinder/mcpfinder/blob/main/README.md"
+  },
+  "endpoints": [
+    {
+      "kind": "mcp",
+      "transport": "stdio",
+      "name": "@mcpfinder/server",
+      "install": {
+        "package": "@mcpfinder/server",
+        "registry": "npm",
+        "command": "npx",
+        "args": ["-y", "@mcpfinder/server"]
+      },
+      "registryEntry": "dev.mcpfinder/server",
+      "registryUrl": "https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder"
+    }
+  ],
+  "tools": [
+    {
+      "name": "search_mcp_servers",
+      "description": "Find candidate MCP servers by keyword, technology, or use case.",
+      "inputs": { "query": "string", "limit": "integer?" }
+    },
+    {
+      "name": "get_server_details",
+      "description": "Inspect trust signals, env vars, warnings, transport, and tool manifest before recommending or installing a candidate.",
+      "inputs": { "name": "string" }
+    },
+    {
+      "name": "get_install_config",
+      "description": "Generate a client-specific JSON install snippet for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf.",
+      "inputs": { "name": "string", "platform": "string" }
+    },
+    {
+      "name": "browse_categories",
+      "description": "Single-call category explorer. List all categories, or list top servers within a category.",
+      "inputs": { "category": "string?" }
+    }
+  ],
+  "supportedPlatforms": [
+    "claude-desktop",
+    "cursor",
+    "claude-code",
+    "cline",
+    "windsurf"
+  ],
+  "data": {
+    "snapshotManifest": "https://mcpfinder.dev/api/v1/snapshot/manifest.json",
+    "sources": ["Official MCP Registry", "Glama", "Smithery"]
+  },
+  "policy": {
+    "ai": "https://mcpfinder.dev/ai.txt",
+    "robots": "https://mcpfinder.dev/robots.txt",
+    "security": "https://mcpfinder.dev/.well-known/security.txt"
+  }
+}

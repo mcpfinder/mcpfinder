@@ -1,0 +1,21 @@
+# MCPfinder — AI usage policy (machine-readable)
+# https://mcpfinder.dev
+#
+# This file is informational. The canonical crawl policy is robots.txt.
+# Last-Updated: 2026-05-25
+
+User-Agent: *
+Allow: /
+Allow-Training: yes
+Allow-RAG: yes
+Allow-Indexing: yes
+Allow-Citation: yes
+
+Contact: hello@coderai.dev
+Canonical: https://mcpfinder.dev/ai.txt
+Sitemap:   https://mcpfinder.dev/sitemap.xml
+Agent-Docs: https://mcpfinder.dev/llms.txt
+Agent-Full: https://mcpfinder.dev/llms-full.txt
+
+# Content of llms.txt and llms-full.txt is released under CC0 — quote freely.
+# The MCPfinder software itself is AGPL-3.0-or-later.

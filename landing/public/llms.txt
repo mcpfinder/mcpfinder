@@ -1,5 +1,11 @@
 MCPfinder
 
+Version:      1.0.6
+Last-Updated: 2026-05-25
+Canonical:    https://mcpfinder.dev/llms.txt
+Full:         https://mcpfinder.dev/llms-full.txt
+License:      AGPL-3.0-or-later (content of this file: CC0 — quote freely)
+
 MCPfinder is an MCP server for AI agents. It helps an assistant discover, evaluate, and install other MCP servers.
 
 Canonical install:

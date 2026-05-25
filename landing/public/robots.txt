@@ -1,8 +1,106 @@
-# MCPfinder
-# AI-first discovery layer over the Official MCP Registry, Glama, and Smithery.
-# Agent Instructions: https://mcpfinder.dev/llms.txt
+# MCPfinder — AI-first MCP server discovery
+# Site: https://mcpfinder.dev
+# Agent-readable summary: https://mcpfinder.dev/llms.txt
+# Full agent docs:        https://mcpfinder.dev/llms-full.txt
+# AI policy (machine-readable): https://mcpfinder.dev/ai.txt
+#
+# Crawling and use in AI training, retrieval-augmented generation,
+# and answer engines is explicitly allowed for the public content
+# served from this origin.
 
 User-agent: *
+Allow: /
+
+# --- Major AI / answer-engine crawlers (explicit allow) ---
+
+# OpenAI
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+# Google (AI Overviews / Gemini training opt-in is via Google-Extended)
+User-agent: Google-Extended
+Allow: /
+
+# Apple Intelligence
+User-agent: Applebot-Extended
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Common Crawl (feeds many LLM training sets)
+User-agent: CCBot
+Allow: /
+
+# Cohere
+User-agent: cohere-ai
+Allow: /
+
+User-agent: cohere-training-data-crawler
+Allow: /
+
+# Meta AI
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: Meta-ExternalFetcher
+Allow: /
+
+# Amazon
+User-agent: Amazonbot
+Allow: /
+
+# ByteDance
+User-agent: Bytespider
+Allow: /
+
+# DuckDuckGo
+User-agent: DuckAssistBot
+Allow: /
+
+# Mistral
+User-agent: MistralAI-User
+Allow: /
+
+# You.com
+User-agent: YouBot
+Allow: /
+
+# Diffbot
+User-agent: Diffbot
+Allow: /
+
+# Timpi / Kagi
+User-agent: Timpibot
+Allow: /
+
+User-agent: KagiBot
 Allow: /
 
 Sitemap: https://mcpfinder.dev/sitemap.xml

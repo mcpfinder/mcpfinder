@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +12,10 @@
   <link rel="icon" type="image/png" href="/mcpfinder-icon.png">
   <link rel="apple-touch-icon" href="/mcpfinder-icon.png">
   <meta name="theme-color" content="#0A0A0A">
-  <link rel="alternate" type="text/plain" title="LLMs.txt" href="/llms.txt">
+  <link rel="alternate" type="text/plain" title="llms.txt (agent summary)" href="/llms.txt">
+  <link rel="alternate" type="text/plain" title="llms-full.txt (agent deep reference)" href="/llms-full.txt">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="me" href="https://github.com/mcpfinder/mcpfinder">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -22,13 +25,21 @@
   <meta property="og:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
   <meta property="og:image:width" content="512">
   <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="MCPfinder logo — a lime-yellow lightning bolt on a black background.">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:site_name" content="MCPfinder">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:updated_time" content="2026-05-25T00:00:00Z">
+  <meta property="article:author" content="Coder AI">
+  <meta property="article:publisher" content="https://coderai.dev">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@coderaidev">
   <meta name="twitter:title" content="MCPfinder | MCP Server Discovery for AI Agents">
   <meta name="twitter:description" content="Search MCP servers across multiple registries, inspect trust signals, and generate install-ready config for your AI client.">
   <meta name="twitter:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
+  <meta name="twitter:image:alt" content="MCPfinder logo — a lime-yellow lightning bolt on a black background.">
 
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -50,23 +61,181 @@
       "name": "Coder AI",
       "url": "https://coderai.dev"
     },
-    "softwareVersion": "1.0.2",
-    "license": "https://www.gnu.org/licenses/agpl-3.0.en.html"
+    "softwareVersion": "1.0.6",
+    "datePublished": "2025-04-20",
+    "dateModified": "2026-05-25",
+    "license": "https://www.gnu.org/licenses/agpl-3.0.en.html",
+    "downloadUrl": "https://www.npmjs.com/package/@mcpfinder/server",
+    "codeRepository": "https://github.com/mcpfinder/mcpfinder",
+    "sameAs": [
+      "https://github.com/mcpfinder/mcpfinder",
+      "https://www.npmjs.com/package/@mcpfinder/server",
+      "https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder"
+    ],
+    "keywords": "MCP, Model Context Protocol, MCP discovery, MCP registry, AI agent tooling, Claude MCP, Cursor MCP",
+    "audience": {
+      "@type": "Audience",
+      "audienceType": "Developers and AI agents"
+    }
   }
-  </script>
+</script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "CODER AI",
+    "alternateName": "Coder AI",
     "url": "https://coderai.dev",
+    "logo": "https://mcpfinder.dev/mcpfinder-icon.png",
+    "email": "hello@coderai.dev",
+    "description": "Maker of small productivity tools for developers and AI agents: cnvs.app, plugand.ai, plai.chat, maxcv.ai, whenmeet.me, and mcpfinder.dev.",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "hello@coderai.dev",
+      "contactType": "customer support",
+      "availableLanguage": ["en"]
+    },
     "sameAs": [
       "https://cnvs.app",
       "https://plugand.ai",
       "https://plai.chat",
       "https://maxcv.ai",
       "https://whenmeet.me",
-      "https://mcpfinder.dev"
+      "https://mcpfinder.dev",
+      "https://github.com/mcpfinder"
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "MCPfinder",
+    "url": "https://mcpfinder.dev",
+    "description": "AI-first MCP server discovery layer across the Official MCP Registry, Glama, and Smithery.",
+    "inLanguage": "en",
+    "dateModified": "2026-05-25",
+    "publisher": {
+      "@type": "Organization",
+      "name": "CODER AI",
+      "url": "https://coderai.dev"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareSourceCode",
+    "name": "@mcpfinder/server",
+    "description": "Local stdio MCP server that exposes 4 tools (search_mcp_servers, get_server_details, get_install_config, browse_categories) to AI agents.",
+    "codeRepository": "https://github.com/mcpfinder/mcpfinder",
+    "programmingLanguage": "TypeScript",
+    "runtimePlatform": "Node.js",
+    "targetProduct": "MCPfinder",
+    "license": "https://www.gnu.org/licenses/agpl-3.0.en.html",
+    "url": "https://www.npmjs.com/package/@mcpfinder/server",
+    "version": "1.0.6",
+    "dateModified": "2026-05-25",
+    "author": {
+      "@type": "Organization",
+      "name": "CODER AI",
+      "url": "https://coderai.dev"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Install MCPfinder for your AI agent",
+    "description": "Add MCPfinder as an MCP server to your AI client so the assistant can discover and install other MCP servers on demand.",
+    "totalTime": "PT30S",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "USD",
+      "value": 0
+    },
+    "tool": [
+      { "@type": "HowToTool", "name": "Node.js + npx" },
+      { "@type": "HowToTool", "name": "An MCP-compatible client (Claude Desktop, Cursor, Claude Code, Cline, or Windsurf)" }
+    ],
+    "step": [
+      {
+        "@type": "HowToStep",
+        "position": 1,
+        "name": "Install MCPfinder",
+        "text": "Add MCPfinder as an MCP server in your client's config. Easiest way: run npx -y @mcpfinder/server or paste the mcpServers JSON block shown on the page.",
+        "url": "https://mcpfinder.dev/#install"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 2,
+        "name": "Let the AI discover tools",
+        "text": "Ask the assistant for a capability it doesn't have. It calls search_mcp_servers, inspects results with get_server_details, and recommends the best match.",
+        "url": "https://mcpfinder.dev/#how-it-works"
+      },
+      {
+        "@type": "HowToStep",
+        "position": 3,
+        "name": "Capabilities expand on demand",
+        "text": "The assistant generates a client-specific install snippet with get_install_config. Paste it, restart the client, and the new MCP server is online.",
+        "url": "https://mcpfinder.dev/#how-it-works"
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "MCPfinder MCP tools",
+    "description": "The four tools MCPfinder exposes to AI agents over MCP.",
+    "numberOfItems": 4,
+    "itemListOrder": "https://schema.org/ItemListOrderAscending",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "search_mcp_servers",
+        "description": "Find candidate MCP servers by keyword, technology, or use case. Returns confidence score, recommendation reason, source count, and warning flags."
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "get_server_details",
+        "description": "Inspect trust signals, transport, environment variables, warnings, and tool manifest before recommending or installing a candidate."
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "get_install_config",
+        "description": "Generate a ready-to-paste JSON config snippet for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf, plus the target config-file path."
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": "browse_categories",
+        "description": "Single-call category explorer. List all categories with counts, or get top servers within a category like database, filesystem, communication, or security."
+      }
+    ]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "DefinedTermSet",
+    "name": "MCP and MCPfinder glossary",
+    "description": "Short, quotable definitions of the terms used across MCPfinder's tools, results, and trust signals.",
+    "inDefinedTermSet": "https://mcpfinder.dev/#glossary",
+    "hasDefinedTerm": [
+      { "@type": "DefinedTerm", "name": "MCP", "description": "Model Context Protocol — an open standard from Anthropic that lets AI models connect to external tools and data sources through a uniform interface." },
+      { "@type": "DefinedTerm", "name": "MCP server", "description": "A process that exposes capabilities (tools, resources, prompts) over MCP so an AI agent can use them." },
+      { "@type": "DefinedTerm", "name": "MCP client", "description": "The application that hosts the AI assistant and connects to MCP servers. Examples: Claude Desktop, Cursor, Claude Code, Cline, Windsurf." },
+      { "@type": "DefinedTerm", "name": "stdio transport", "description": "MCP server runs as a child process and exchanges JSON-RPC over standard input/output." },
+      { "@type": "DefinedTerm", "name": "confidenceScore", "description": "Score in [0,1] aggregated from trust signals; higher means stronger evidence the server is real, fresh, and installable." },
+      { "@type": "DefinedTerm", "name": "warningFlags", "description": "Reasons to pause before recommending: single-source-only, missing-update-date, missing-repository-url, install-method-unclear, stale-over-12-months, stale-over-18-months." },
+      { "@type": "DefinedTerm", "name": "installComplexity", "description": "low: zero or one non-secret env var; medium: a few env vars including secrets; high: many secrets or no clean auto-install path." },
+      { "@type": "DefinedTerm", "name": "capabilityCount", "description": "Number of tools the downstream MCP server exposes when a manifest is available. 0 means MCPfinder has no manifest, not that the server is empty." }
     ]
   }
   </script>
@@ -74,6 +243,8 @@
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    "dateModified": "2026-05-25",
+    "inLanguage": "en",
     "mainEntity": [
       {
         "@type": "Question",
@@ -678,6 +849,75 @@
       font-size: 0.8rem;
     }
 
+    /* Comparison table */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 24px;
+    }
+    .compare-table th,
+    .compare-table td {
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .compare-table th {
+      background: rgba(212, 255, 0, 0.05);
+      color: var(--accent);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.75rem;
+    }
+    .compare-table td.cell-strong {
+      color: var(--text-primary);
+    }
+    .compare-table td.cell-weak {
+      color: var(--text-muted);
+    }
+    .compare-table tr td:first-child {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* Glossary */
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+      border: 1px solid var(--border);
+    }
+    .glossary-term {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+    .glossary-term:nth-child(2n) { border-right: none; }
+    .glossary-term:nth-last-child(-n+2) { border-bottom: none; }
+    .glossary-term dt {
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .glossary-term dd {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin: 0;
+      line-height: 1.55;
+    }
+    @media (max-width: 768px) {
+      .glossary-grid { grid-template-columns: 1fr; }
+      .glossary-term { border-right: none; }
+      .glossary-term:nth-last-child(2) { border-bottom: 1px solid var(--border); }
+      .compare-table { font-size: 0.78rem; }
+      .compare-table th, .compare-table td { padding: 10px 8px; }
+    }
+
     /* CTA Section */
     .cta-section {
       text-align: center; 
@@ -883,7 +1123,10 @@
       <a href="#install">INSTALL</a>
       <a href="#features">FEATURES</a>
       <a href="#for-ai">FOR AI</a>
+      <a href="#compare">COMPARE</a>
+      <a href="#glossary">GLOSSARY</a>
       <a href="#faq">FAQ</a>
+      <a href="#about">ABOUT</a>
       <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
       <a href="/llms.txt" class="nav-cta">LLMS.TXT</a>
     </div>
@@ -1150,7 +1393,7 @@
   <div class="container">
     <div class="stats">
       <div class="stat">
-        <div class="stat-value" id="snapshot-server-count">...</div>
+        <div class="stat-value" id="snapshot-server-count" data-fallback="27,432">27,432</div>
         <div class="stat-label">SERVERS IN LATEST SNAPSHOT</div>
       </div>
       <div class="stat">
@@ -1167,8 +1410,143 @@
       </div>
     </div>
     <p class="freshness-note" id="snapshot-freshness">
-      Snapshot freshness appears here when the manifest endpoint is reachable.
+      Latest published snapshot as of <time datetime="2026-05-25">2026-05-25</time>: <strong>27,432 MCP servers</strong> aggregated across Official Registry, Glama, and Smithery. Live freshness appears here when the manifest endpoint is reachable.
     </p>
+  </div>
+</section>
+
+<!-- Comparison -->
+<section id="compare">
+  <div class="container section-center">
+    <div class="section-label">HOW IT COMPARES</div>
+    <h2 class="section-title">MCPFINDER VS THE ALTERNATIVES</h2>
+    <p class="section-desc">MCPfinder is not another directory site — it is the agent-facing layer that sits on top of every public MCP registry, with extra trust scoring and ready-to-paste install configs.</p>
+    <div style="overflow-x:auto;">
+    <table class="compare-table" aria-label="MCPfinder feature comparison">
+      <thead>
+        <tr>
+          <th scope="col">Capability</th>
+          <th scope="col">MCPfinder</th>
+          <th scope="col">Browsing Glama / Smithery</th>
+          <th scope="col">Official Registry only</th>
+          <th scope="col">Asking the model from memory</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Used directly by AI agents</td>
+          <td class="cell-strong">Yes — itself an MCP server</td>
+          <td class="cell-weak">No — human-facing site</td>
+          <td class="cell-weak">No — REST API only</td>
+          <td class="cell-strong">Yes, but stale</td>
+        </tr>
+        <tr>
+          <td>Aggregates multiple sources</td>
+          <td class="cell-strong">Official Registry + Glama + Smithery</td>
+          <td class="cell-weak">Single source per site</td>
+          <td class="cell-weak">Official only</td>
+          <td class="cell-weak">N/A</td>
+        </tr>
+        <tr>
+          <td>Structured trust signals</td>
+          <td class="cell-strong">confidenceScore, sourceCount, warningFlags, installComplexity</td>
+          <td class="cell-weak">Stars, downloads (UI)</td>
+          <td class="cell-weak">Raw metadata</td>
+          <td class="cell-weak">None</td>
+        </tr>
+        <tr>
+          <td>Generates client-specific install config</td>
+          <td class="cell-strong">Claude Desktop, Cursor, Claude Code, Cline, Windsurf</td>
+          <td class="cell-weak">Manual copy-paste</td>
+          <td class="cell-weak">No</td>
+          <td class="cell-weak">Hallucinations likely</td>
+        </tr>
+        <tr>
+          <td>Flags required secrets before install</td>
+          <td class="cell-strong">Yes (env vars + isSecret)</td>
+          <td class="cell-weak">Sometimes, in prose</td>
+          <td class="cell-weak">Raw schema only</td>
+          <td class="cell-weak">Unreliable</td>
+        </tr>
+        <tr>
+          <td>Freshness signal exposed to the agent</td>
+          <td class="cell-strong">Snapshot manifest with publishedAt</td>
+          <td class="cell-weak">Implicit only</td>
+          <td class="cell-strong">Per-record updatedAt</td>
+          <td class="cell-weak">No</td>
+        </tr>
+        <tr>
+          <td>Cost</td>
+          <td class="cell-strong">Free, open source (AGPL-3.0)</td>
+          <td class="cell-strong">Free to browse</td>
+          <td class="cell-strong">Free</td>
+          <td class="cell-strong">Free</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="section-desc" style="margin-top:32px;margin-left:auto;margin-right:auto;">In short: <strong>Glama and Smithery are great human directories; the Official Registry is the canonical metadata source; MCPfinder is the agent-readable union of all three with installability baked in.</strong></p>
+  </div>
+</section>
+
+<!-- Glossary -->
+<section id="glossary">
+  <div class="container">
+    <div class="section-center">
+      <div class="section-label">GLOSSARY</div>
+      <h2 class="section-title">MCP IN ONE GLANCE</h2>
+      <p class="section-desc">Short definitions for the terms that come up across MCPfinder, MCP clients, and the registries it indexes.</p>
+    </div>
+    <dl class="glossary-grid">
+      <div class="glossary-term">
+        <dt>MCP (Model Context Protocol)</dt>
+        <dd>An open standard from Anthropic that lets AI models talk to external tools, data sources, and services through a uniform interface. Think of it as USB-C for AI.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>MCP server</dt>
+        <dd>A process that exposes capabilities (tools, resources, prompts) over MCP so an AI agent can use them. Examples: Postgres, Slack, GitHub, filesystem.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>MCP client</dt>
+        <dd>The application that hosts the AI assistant and connects to MCP servers. Examples: Claude Desktop, Cursor, Claude Code, Cline, Windsurf.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>stdio transport</dt>
+        <dd>The MCP server runs as a child process and exchanges JSON-RPC over standard input/output. The most portable transport and MCPfinder's canonical mode.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>Environment variables</dt>
+        <dd>Configuration values the MCP server reads at startup, often secrets like API keys or database URLs. MCPfinder reports which are required and which are sensitive.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>Trust signals</dt>
+        <dd>Lightweight evidence MCPfinder aggregates: official registry presence, multiple source registries, verification flags, recent updates, clear repository URL, healthy capability count.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>confidenceScore</dt>
+        <dd>Score in <code>[0, 1]</code> derived from trust signals. Higher means stronger evidence the server is real, fresh, and installable.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>warningFlags</dt>
+        <dd>Reasons to pause before recommending: <code>single-source-only</code>, <code>missing-update-date</code>, <code>missing-repository-url</code>, <code>install-method-unclear</code>, <code>stale-over-12-months</code>, <code>stale-over-18-months</code>.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>installComplexity</dt>
+        <dd><strong>low</strong>: zero or one non-secret env var; runs via npx/uvx/docker. <strong>medium</strong>: a few env vars, some secret. <strong>high</strong>: many secrets or no clean auto-install path.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>capabilityCount</dt>
+        <dd>Number of tools the downstream MCP server itself exposes, when its registry published a tool manifest. <code>0</code> means MCPfinder has no manifest — not that the server is empty.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>next_actions</dt>
+        <dd>Suggested follow-up tool calls returned with every result so an agent can chain <code>search</code> → <code>get_server_details</code> → <code>get_install_config</code> with minimal round-trips.</dd>
+      </div>
+      <div class="glossary-term">
+        <dt>Snapshot manifest</dt>
+        <dd>Public freshness signal at <code>/api/v1/snapshot/manifest.json</code>: <code>publishedAt</code>, <code>serverCount</code>, <code>sha256</code>, and per-registry counts. Lets an agent decide whether to trust the bundled data or refresh.</dd>
+      </div>
+    </dl>
   </div>
 </section>
 
@@ -1276,6 +1654,32 @@
   </div>
 </section>
 
+<!-- About / E-E-A-T -->
+<section id="about" itemscope itemtype="https://schema.org/AboutPage">
+  <div class="container">
+    <div class="section-center">
+      <div class="section-label">ABOUT</div>
+      <h2 class="section-title">WHO BUILDS MCPFINDER</h2>
+    </div>
+    <div class="mcp-explainer" style="grid-template-columns:1fr;padding:32px;">
+      <div>
+        <p>
+          MCPfinder is built by <a href="https://coderai.dev" target="_blank" rel="noopener"><strong>CODER AI</strong></a>, an independent team that ships small, useful tools for developers and AI agents — including <a href="https://cnvs.app" target="_blank" rel="noopener">cnvs.app</a> (collaborative whiteboard with built-in MCP), <a href="https://plugand.ai" target="_blank" rel="noopener">plugand.ai</a> (Slack AI bot), <a href="https://plai.chat" target="_blank" rel="noopener">plai.chat</a> (private multi-model AI chat), <a href="https://maxcv.ai" target="_blank" rel="noopener">maxcv.ai</a>, and <a href="https://whenmeet.me" target="_blank" rel="noopener">whenmeet.me</a>.
+        </p>
+        <p>
+          The project is fully open source under the <strong>AGPL-3.0-or-later</strong> license. Code lives on <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GitHub</a> and the canonical package is published as <a href="https://www.npmjs.com/package/@mcpfinder/server" target="_blank" rel="noopener"><code>@mcpfinder/server</code></a> on npm. The MCP server itself is registered in the <a href="https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder" target="_blank" rel="noopener">Official MCP Registry</a> as <code>dev.mcpfinder/server</code>.
+        </p>
+        <p>
+          For security disclosures or commercial-licensing questions, write to <a href="mailto:hello@coderai.dev">hello@coderai.dev</a> — see also <a href="/.well-known/security.txt">security.txt</a>.
+        </p>
+        <p style="color:var(--text-muted);font-size:0.8rem;margin-top:24px;">
+          MCPfinder v1.0.6 · last updated <time datetime="2026-05-25">2026-05-25</time> · canonical: <a href="https://mcpfinder.dev">mcpfinder.dev</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Cross-promo: CODER AI free productivity tools -->
 <section class="coder-ai-apps">
   <div class="container">
@@ -1357,6 +1761,8 @@
 
       if (typeof manifest.serverCount === 'number') {
         countEl.textContent = manifest.serverCount.toLocaleString('en-US');
+      } else if (countEl.dataset.fallback) {
+        countEl.textContent = countEl.dataset.fallback;
       } else {
         countEl.textContent = 'N/A';
       }
@@ -1375,9 +1781,12 @@
         freshnessEl.textContent = 'Snapshot manifest loaded, but freshness metadata is incomplete.';
       }
     } catch {
-      countEl.textContent = 'N/A';
-      freshnessEl.textContent =
-        'Snapshot manifest is not reachable from this deployment. Treat static counts cautiously and prefer the local stdio server as canonical.';
+      if (countEl.dataset.fallback) {
+        countEl.textContent = countEl.dataset.fallback;
+      } else {
+        countEl.textContent = 'N/A';
+      }
+      // Keep the SSR'd freshness sentence if live manifest is unreachable.
     }
   }
 

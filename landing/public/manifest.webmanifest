@@ -1,0 +1,21 @@
+{
+  "name": "MCPfinder",
+  "short_name": "MCPfinder",
+  "description": "AI-first MCP server discovery. Search, inspect, and install MCP servers across multiple registries.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["developer", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/mcpfinder-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

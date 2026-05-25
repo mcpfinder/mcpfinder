@@ -1,0 +1,8 @@
+# Files in this directory that should NOT be uploaded as static assets.
+# Wrangler honors this file when reading the assets directory.
+
+.DS_Store
+**/.DS_Store
+Thumbs.db
+**/Thumbs.db
+.assetsignore

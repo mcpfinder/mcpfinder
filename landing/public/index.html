@@ -46,16 +46,24 @@
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
+    "@id": "https://mcpfinder.dev/#app",
     "name": "MCPfinder",
     "url": "https://mcpfinder.dev",
-    "description": "AI-first MCP server discovery tool. Search, inspect, and install MCP servers across multiple registries.",
+    "description": "An MCP that finds MCPs. Open-source discovery for agents.",
     "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "Any",
+    "operatingSystem": "Web",
+    "featureList": [
+      "Discover MCP servers for AI agents",
+      "Open-source",
+      "Agent-ready install flow"
+    ],
     "offers": {
       "@type": "Offer",
       "price": "0",
       "priceCurrency": "USD"
     },
+    "publisher": { "@id": "https://coderai.dev/#org" },
+    "isPartOf": { "@id": "https://coderai.dev/#org" },
     "author": {
       "@type": "Organization",
       "name": "Coder AI",
@@ -83,12 +91,13 @@
   {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": "https://coderai.dev/#org",
     "name": "CODER AI",
     "alternateName": "Coder AI",
     "url": "https://coderai.dev",
     "logo": "https://mcpfinder.dev/mcpfinder-icon.png",
     "email": "hello@coderai.dev",
-    "description": "Maker of small productivity tools for developers and AI agents: cnvs.app, plugand.ai, plai.chat, maxcv.ai, whenmeet.me, and mcpfinder.dev.",
+    "description": "Maker of small productivity tools for developers and AI agents: cnvs.app, plugand.ai, plai.chat, free-sign.com, maxcv.ai, whenmeet.me, and mcpfinder.dev.",
     "contactPoint": {
       "@type": "ContactPoint",
       "email": "hello@coderai.dev",
@@ -96,13 +105,16 @@
       "availableLanguage": ["en"]
     },
     "sameAs": [
-      "https://cnvs.app",
-      "https://plugand.ai",
-      "https://plai.chat",
-      "https://maxcv.ai",
-      "https://whenmeet.me",
-      "https://mcpfinder.dev",
-      "https://github.com/mcpfinder"
+      "https://twitter.com/CoderAi44221"
+    ],
+    "owns": [
+      { "@id": "https://cnvs.app/#app" },
+      { "@id": "https://plugand.ai/#app" },
+      { "@id": "https://plai.chat/#app" },
+      { "@id": "https://free-sign.com/#app" },
+      { "@id": "https://maxcv.ai/#app" },
+      { "@id": "https://mcpfinder.dev/#app" },
+      { "@id": "https://whenmeet.me/#app" }
     ]
   }
   </script>
@@ -1023,12 +1035,30 @@
       margin-bottom: 32px;
     }
     .coder-ai-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      display: flex;
       gap: 12px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      scroll-snap-type: x proximity;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+      padding-bottom: 8px;
+    }
+    .coder-ai-grid::-webkit-scrollbar {
+      height: 6px;
+    }
+    .coder-ai-grid::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .coder-ai-grid::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
     }
     .coder-ai-card {
       display: block;
+      flex: 0 0 200px;
+      scroll-snap-align: start;
       padding: 20px;
       border: 1px solid var(--border);
       background: transparent;
@@ -1055,11 +1085,8 @@
       line-height: 1.5;
       margin: 0;
     }
-    @media (max-width: 900px) {
-      .coder-ai-grid { grid-template-columns: repeat(3, 1fr); }
-    }
     @media (max-width: 560px) {
-      .coder-ai-grid { grid-template-columns: repeat(2, 1fr); }
+      .coder-ai-card { flex-basis: 180px; }
     }
 
     /* Responsive */
@@ -1686,7 +1713,7 @@
     <h2>Also free from
       <a href="https://coderai.dev"
          target="_blank" rel="noopener"
-         title="CODER AI — maker of cnvs.app, plugand.ai, plai.chat, maxcv.ai, whenmeet.me and mcpfinder.dev">CODER AI</a>
+         title="CODER AI — maker of cnvs.app, plugand.ai, plai.chat, free-sign.com, maxcv.ai, whenmeet.me and mcpfinder.dev">CODER AI</a>
     </h2>
     <p class="lead">Small productivity tools we built for ourselves — each usable for free.</p>
 
@@ -1710,6 +1737,13 @@
          title="plai.chat — private AI chat with 300+ models, zero data retention, browser-only storage">
         <h3>plai.chat →</h3>
         <p>Private AI chat, 300+ models</p>
+      </a>
+
+      <a class="coder-ai-card" href="https://free-sign.com"
+         target="_blank" rel="noopener"
+         title="free-sign.com — sign PDFs confidentially in your browser, no upload, no account">
+        <h3>free-sign.com →</h3>
+        <p>Sign PDFs confidentially in your browser. No upload. No account.</p>
       </a>
 
       <a class="coder-ai-card" href="https://maxcv.ai"

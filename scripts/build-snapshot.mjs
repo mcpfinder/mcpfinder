@@ -101,7 +101,9 @@ async function carryOverFlags(targetDb, workDir) {
 
   targetDb.exec(`ATTACH DATABASE '${prevPath.replace(/'/g, "''")}' AS prev`);
   try {
-    const prevCols = new Set(targetDb.pragma('prev.table_info(servers)').map((c) => c.name));
+    const prevCols = new Set(
+      targetDb.prepare(`SELECT name FROM prev.pragma_table_info('servers')`).all().map((c) => c.name),
+    );
     // Older snapshots predate the *_checked_at columns — carry whatever exists.
     const cols = [
       'archived_repo',
@@ -169,7 +171,7 @@ if (!flag('--no-enrich')) {
 const serverCount = getServerCount(db);
 
 // Collapse WAL so the file is self-contained
-db.pragma('wal_checkpoint(TRUNCATE)');
+db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
 db.exec('VACUUM');
 db.close();
 

@@ -2,7 +2,8 @@
  * Search engine using SQLite FTS5 for MCP server discovery.
  * Ranking formula: fts_rank * 0.4 + log(useCount+1) * 0.3 + source_count * 0.2 + official_boost * 0.1
  */
-import type Database from 'better-sqlite3';
+import type { DatabaseSync } from 'node:sqlite';
+import type { SqlParam } from './db.js';
 import type {
   ConfidenceBreakdown,
   McpServer,
@@ -68,7 +69,7 @@ const SEARCH_ALIASES: Record<string, string> = {
  * 3. FTS5 fallback for best semantic match
  */
 export function findServerByNameOrSlug(
-  db: Database.Database,
+  db: DatabaseSync,
   nameOrSlug: string,
 ): McpServer | undefined {
   // Reject empty/whitespace queries
@@ -101,7 +102,7 @@ export function findServerByNameOrSlug(
        ORDER BY use_count DESC
        LIMIT 50`,
     )
-    .all(pattern, pattern) as McpServer[];
+    .all(pattern, pattern) as unknown as McpServer[];
 
   if (rows.length > 0) {
     const qLower = query.toLowerCase();
@@ -193,7 +194,7 @@ function expandAliases(query: string): { query: string; hasAlias: boolean } {
 }
 
 export function searchServers(
-  db: Database.Database,
+  db: DatabaseSync,
   query: string,
   limit: number = 10,
   filters?: {
@@ -266,7 +267,10 @@ export function searchServers(
 
   sql += ' ORDER BY combined_score DESC LIMIT @limit';
 
-  const rows = db.prepare(sql).all(params) as (McpServer & { fts_relevance: number; combined_score: number })[];
+  const rows = db.prepare(sql).all(params as Record<string, SqlParam>) as unknown as (McpServer & {
+    fts_relevance: number;
+    combined_score: number;
+  })[];
 
   return rows.map((row, idx) => formatSearchResult(row, idx));
 }
@@ -276,7 +280,7 @@ export function searchServers(
  * Prioritizes: official > verified > high use_count > recent.
  */
 function getPopularServers(
-  db: Database.Database,
+  db: DatabaseSync,
   limit: number,
   filters?: { registrySource?: string },
 ): SearchResult[] {
@@ -296,7 +300,7 @@ function getPopularServers(
     updated_at DESC NULLS LAST
     LIMIT @limit`;
 
-  const rows = db.prepare(sql).all(params) as McpServer[];
+  const rows = db.prepare(sql).all(params as Record<string, SqlParam>) as unknown as McpServer[];
 
   return rows.map((row, idx) => formatSearchResult(row, idx));
 }
@@ -353,7 +357,7 @@ function formatSearchResult(row: McpServer, idx: number): SearchResult {
  * Get detailed information about a specific server by name or slug.
  */
 export function getServerDetails(
-  db: Database.Database,
+  db: DatabaseSync,
   nameOrSlug: string,
 ): ServerDetail | null {
   const row = findServerByNameOrSlug(db, nameOrSlug);

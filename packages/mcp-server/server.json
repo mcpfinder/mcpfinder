@@ -46,6 +46,11 @@
           "name": "get_install_config",
           "description": "Generate a client-specific JSON config snippet for installation.",
           "exampleQuery": "filesystem for claude-desktop"
+        },
+        {
+          "name": "browse_categories",
+          "description": "Browse the ecosystem by domain: omit category to list all categories with counts, or pass one to get its top servers.",
+          "exampleQuery": "database"
         }
       ]
     }

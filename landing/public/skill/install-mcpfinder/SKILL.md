@@ -146,9 +146,9 @@ simply ask again and the AI will use MCPfinder to handle it end-to-end.
 
 - **Cline uses `servers`, not `mcpServers`.** Every other supported client
   uses `mcpServers` at the top level. Easy to miss.
-- **Node 20+ is required.** MCPfinder's core uses `better-sqlite3` native
-  bindings. If `node -v` shows anything lower, tell the user to upgrade
-  (`nvm install 20` or similar) before installing.
+- **Node 22.13+ is required.** MCPfinder's core uses the built-in `node:sqlite`
+  module. If `node -v` shows anything lower, tell the user to upgrade
+  (`nvm install 22` or similar) before installing.
 - **First run downloads ~13 MB.** MCPfinder bootstraps from a prebuilt
   snapshot at `https://mcpfinder.dev/api/v1/snapshot` on first run. If the
   user is offline, first run will do a ~10-minute live sync against the three

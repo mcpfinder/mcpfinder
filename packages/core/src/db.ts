@@ -1,10 +1,40 @@
 /**
  * SQLite database with FTS5 full-text search for MCP servers
  */
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+
+/**
+ * A value bindable to a SQLite statement parameter. Mirrors node:sqlite's
+ * internal `SQLInputValue`; declared locally so callers can type loose
+ * parameter arrays/objects without importing Node's non-exported type.
+ */
+export type SqlParam = null | number | bigint | string | Uint8Array;
+
+/**
+ * Wrap `fn` in a SQLite transaction, mirroring better-sqlite3's
+ * `db.transaction(fn)` ergonomics: returns a callable with the same signature
+ * that runs inside BEGIN/COMMIT, rolling back on any thrown error. `node:sqlite`
+ * has no built-in transaction helper, so we provide one for callers (sync.ts).
+ */
+export function transaction<A extends unknown[], R>(
+  db: DatabaseSync,
+  fn: (...args: A) => R,
+): (...args: A) => R {
+  return (...args: A): R => {
+    db.exec('BEGIN');
+    try {
+      const result = fn(...args);
+      db.exec('COMMIT');
+      return result;
+    } catch (err) {
+      db.exec('ROLLBACK');
+      throw err;
+    }
+  };
+}
 
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS servers (
@@ -94,13 +124,13 @@ export function getDataDir(): string {
 /**
  * Initialize and return a SQLite database with FTS5 schema.
  */
-export function initDatabase(dbPath?: string): Database.Database {
+export function initDatabase(dbPath?: string): DatabaseSync {
   const path = dbPath || join(getDataDir(), 'data.db');
-  const db = new Database(path);
+  const db = new DatabaseSync(path);
 
   // Enable WAL mode for better concurrent read performance
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
+  db.exec('PRAGMA journal_mode = WAL');
+  db.exec('PRAGMA foreign_keys = ON');
 
   // Create schema
   db.exec(SCHEMA_SQL);
@@ -114,7 +144,7 @@ export function initDatabase(dbPath?: string): Database.Database {
 /**
  * Gracefully add columns that may not exist in older databases.
  */
-function migrateSchema(db: Database.Database): void {
+function migrateSchema(db: DatabaseSync): void {
   const columns = db.prepare("PRAGMA table_info('servers')").all() as Array<{ name: string }>;
   const existing = new Set(columns.map((c) => c.name));
 
@@ -144,7 +174,7 @@ function migrateSchema(db: Database.Database): void {
 /**
  * Get the last sync timestamp for a source.
  */
-export function getLastSyncTimestamp(db: Database.Database, source: string): string | null {
+export function getLastSyncTimestamp(db: DatabaseSync, source: string): string | null {
   const row = db.prepare('SELECT last_synced_at FROM sync_log WHERE source = ?').get(source) as
     | { last_synced_at: string }
     | undefined;
@@ -155,7 +185,7 @@ export function getLastSyncTimestamp(db: Database.Database, source: string): str
  * Update sync log for a source.
  */
 export function updateSyncLog(
-  db: Database.Database,
+  db: DatabaseSync,
   source: string,
   serverCount: number,
   status: string = 'ok',

@@ -3,7 +3,8 @@
  * cron-driven snapshot builder (GitHub Actions) but shouldn't run in the
  * latency-sensitive client sync path.
  */
-import type Database from 'better-sqlite3';
+import type { DatabaseSync } from 'node:sqlite';
+import type { SqlParam } from './db.js';
 
 export interface EnrichResult {
   probed: number;
@@ -44,7 +45,7 @@ function isGitHubRateLimited(res: Response): boolean {
  * skipped on subsequent passes.
  */
 export async function enrichSmitheryRepoUrls(
-  db: Database.Database,
+  db: DatabaseSync,
   opts: { token?: string; concurrency?: number; limit?: number } = {},
 ): Promise<EnrichResult> {
   const token = opts.token ?? process.env.GITHUB_TOKEN;
@@ -232,7 +233,7 @@ const GITHUB_MAX_PROBES = 800;
 const GITHUB_CONCURRENCY = 4;
 
 export async function enrichDeprecationFlags(
-  db: Database.Database,
+  db: DatabaseSync,
   opts: {
     token?: string;
     npmConcurrency?: number;
@@ -280,7 +281,7 @@ function staleSelectionClause(flagCol: string, checkedAtCol: string): string {
 }
 
 async function probeNpmDeprecations(
-  db: Database.Database,
+  db: DatabaseSync,
   opts: { concurrency: number; staleDays: number; maxProbes: number },
 ): Promise<EnrichResult & { flagged: number }> {
   const t0 = Date.now();
@@ -362,7 +363,7 @@ async function probeNpmDeprecations(
 }
 
 async function probeGitHubArchived(
-  db: Database.Database,
+  db: DatabaseSync,
   opts: { token?: string; concurrency: number; staleDays: number; maxProbes: number },
 ): Promise<EnrichResult & { flagged: number }> {
   const t0 = Date.now();
@@ -462,7 +463,7 @@ async function probeGitHubArchived(
  * Merge the `from` row into the `to` row: union sources, pick longer description,
  * fill in null fields, carry over use_count/verified/icon_url where present.
  */
-function mergeInto(db: Database.Database, toId: string, fromId: string): void {
+function mergeInto(db: DatabaseSync, toId: string, fromId: string): void {
   const to = db.prepare('SELECT * FROM servers WHERE id = ?').get(toId) as Record<string, unknown>;
   const from = db.prepare('SELECT * FROM servers WHERE id = ?').get(fromId) as Record<string, unknown>;
   if (!to || !from) return;
@@ -517,5 +518,5 @@ function mergeInto(db: Database.Database, toId: string, fromId: string): void {
   }
 
   vals.push(toId);
-  db.prepare(`UPDATE servers SET ${updates.join(', ')} WHERE id = ?`).run(...vals);
+  db.prepare(`UPDATE servers SET ${updates.join(', ')} WHERE id = ?`).run(...(vals as SqlParam[]));
 }

@@ -21,7 +21,7 @@ npm install @mcpfinder/core
 pnpm add @mcpfinder/core
 ```
 
-Node.js 20+ required (better-sqlite3 native bindings).
+Node.js 22.13+ required (built-in `node:sqlite`, no native build step).
 
 ## Quick start
 

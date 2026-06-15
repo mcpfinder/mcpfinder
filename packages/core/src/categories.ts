@@ -2,7 +2,7 @@
  * Keyword-based categorization for MCP servers.
  * Categories are derived from server names and descriptions, not a fixed taxonomy.
  */
-import type Database from 'better-sqlite3';
+import type { DatabaseSync } from 'node:sqlite';
 import type { Category } from './types.js';
 
 const STOP_WORDS = new Set([
@@ -61,7 +61,7 @@ export function categorizeServer(name: string, description: string): string[] {
 /**
  * List all categories with their server counts.
  */
-export function listCategories(db: Database.Database): Category[] {
+export function listCategories(db: DatabaseSync): Category[] {
   const rows = db
     .prepare("SELECT name, description FROM servers WHERE status = 'active'")
     .all() as Array<{ name: string; description: string }>;
@@ -88,7 +88,7 @@ export function listCategories(db: Database.Database): Category[] {
  * Get servers in a specific category.
  */
 export function getServersByCategory(
-  db: Database.Database,
+  db: DatabaseSync,
   category: string,
   limit: number = 20,
 ): Array<{ name: string; description: string; version: string }> {

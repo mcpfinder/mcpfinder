@@ -4,7 +4,7 @@
  * - Glama (glama.ai)
  * - Smithery (registry.smithery.ai)
  */
-import type Database from 'better-sqlite3';
+import type { DatabaseSync } from 'node:sqlite';
 import type {
   RegistryListResponse,
   RegistryServerEntry,
@@ -13,7 +13,8 @@ import type {
   SmitheryListResponse,
   SmitheryServer,
 } from './types.js';
-import { getLastSyncTimestamp, updateSyncLog } from './db.js';
+import { getLastSyncTimestamp, updateSyncLog, transaction } from './db.js';
+import type { SqlParam } from './db.js';
 import { extractKeywords } from './categories.js';
 
 const REGISTRY_BASE = 'https://registry.modelcontextprotocol.io';
@@ -178,7 +179,7 @@ function normalizeOfficialEntry(entry: RegistryServerEntry) {
 /**
  * Sync servers from the Official MCP Registry.
  */
-export async function syncOfficialRegistry(db: Database.Database): Promise<number> {
+export async function syncOfficialRegistry(db: DatabaseSync): Promise<number> {
   const lastSync = getLastSyncTimestamp(db, 'official');
 
   let cursor: string | null = null;
@@ -240,7 +241,7 @@ export async function syncOfficialRegistry(db: Database.Database): Promise<numbe
 
     if (!data.servers || data.servers.length === 0) break;
 
-    const insertBatch = db.transaction((entries: RegistryServerEntry[]) => {
+    const insertBatch = transaction(db, (entries: RegistryServerEntry[]) => {
       for (const entry of entries) {
         const row = normalizeOfficialEntry(entry);
         upsert.run(row);
@@ -316,7 +317,7 @@ function normalizeGlamaEntry(entry: GlamaServer) {
 /**
  * Sync servers from Glama registry.
  */
-export async function syncGlamaRegistry(db: Database.Database): Promise<number> {
+export async function syncGlamaRegistry(db: DatabaseSync): Promise<number> {
   let cursor: string | null = null;
   let totalUpserted = 0;
   const deadline = Date.now() + GLAMA_SYNC_BUDGET_MS;
@@ -366,7 +367,7 @@ export async function syncGlamaRegistry(db: Database.Database): Promise<number> 
 
       if (!data.servers || data.servers.length === 0) break;
 
-      const insertBatch = db.transaction((entries: GlamaServer[]) => {
+      const insertBatch = transaction(db, (entries: GlamaServer[]) => {
         for (const entry of entries) {
           const row = normalizeGlamaEntry(entry);
           // Try to find existing server by repo URL for dedup
@@ -455,7 +456,7 @@ function normalizeSmitheryEntry(entry: SmitheryServer) {
 /**
  * Sync servers from Smithery registry.
  */
-export async function syncSmitheryRegistry(db: Database.Database): Promise<number> {
+export async function syncSmitheryRegistry(db: DatabaseSync): Promise<number> {
   let page = 1;
   let totalUpserted = 0;
   let hasMore = true;
@@ -508,7 +509,7 @@ export async function syncSmitheryRegistry(db: Database.Database): Promise<numbe
 
       if (!data.servers || data.servers.length === 0) break;
 
-      const insertBatch = db.transaction((entries: SmitheryServer[]) => {
+      const insertBatch = transaction(db, (entries: SmitheryServer[]) => {
         for (const entry of entries) {
           const row = normalizeSmitheryEntry(entry);
           // Fix 2: prefer Official's ai.smithery/* mirror when it exists.
@@ -595,7 +596,7 @@ function canonicalNameToken(s: string): string {
  *      nor package id exists.
  */
 function findExistingServer(
-  db: Database.Database,
+  db: DatabaseSync,
   repoUrl: string | null,
   packageIdentifier: string | null,
   registryType: string | null,
@@ -681,7 +682,7 @@ function findExistingServer(
  * cross-registry link and no other signal in Smithery carries it.
  */
 function findOfficialFromSmitheryQualifiedName(
-  db: Database.Database,
+  db: DatabaseSync,
   qualifiedName: string | null | undefined,
 ): string | null {
   if (!qualifiedName) return null;
@@ -700,7 +701,7 @@ function findOfficialFromSmitheryQualifiedName(
 /**
  * Merge a source into a server's sources list.
  */
-function mergeServerSources(db: Database.Database, serverId: string, newSource: string): void {
+function mergeServerSources(db: DatabaseSync, serverId: string, newSource: string): void {
   const row = db.prepare('SELECT sources FROM servers WHERE id = ?').get(serverId) as
     | { sources: string }
     | undefined;
@@ -722,7 +723,7 @@ function mergeServerSources(db: Database.Database, serverId: string, newSource: 
  * Only updates fields that are currently empty/null with non-empty values.
  */
 function mergeServerData(
-  db: Database.Database,
+  db: DatabaseSync,
   existingId: string,
   newRow: Record<string, unknown>,
 ): void {
@@ -778,7 +779,7 @@ function mergeServerData(
 
   if (updates.length > 0) {
     values.push(existingId);
-    db.prepare(`UPDATE servers SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+    db.prepare(`UPDATE servers SET ${updates.join(', ')} WHERE id = ?`).run(...(values as SqlParam[]));
   }
 }
 
@@ -844,7 +845,7 @@ function isRawEnvelope(value: unknown): value is { primary: unknown; bySource: R
 /**
  * Check if sync is needed (no data or stale data).
  */
-export function isSyncNeeded(db: Database.Database, maxAgeMinutes: number = 15): boolean {
+export function isSyncNeeded(db: DatabaseSync, maxAgeMinutes: number = 15): boolean {
   const lastSync = getLastSyncTimestamp(db, 'official');
   if (!lastSync) return true;
 
@@ -858,7 +859,7 @@ export function isSyncNeeded(db: Database.Database, maxAgeMinutes: number = 15):
 /**
  * Get total server count in the database.
  */
-export function getServerCount(db: Database.Database): number {
+export function getServerCount(db: DatabaseSync): number {
   const row = db.prepare('SELECT COUNT(*) as count FROM servers').get() as { count: number };
   return row.count;
 }

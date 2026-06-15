@@ -21,10 +21,5 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "wrangler": "^4.14.1"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "better-sqlite3"
-    ]
   }
 }

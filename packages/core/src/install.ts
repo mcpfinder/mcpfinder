@@ -2,7 +2,7 @@
  * Generate installation commands for MCP servers.
  * Supports Claude Desktop, Cursor, Claude Code, Cline/Roo Code, Windsurf, and generic configurations.
  */
-import type Database from 'better-sqlite3';
+import type { DatabaseSync } from 'node:sqlite';
 import type { McpServer, RegistryEnvVar } from './types.js';
 import { findServerByNameOrSlug } from './search.js';
 
@@ -72,7 +72,7 @@ const PLATFORM_INFO: Record<
  * Generate install configuration for a specific MCP server and client.
  */
 export function getInstallCommand(
-  db: Database.Database,
+  db: DatabaseSync,
   nameOrSlug: string,
   client: ClientType = 'claude-desktop',
 ): InstallConfig | null {

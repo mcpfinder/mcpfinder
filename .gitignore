@@ -226,3 +226,6 @@ mcp-inspector/
 
 # npm-managed lockfiles should not appear in this repo (pnpm workspace).
 package-lock.json
+
+# MCPB build artifacts
+*.mcpb

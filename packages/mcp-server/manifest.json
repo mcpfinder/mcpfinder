@@ -1,0 +1,31 @@
+{
+  "manifest_version": "0.3",
+  "name": "mcpfinder",
+  "display_name": "MCPfinder",
+  "version": "1.1.0",
+  "description": "Discover and install MCP servers across the Official Registry, Glama, and Smithery.",
+  "long_description": "MCPfinder is an AI-first discovery layer over the MCP ecosystem. It searches 25k+ servers across the Official MCP Registry, Glama, and Smithery, inspects trust signals and required secrets, and generates client-specific install config — so your AI can find and add the tools it is missing on demand.",
+  "author": { "name": "CODER AI", "email": "hello@coderai.dev", "url": "https://coderai.dev" },
+  "homepage": "https://mcpfinder.dev",
+  "documentation": "https://github.com/mcpfinder/mcpfinder/blob/main/README.md",
+  "repository": { "type": "git", "url": "https://github.com/mcpfinder/mcpfinder" },
+  "license": "AGPL-3.0-or-later",
+  "keywords": ["mcp", "model-context-protocol", "discovery", "registry", "ai", "agent-tooling"],
+  "server": {
+    "type": "node",
+    "entry_point": "server/cli.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/cli.js"]
+    }
+  },
+  "tools": [
+    { "name": "search_mcp_servers", "description": "Find candidate MCP servers by keyword, technology, or use case." },
+    { "name": "get_server_details", "description": "Inspect trust signals, tools, env vars, and warnings before recommending a server." },
+    { "name": "get_install_config", "description": "Generate a client-specific JSON config snippet for installation." },
+    { "name": "browse_categories", "description": "Browse the MCP ecosystem by domain category." }
+  ],
+  "compatibility": {
+    "runtimes": { "node": ">=22.13.0" }
+  }
+}

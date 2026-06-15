@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm --filter @mcpfinder/core build && pnpm --filter @mcpfinder/server build",
+    "build:mcpb": "pnpm build && node scripts/build-mcpb.mjs",
     "test": "pnpm --filter @mcpfinder/core build && pnpm --filter @mcpfinder/server build && node scripts/test-contracts.mjs && node scripts/test-core-capabilities.mjs",
     "test:contracts": "node scripts/test-contracts.mjs",
     "test:core": "node scripts/test-core-capabilities.mjs"
@@ -20,6 +21,8 @@
   "author": "Coder AI <hello@coderai.dev>",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
+    "@anthropic-ai/mcpb": "^2.1.2",
+    "esbuild-wasm": "^0.25.10",
     "wrangler": "^4.14.1"
   }
 }

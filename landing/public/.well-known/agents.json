@@ -2,8 +2,8 @@
   "$schema": "https://agents.json/schemas/0.1/agents.schema.json",
   "name": "MCPfinder",
   "description": "AI-first discovery layer over the Official MCP Registry, Glama, and Smithery. Exposes 4 MCP tools to AI agents.",
-  "version": "1.0.6",
-  "lastUpdated": "2026-05-25",
+  "version": "1.1.0",
+  "lastUpdated": "2026-06-15",
   "publisher": {
     "name": "CODER AI",
     "url": "https://coderai.dev",

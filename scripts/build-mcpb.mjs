@@ -4,9 +4,14 @@
  *
  * Produces a single self-contained, cross-platform bundle — no node_modules,
  * no symlinks, no native binaries — by inlining the server's deps with
- * esbuild-wasm, then packing with the official @anthropic-ai/mcpb CLI. This is
- * only portable because the SQLite engine is the built-in node:sqlite (there is
- * no native addon left to ship per-platform).
+ * esbuild-wasm, then zipping it into a .mcpb. This is only portable because the
+ * SQLite engine is the built-in node:sqlite (no native addon to ship per-platform).
+ *
+ * We zip directly rather than using `mcpb pack`: Smithery requires every tool in
+ * the manifest to carry an `inputSchema` object, which the official mcpb manifest
+ * schema rejects ("Unrecognized key: inputSchema"). Smithery reads the manifest
+ * itself, so its requirement wins for our publish target. (`mcpb info <file>`
+ * still works to inspect the result.)
  *
  * Output:  mcpfinder-<version>.mcpb  (repo root; git-ignored)
  *
@@ -26,12 +31,10 @@ import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..');
 const serverDir = join(repoRoot, 'packages/mcp-server');
-const require = createRequire(import.meta.url);
 
 const args = new Set(process.argv.slice(2));
 const argVal = (name) => {
@@ -91,11 +94,12 @@ const manifest = JSON.parse(await readFile(join(serverDir, 'manifest.json'), 'ut
 manifest.version = version;
 await writeFile(join(stageDir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 
-// 5) Pack with the official mcpb CLI (validates the manifest + zips the bundle).
-//    Use the pnpm-provided bin shim — @anthropic-ai/mcpb's package "exports"
-//    doesn't expose package.json, so we can't resolve its bin path directly.
-const mcpbBin = join(repoRoot, 'node_modules', '.bin', process.platform === 'win32' ? 'mcpb.cmd' : 'mcpb');
-
+// 5) Pack as a standard .mcpb zip (manifest.json at the archive root). See the
+//    header note for why this is a plain zip and not `mcpb pack`.
 const out = join(repoRoot, `mcpfinder-${version}.mcpb`);
-execFileSync(mcpbBin, ['pack', stageDir, out], { stdio: 'inherit' });
+await rm(out, { force: true });
+execFileSync('zip', ['-X', '-r', '-q', out, 'manifest.json', 'package.json', 'server'], {
+  cwd: stageDir,
+  stdio: 'inherit',
+});
 console.log(`\n[build-mcpb] wrote ${out}`);

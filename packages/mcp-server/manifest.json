@@ -20,10 +20,54 @@
     }
   },
   "tools": [
-    { "name": "search_mcp_servers", "description": "Find candidate MCP servers by keyword, technology, or use case." },
-    { "name": "get_server_details", "description": "Inspect trust signals, tools, env vars, and warnings before recommending a server." },
-    { "name": "get_install_config", "description": "Generate a client-specific JSON config snippet for installation." },
-    { "name": "browse_categories", "description": "Browse the MCP ecosystem by domain category." }
+    {
+      "name": "search_mcp_servers",
+      "description": "Find candidate MCP servers by keyword, technology, or use case.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Keyword, use case, or technology. Empty returns the most popular servers." },
+          "limit": { "type": "number", "minimum": 1, "maximum": 50, "default": 10 },
+          "transportType": { "type": "string", "enum": ["stdio", "streamable-http", "sse", "any"], "default": "any" },
+          "registryType": { "type": "string", "enum": ["npm", "pypi", "oci", "any"], "default": "any" },
+          "registrySource": { "type": "string", "enum": ["official", "glama", "smithery", "any"], "default": "any" }
+        }
+      }
+    },
+    {
+      "name": "get_server_details",
+      "description": "Inspect trust signals, tools, env vars, and warnings before recommending a server.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Server name or slug (e.g. \"filesystem\")." }
+        },
+        "required": ["name"]
+      }
+    },
+    {
+      "name": "get_install_config",
+      "description": "Generate a client-specific JSON config snippet for installation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Server name or slug." },
+          "platform": { "type": "string", "enum": ["claude-desktop", "cursor", "claude-code", "cline", "windsurf"], "default": "claude-desktop" }
+        },
+        "required": ["name"]
+      }
+    },
+    {
+      "name": "browse_categories",
+      "description": "Browse the MCP ecosystem by domain category.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "category": { "type": "string", "description": "Optional category name; omit to list all categories." },
+          "limit": { "type": "number", "minimum": 1, "maximum": 50, "default": 20 }
+        }
+      }
+    }
   ],
   "compatibility": {
     "runtimes": { "node": ">=22.13.0" }

@@ -1,10 +1,10 @@
 packages:
   - "packages/*"
 
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
-  - workerd
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
 
 overrides:
   hono: "^4.12.25"

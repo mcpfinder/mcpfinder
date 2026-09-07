@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/mcpfinder-mcpfinder-badge.png)](https://mseep.ai/app/mcpfinder-mcpfinder)
+
 # MCPfinder
 
 > The MCP server that helps AI agents discover, evaluate, and install other MCP servers.

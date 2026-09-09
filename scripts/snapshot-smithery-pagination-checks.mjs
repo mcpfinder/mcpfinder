@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { join } from 'node:path';
 
 const PAGE_SIZE = 100;
-const runtime = (fetchImpl, now = () => 0) => ({ fetchImpl, now, sleep: async () => {} });
+const runtime = (fetchImpl, now = () => 0, sleep = async () => {}) => ({ fetchImpl, now, sleep });
 
 const smitheryEntry = (qualifiedName) => ({
   qualifiedName,
@@ -156,8 +156,14 @@ export async function runSnapshotSmitheryPaginationChecks(dir) {
   );
   transientDuplicateDb.close();
 
+  const restartBudget = process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES;
+  const originalRestartBase = process.env.MCPFINDER_CRAWL_RESTART_BASE_MS;
+  delete process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES;
+  delete process.env.MCPFINDER_CRAWL_RESTART_BASE_MS;
+  try {
   const persistentDuplicateDb = initDatabase(join(dir, 'smithery-persistent-duplicate.sqlite'));
   let persistentDuplicateCalls = 0;
+  const persistentRestartSleeps = [];
   await syncSmitheryRegistry(persistentDuplicateDb, runtime(async (requestUrl) => {
     persistentDuplicateCalls++;
     const page = Number(new URL(requestUrl).searchParams.get('page'));
@@ -165,8 +171,11 @@ export async function runSnapshotSmitheryPaginationChecks(dir) {
       ? payload(1, Array.from({ length: PAGE_SIZE }, (_, index) =>
           smitheryEntry(`smithery/persistent-${index}`)), 2, 101)
       : payload(2, [smitheryEntry('smithery/persistent-0')], 2, 101));
+  }, () => 1_772_000_000_123, async (ms) => {
+    if (ms > 100) persistentRestartSleeps.push(ms);
   }));
-  assert.equal(persistentDuplicateCalls, 6);
+  assert.equal(persistentDuplicateCalls, 8);
+  assert.deepEqual(persistentRestartSleeps, [500, 1_000, 2_000]);
   assert.equal(syncLog(persistentDuplicateDb).status, 'error');
   assert.equal(syncLog(persistentDuplicateDb).server_count, 0);
   assert.match(syncLog(persistentDuplicateDb).error, /cross-page duplicate/);
@@ -176,10 +185,68 @@ export async function runSnapshotSmitheryPaginationChecks(dir) {
   );
   persistentDuplicateDb.close();
 
+  // Persistent HTTP 502 on page 1 restarts the whole crawl four times.
+  const persistent502Db = initDatabase(join(dir, 'smithery-persistent-502.sqlite'));
+  let persistent502Calls = 0;
+  await syncSmitheryRegistry(persistent502Db, runtime(async () => {
+    persistent502Calls++;
+    return new Response('bad gateway', { status: 502 });
+  }));
+  assert.equal(persistent502Calls, 16);
+  assert.equal(syncLog(persistent502Db).status, 'error');
+  assert.equal(syncLog(persistent502Db).server_count, 0);
+  assert.match(syncLog(persistent502Db).error, /HTTP 502|giving up after/);
+  assert.doesNotMatch(syncLog(persistent502Db).error, /exceeded its .* budget/);
+  assert.equal(
+    persistent502Db.prepare('SELECT COUNT(*) AS count FROM servers').get().count,
+    0,
+  );
+  persistent502Db.close();
+
+  // 429 is retried at page level (4 fetches) and must not restart the crawl.
+  const tooManyDb = initDatabase(join(dir, 'smithery-429.sqlite'));
+  let tooManyCalls = 0;
+  await syncSmitheryRegistry(tooManyDb, runtime(async () => {
+    tooManyCalls++;
+    return new Response('too many requests', { status: 429 });
+  }));
+  assert.equal(tooManyCalls, 4);
+  assert.equal(syncLog(tooManyDb).status, 'error');
+  assert.match(syncLog(tooManyDb).error, /HTTP 429/);
+  tooManyDb.close();
+
+  // 502 on the first two crawls, then a validated catalogue on the third.
+  // CI ladder so restart waits do not overlap page-level retry delays.
+  process.env.MCPFINDER_CRAWL_RESTART_BASE_MS = '15000';
+  const recovered502Db = initDatabase(join(dir, 'smithery-recovered-502.sqlite'));
+  const recovered502Sleeps = [];
+  let recovered502Page = 0;
+  assert.equal(
+    await syncSmitheryRegistry(recovered502Db, {
+      now: () => 1_772_000_000_123,
+      sleep: async (ms) => { if (ms >= 15_000) recovered502Sleeps.push(ms); },
+      fetchImpl: async (requestUrl) => {
+        if (recovered502Sleeps.length < 2) return new Response('bad gateway', { status: 502 });
+        recovered502Page++;
+        const page = Number(new URL(requestUrl).searchParams.get('page'));
+        return Response.json(page === 1
+          ? payload(1, [smitheryEntry('smithery/recovered-502')], 1, 1)
+          : payload(2, [], 1, 1));
+      },
+    }),
+    1,
+  );
+  assert.equal(recovered502Page, 2);
+  assert.deepEqual(recovered502Sleeps, [15_000, 30_000]);
+  assert.equal(syncLog(recovered502Db).status, 'ok');
+  assert.ok(syncLog(recovered502Db).server_count > 0);
+  recovered502Db.close();
+  delete process.env.MCPFINDER_CRAWL_RESTART_BASE_MS;
+
   // Two consecutive duplicate attempts cost the 2026-08-26 20:02 build its
   // whole publication cycle; the third attempt is what turns that into a
-  // recovered crawl. The restart waits back off exponentially (500 ms, then
-  // 1 s) rather than hammering the same degraded upstream twice in 250 ms.
+  // recovered crawl. Unset env is the local stdio ladder (500 ms, then 1 s)
+  // rather than hammering the same degraded upstream twice in 250 ms.
   // The clock is deliberately not zero: the ladder must not depend on wall
   // time, and `now: () => 0` would pass even if it did.
   const thirdAttemptDb = initDatabase(join(dir, 'smithery-third-attempt.sqlite'));
@@ -210,7 +277,7 @@ export async function runSnapshotSmitheryPaginationChecks(dir) {
   );
   assert.equal(thirdAttempt, 3);
   assert.equal(thirdAttemptCalls, 7);
-  assert.deepEqual(restartSleeps, [500, 1000]);
+  assert.deepEqual(restartSleeps, [500, 1_000]);
   assert.equal(syncLog(thirdAttemptDb).status, 'ok');
   assert.equal(syncLog(thirdAttemptDb).server_count, 101);
   assert.equal(
@@ -224,6 +291,38 @@ export async function runSnapshotSmitheryPaginationChecks(dir) {
     1,
   );
   thirdAttemptDb.close();
+
+  // A 60 s CI-ladder wait that would miss a 1-minute deadline must keep the
+  // original 502, not rewrite it as a budget overrun. now() is pinned at 0 so
+  // deadline is exactly 60 s: 15 s and 30 s fit, 60 s does not.
+  process.env.MCPFINDER_CRAWL_RESTART_BASE_MS = '15000';
+  process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES = '1';
+  const skippedWaitDb = initDatabase(join(dir, 'smithery-skipped-restart-wait.sqlite'));
+  let skippedWaitCalls = 0;
+  const skippedWaitSleeps = [];
+  await syncSmitheryRegistry(skippedWaitDb, {
+    now: () => 0,
+    sleep: async (ms) => { if (ms >= 15_000) skippedWaitSleeps.push(ms); },
+    fetchImpl: async () => {
+      skippedWaitCalls++;
+      return new Response('bad gateway', { status: 502 });
+    },
+  });
+  assert.equal(skippedWaitCalls, 12);
+  assert.deepEqual(skippedWaitSleeps, [15_000, 30_000]);
+  assert.equal(syncLog(skippedWaitDb).status, 'error');
+  assert.equal(syncLog(skippedWaitDb).server_count, 0);
+  assert.match(syncLog(skippedWaitDb).error, /HTTP 502|giving up after/);
+  assert.doesNotMatch(syncLog(skippedWaitDb).error, /exceeded its .* budget/);
+  skippedWaitDb.close();
+  delete process.env.MCPFINDER_CRAWL_RESTART_BASE_MS;
+  delete process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES;
+  } finally {
+  if (restartBudget === undefined) delete process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES;
+  else process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES = restartBudget;
+  if (originalRestartBase === undefined) delete process.env.MCPFINDER_CRAWL_RESTART_BASE_MS;
+  else process.env.MCPFINDER_CRAWL_RESTART_BASE_MS = originalRestartBase;
+  }
 
   const stableIdDb = initDatabase(join(dir, 'smithery-stable-id-priority.sqlite'));
   const repoA = 'https://github.com/acme/smithery-original';
@@ -427,9 +526,10 @@ export async function runSnapshotSmitheryPaginationChecks(dir) {
 
   // MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES overrides the wall-clock budget the
   // crawl above spends its attempts inside, so its parsing lives next to the
-  // crawl it bounds. Three attempts do not fit in the default five minutes, so
+  // crawl it bounds. Four attempts do not fit in the default five minutes, so
   // batch builds raise it explicitly.
   const originalBudget = process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES;
+  const originalRestartBaseEnv = process.env.MCPFINDER_CRAWL_RESTART_BASE_MS;
   const smitheryEmpty = payload(1, [], 0, 0);
   try {
     process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES = '12';
@@ -483,8 +583,23 @@ export async function runSnapshotSmitheryPaginationChecks(dir) {
     });
     assert.match(syncLog(defaultBudgetDb).error, /exceeded its 5-minute budget/);
     defaultBudgetDb.close();
+
+    process.env.MCPFINDER_CRAWL_RESTART_BASE_MS = '60001';
+    const restartHighDb = initDatabase(join(dir, 'smithery-restart-base-high.sqlite'));
+    assert.equal(
+      await syncSmitheryRegistry(
+        restartHighDb,
+        runtime(async () => Response.json(smitheryEmpty)),
+      ),
+      0,
+    );
+    assert.equal(syncLog(restartHighDb).status, 'error');
+    assert.match(syncLog(restartHighDb).error, /integer between 100 and 60000/);
+    restartHighDb.close();
   } finally {
     if (originalBudget === undefined) delete process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES;
     else process.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES = originalBudget;
+    if (originalRestartBaseEnv === undefined) delete process.env.MCPFINDER_CRAWL_RESTART_BASE_MS;
+    else process.env.MCPFINDER_CRAWL_RESTART_BASE_MS = originalRestartBaseEnv;
   }
 }

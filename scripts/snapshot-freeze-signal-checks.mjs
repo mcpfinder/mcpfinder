@@ -11,6 +11,7 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -21,6 +22,8 @@ import {
   clearFreezeSignal,
   decideFreezeComment,
   raiseFreezeSignal,
+  raiseFreezeSignalUnlessFresh,
+  RAISE_UNLESS_FRESH_STALENESS_PROBE,
   readSignature,
   reconcileFreezeIssues,
   signatureMarker,
@@ -283,6 +286,100 @@ export async function runSnapshotFreezeSignalChecks() {
     );
   }
 
+  // ─── raise-unless-fresh: a still-fresh manifest is a red X, not an issue ──
+  {
+    const gh = stubGh(['should not be called']);
+    const lines = [];
+    const result = await raiseFreezeSignalUnlessFresh({
+      body: 'the build did not finish',
+      signature: 'build:pointer=none:Build snapshot',
+      staleness: { state: 'fresh', reason: 'the published snapshot is 4.4h old' },
+      now,
+      run: gh.run,
+      log: (line) => lines.push(line),
+    });
+    assert.equal(result.action, 'skipped-fresh');
+    assert.equal(result.reason, 'the published snapshot is 4.4h old');
+    assert.equal(gh.calls.length, 0, 'a fresh publishedAt must not call gh, including to clear');
+    assert.equal(lines.length, 1);
+    assert.match(lines[0], /\[snapshot-freeze\] not raising: the published snapshot is 4.4h old/);
+  }
+
+  {
+    const gh = stubGh([
+      '',
+      issueList([]),
+      '',
+      issueList([41]),
+    ]);
+    const result = await raiseFreezeSignalUnlessFresh({
+      body: 'the build did not finish',
+      signature: 'build:pointer=none:Build snapshot',
+      staleness: { state: 'stale', reason: 'the published snapshot is 19h old' },
+      now,
+      run: gh.run,
+      log: () => {},
+    });
+    assert.equal(result.action, 'created');
+    assert.ok(gh.calls.find((call) => call[0] === 'issue' && call[1] === 'create'));
+  }
+
+  {
+    const gh = stubGh([
+      '',
+      issueList([]),
+      '',
+      issueList([42]),
+    ]);
+    const result = await raiseFreezeSignalUnlessFresh({
+      body: 'the public manifest is unreadable',
+      signature: 'build:pointer=none:Build snapshot',
+      staleness: { state: 'unreadable', reason: 'HTTP 502' },
+      now,
+      run: gh.run,
+      log: () => {},
+    });
+    assert.equal(result.action, 'created');
+    assert.ok(gh.calls.find((call) => call[0] === 'issue' && call[1] === 'create'));
+  }
+
+  {
+    const gh = stubGh([
+      '',
+      issueList([]),
+      '',
+      issueList([43]),
+    ]);
+    const lines = [];
+    const result = await raiseFreezeSignalUnlessFresh({
+      body: 'the build did not finish',
+      signature: 'build:pointer=none:Build snapshot',
+      staleness: async () => {
+        throw new Error('getaddrinfo ENOTFOUND mcpfinder.dev');
+      },
+      now,
+      run: gh.run,
+      log: (line) => lines.push(line),
+    });
+    assert.equal(result.action, 'created');
+    assert.match(lines[0], /\[snapshot-freeze\] raising anyway: probe failed \(getaddrinfo ENOTFOUND mcpfinder.dev\)/);
+    assert.ok(gh.calls.find((call) => call[0] === 'issue' && call[1] === 'create'));
+  }
+
+  {
+    const gh = stubGh(['should not be called']);
+    const result = await raiseFreezeSignalUnlessFresh({
+      body: 'the build did not finish',
+      signature: 'build:pointer=none:Build snapshot',
+      staleness: async () => ({ state: 'fresh', reason: 'the published snapshot is 4.4h old' }),
+      now,
+      run: gh.run,
+      log: () => {},
+    });
+    assert.equal(result.action, 'skipped-fresh');
+    assert.equal(gh.calls.length, 0);
+  }
+
   // ─── The CLI the workflows actually invoke, against a stubbed `gh` ────────
   const dir = await mkdtemp(join(tmpdir(), 'mcpfinder-freeze-gh-'));
   try {
@@ -353,6 +450,45 @@ export async function runSnapshotFreezeSignalChecks() {
       ['99'],
     );
 
+    // raise-unless-fresh against a local fresh manifest must not call gh.
+    const publishedAt = new Date().toISOString();
+    const server = createServer((req, res) => {
+      if (req.url === '/manifest.json' || req.url?.endsWith('/manifest.json')) {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify({ publishedAt }));
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    });
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+    try {
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : 0;
+      await writeFile(log, '');
+      const { stdout, stderr } = await execFileAsync(
+        process.execPath,
+        ['scripts/snapshot-freeze-signal.mjs', 'raise-unless-fresh'],
+        {
+          cwd: new URL('..', import.meta.url).pathname,
+          env: {
+            ...process.env,
+            PATH: `${dir}:${process.env.PATH}`,
+            GH_STUB_LOG: log,
+            GH_STUB_DIR: dir,
+            FREEZE_BODY: 'build did not finish',
+            FREEZE_SIGNATURE: 'cli:fresh',
+            MCPFINDER_SNAPSHOT_BASE_URL: `http://127.0.0.1:${port}`,
+          },
+        },
+      );
+      assert.match(`${stdout}\n${stderr}`, /\[snapshot-freeze\] not raising:/);
+      const freshCalls = (await readFile(log, 'utf8')).split('\n').filter(Boolean);
+      assert.equal(freshCalls.length, 0, 'a fresh publishedAt must not call gh');
+    } finally {
+      server.close();
+    }
+
     // An unknown action is a hard error, not a silent no-op: a typo in the
     // workflow must not look like a delivered alarm.
     await assert.rejects(
@@ -364,4 +500,12 @@ export async function runSnapshotFreezeSignalChecks() {
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+
+  // The build workflow's CLI action is pinned here so a rename cannot leave
+  // snapshot.yml calling a switch that no longer exists. The function tests
+  // above cover behaviour; this does not fetch mcpfinder.dev.
+  const freezeSource = await readFile(new URL('./snapshot-freeze-signal.mjs', import.meta.url), 'utf8');
+  assert.match(freezeSource, /if \(action === 'raise' \|\| action === 'raise-unless-fresh'\)/);
+  assert.deepEqual(RAISE_UNLESS_FRESH_STALENESS_PROBE, { retries: 1, timeoutMs: 5_000 });
+  assert.match(freezeSource, /checkSnapshotStaleness\(RAISE_UNLESS_FRESH_STALENESS_PROBE\)/);
 }

@@ -3,8 +3,9 @@
  * The one place that files, updates and retires the snapshot-freeze issue.
  *
  * Two workflows raise this alarm — .github/workflows/snapshot.yml when a build
- * run cannot finish, and .github/workflows/snapshot-staleness.yml when the
- * published manifest stops moving — and they must converge on a *single*
+ * run cannot finish *and* the public manifest is no longer fresh (or the
+ * freshness probe fails), and .github/workflows/snapshot-staleness.yml when
+ * the published manifest stops moving — and they must converge on a *single*
  * thread, or the deduplication that makes the alarm bearable stops working.
  * Two near-verbatim copies of the label/list/comment dance in YAML were exactly
  * the kind of thing that drifts apart silently, so the whole protocol lives
@@ -13,11 +14,21 @@
  * Usage (everything comes from the environment, so multi-line bodies survive):
  *
  *   FREEZE_BODY=… FREEZE_SIGNATURE=… node scripts/snapshot-freeze-signal.mjs raise
+ *   FREEZE_BODY=… FREEZE_SIGNATURE=… node scripts/snapshot-freeze-signal.mjs raise-unless-fresh
  *   FREEZE_BODY=…                    node scripts/snapshot-freeze-signal.mjs clear
  */
 import { execFile as execFileCallback } from 'node:child_process';
 import { promisify } from 'node:util';
+import { checkSnapshotStaleness } from './check-snapshot-staleness.mjs';
 import { isMainModule } from './verify-snapshot-upload.mjs';
+
+/**
+ * Short probe for `raise-unless-fresh`. Load-bearing for `cancelled()`: the
+ * runner's post-cancellation grace window cannot absorb the default 4 × 15 s
+ * staleness ladder (~66 s). Two attempts × 5 s + 500 ms backoff is ~10.5 s
+ * worst case. Probe failure still raises (fail closed).
+ */
+export const RAISE_UNLESS_FRESH_STALENESS_PROBE = { retries: 1, timeoutMs: 5_000 };
 
 const execFile = promisify(execFileCallback);
 
@@ -163,6 +174,38 @@ async function closeDuplicates({ duplicates, keep, run, log }) {
   }
 }
 
+/**
+ * Build-workflow raise: file only when the public manifest is already stale
+ * or unreadable. A single failed 6-hourly cycle while `publishedAt` is still
+ * fresh is a red Actions run, not a GitHub issue — the 18-hour staleness
+ * monitor is what files when publication actually stalls. Probe failures
+ * raise anyway (fail closed for the alarm). An open issue is not cleared
+ * here; that stays the all-clear path.
+ */
+export async function raiseFreezeSignalUnlessFresh({
+  body,
+  signature,
+  staleness,
+  now = Date.now(),
+  intervalHours = REPEAT_COMMENT_INTERVAL_HOURS,
+  run,
+  log = console.log,
+}) {
+  let verdict;
+  try {
+    verdict = typeof staleness === 'function' ? await staleness() : staleness;
+  } catch (error) {
+    const why = error instanceof Error ? error.message : String(error);
+    log(`[snapshot-freeze] raising anyway: probe failed (${why})`);
+    return raiseFreezeSignal({ body, signature, now, intervalHours, run, log });
+  }
+  if (verdict?.state === 'fresh') {
+    log(`[snapshot-freeze] not raising: ${verdict.reason}`);
+    return { action: 'skipped-fresh', reason: verdict.reason };
+  }
+  return raiseFreezeSignal({ body, signature, now, intervalHours, run, log });
+}
+
 /** Open the freeze issue, or add to the open one when it has something new to say. */
 export async function raiseFreezeSignal({
   body,
@@ -248,9 +291,21 @@ async function main() {
   const body = process.env.FREEZE_BODY;
   if (!body) throw new Error('FREEZE_BODY is required');
   const run = (file, args) => execFile(file, args, { maxBuffer: 16 * 1024 * 1024 });
-  if (action === 'raise') {
+  if (action === 'raise' || action === 'raise-unless-fresh') {
     const signature = process.env.FREEZE_SIGNATURE;
     if (!signature) throw new Error('FREEZE_SIGNATURE is required to raise a freeze signal');
+    if (action === 'raise-unless-fresh') {
+      // Short probe is load-bearing for `cancelled()`: the runner's
+      // post-cancellation grace window cannot absorb the default 4 × 15 s
+      // staleness ladder. Probe failure still raises (fail closed).
+      await raiseFreezeSignalUnlessFresh({
+        body,
+        signature,
+        staleness: () => checkSnapshotStaleness(RAISE_UNLESS_FRESH_STALENESS_PROBE),
+        run,
+      });
+      return;
+    }
     await raiseFreezeSignal({ body, signature, run });
     return;
   }
@@ -258,7 +313,9 @@ async function main() {
     await clearFreezeSignal({ body, run });
     return;
   }
-  throw new Error(`unknown action ${JSON.stringify(action)}; expected raise or clear`);
+  throw new Error(
+    `unknown action ${JSON.stringify(action)}; expected raise, raise-unless-fresh, or clear`,
+  );
 }
 
 if (await isMainModule({ moduleUrl: import.meta.url })) {

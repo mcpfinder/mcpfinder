@@ -182,11 +182,24 @@ export async function runSnapshotFreezeChecks({ workflow, parsedWorkflow, durabl
   // The label/list/comment-or-create dance used to be copy-pasted into both
   // workflows, and the copies had to stay byte-compatible for dedup to work at
   // all. Both now shell out to the same script; neither may grow its own copy.
+  // `raise` is a prefix of `raise-unless-fresh`, so the two workflows are
+  // pinned on the exact action each one is supposed to invoke.
+  assert.match(freezeStep.run, /node scripts\/snapshot-freeze-signal\.mjs raise-unless-fresh/);
+  assert.match(workflow, /short probe \(2 attempts × 5 s/);
+  assert.match(workflow, /That bound is load-bearing for `cancelled\(\)`/);
+  assert.doesNotMatch(
+    freezeStep.run,
+    /node scripts\/snapshot-freeze-signal\.mjs raise(?!-unless-fresh)/,
+  );
+  assert.match(
+    stalenessAlarm.run,
+    /node scripts\/snapshot-freeze-signal\.mjs raise(?!-unless-fresh)/,
+  );
+  assert.doesNotMatch(staleness, /raise-unless-fresh/);
   for (const [file, text] of [
     ['snapshot.yml', workflow],
     ['snapshot-staleness.yml', staleness],
   ]) {
-    assert.match(text, /node scripts\/snapshot-freeze-signal\.mjs raise/, file);
     assert.match(text, /node scripts\/snapshot-freeze-signal\.mjs clear/, file);
     assert.doesNotMatch(text, /gh issue create/, file);
     assert.doesNotMatch(text, /gh label create/, file);
@@ -494,6 +507,12 @@ export async function runSnapshotFreezeChecks({ workflow, parsedWorkflow, durabl
   assert.match(readme, /judged on the verdict's \*cause\*/);
   assert.match(readme, /actions: read/);
   assert.match(readme, /scripts\/snapshot-freeze-signal\.mjs/);
+  assert.match(readme, /raise-unless-fresh/);
+  assert.match(
+    readme,
+    /a single failed 6-hourly cycle is a red Actions run, not a GitHub issue/,
+  );
+  assert.match(readme, /still fresh under the same 18-hour criterion/);
   // The limits of the mechanism are documented, not glossed over.
   assert.match(readme, /What neither signal covers/);
   assert.match(readme, /\*\*external uptime\n?check\*\*/);

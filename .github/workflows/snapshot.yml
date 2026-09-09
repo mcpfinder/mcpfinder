@@ -80,11 +80,15 @@ jobs:
           # Glama has repeatedly needed more than the 12-minute local budget.
           # Thirty minutes leaves headroom inside the 90-minute job ceiling.
           MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES: '30'
-          # Smithery now restarts a stalled crawl up to three times instead of
-          # two, and three full passes do not fit the default 5-minute budget.
+          # Smithery now restarts a stalled crawl across four attempts, and
+          # four full passes do not fit the default 5-minute budget.
           # Twelve minutes covers them and still leaves the 90-minute ceiling
           # untouched next to Glama's 30.
           MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES: '12'
+          # Local stdio keeps the 500 ms restart ladder because first-run live
+          # sync is gated on the SDK's 60 s tool-call timeout. CI waits
+          # 15 s / 30 s / 60 s so a registry mid-reindex can recover.
+          MCPFINDER_CRAWL_RESTART_BASE_MS: '15000'
           # Glama requires an API key since 2026-08-26. An unset/empty secret
           # makes the Glama sync record a 'skipped' status, which fails the
           # quality gate — the previous complete snapshot keeps serving. Note
@@ -215,8 +219,15 @@ jobs:
       # `publishedAt` is a pull-based signal nobody polls; that is how issue #8
       # stayed unnoticed for six days.
       #
-      # This is one of two signals, and it is the near one: it fires the moment
-      # a run fails. It is structurally blind to a run that never started
+      # This is one of two signals. The step still runs on a failed or
+      # cancelled run whose pointer did not move, so it can name the failing
+      # step — but raise-unless-fresh refuses to file when the public manifest
+      # is still fresh under the same 18-hour criterion the staleness monitor
+      # uses. A single failed 6-hourly cycle is therefore a red X, not an
+      # issue; the 18-hour monitor is what files when publishedAt actually
+      # stalls. The build signal still raises when the probe says
+      # stale/unreadable (a stall already in progress) or when the probe
+      # itself throws. It is structurally blind to a run that never started
       # (GitHub disables cron schedules in a repository idle for 60 days) and
       # to a green run whose bytes never reached R2 — for those,
       # .github/workflows/snapshot-staleness.yml watches the published manifest
@@ -235,7 +246,12 @@ jobs:
         # grace window, and a runner that died outright runs nothing at all, so
         # this step can be killed before `gh` returns. That gap is not closed
         # here; it is what snapshot-staleness.yml, which needs no live runner,
-        # exists to cover.
+        # exists to cover. The step's `gh run view` is one cheap API call to
+        # name the failing step; raise-unless-fresh then probes the public
+        # manifest before any issue create/comment. The default 4 × 15 s
+        # staleness ladder (~66 s) does not fit that grace window, so the CLI
+        # uses a short probe (2 attempts × 5 s + 500 ms backoff).
+        # That bound is load-bearing for `cancelled()`.
         #
         # The pointer clause is the other half of being honest. Once
         # `Publish manifest pointer to R2` has succeeded, `publishedAt` has
@@ -273,7 +289,7 @@ jobs:
           build succeeds again. The next successful build closes this issue.
           EOF
           )
-          node scripts/snapshot-freeze-signal.mjs raise
+          node scripts/snapshot-freeze-signal.mjs raise-unless-fresh
 
       # A failure *after* the pointer moved is not a freeze at all: `publishedAt`
       # advanced, and everyone bootstrapping from now on gets the new snapshot.

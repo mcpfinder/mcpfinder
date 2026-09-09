@@ -611,10 +611,15 @@ healthy, keeping the enclosing job bounded.
 Empty Glama pages may legally continue with a new non-empty cursor; missing or
 previously seen continuation cursors are structural errors, preventing an
 upstream pagination loop from running until the deadline. A cross-page server
-ID duplicate restarts the complete cursor crawl up to twice within the same
-deadline, waiting 500 ms then 1 s between attempts; intra-page or persistent
-duplicates fail closed. Like Smithery, Glama applies only the completed retry
-in one SQLite transaction.
+ID duplicate or a `RegistryTransportError` after exhausted page-level transport
+retries (5xx, network/abort) restarts the complete cursor crawl, up to four
+attempts. Local stdio waits 500 ms then 1 s then 2 s; the snapshot job
+sets `MCPFINDER_CRAWL_RESTART_BASE_MS=15000` (15 s then 30 s then 60 s).
+Restarts run only while the remaining registry budget can cover the next wait;
+intra-page or persistent duplicates fail closed. 401/403 remain credential
+errors and are never retried, and HTTP 429 is not a crawl restart (page-level
+retries already spent the 429 budget). Like Smithery,
+Glama applies only the completed retry in one SQLite transaction.
 Official requires the upstream `metadata` object and per-page `count`, validates
 that count against returned records, and follows `nextCursor` until it is empty,
 null, or omitted by the terminal response. Repeated cursors or any failure
@@ -625,14 +630,19 @@ Its `totalCount`/`totalPages` telemetry may drift while the catalogue changes,
 so completion follows actual pages rather than one sampled aggregate. Every
 non-empty final page, including a short candidate, is confirmed by an empty
 next-page probe; a non-empty page after a short candidate is a truncation/gap
-error. A cross-page `qualifiedName` duplicate restarts the entire seeded crawl
-up to twice within the same deadline, waiting 500 ms then 1 s between attempts
-— the fault is intermittent upstream, and a single retry has already cost a
-snapshot publication cycle — while persistent cross-page or any intra-page
-duplicate fails closed. `MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES` can raise
-Smithery's default 5-minute wall-clock budget, which three full crawl attempts
-no longer fit into. It accepts integer values from 1 through 15; invalid or
-unbounded values fail explicitly. The snapshot workflow uses 12 minutes.
+error. A cross-page `qualifiedName` duplicate or a `RegistryTransportError`
+after exhausted page-level transport retries (5xx, network/abort)
+restarts the entire seeded crawl, up to four attempts. Local stdio waits
+500 ms then 1 s then 2 s; the snapshot job sets
+`MCPFINDER_CRAWL_RESTART_BASE_MS=15000` (15 s then 30 s then 60 s) — the fault
+is intermittent upstream, and three attempts at 500 ms then 1 s still lost the
+2026-09-03 and 2026-09-04 builds. Restarts run only while the remaining
+registry budget can cover the next wait; HTTP 429 is not a crawl restart.
+Persistent cross-page or any intra-page duplicate fails closed.
+`MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES` can raise Smithery's default 5-minute
+wall-clock budget, which four full crawl attempts no longer fit into. It
+accepts integer values from 1 through 15; invalid or unbounded values fail
+explicitly. The snapshot workflow uses 12 minutes.
 `currentPage` identity, non-negative typed
 pagination metadata, and the requested maximum result size remain structural;
 echoed `pageSize`, `totalCount`, and `totalPages` are advisory and may drift,

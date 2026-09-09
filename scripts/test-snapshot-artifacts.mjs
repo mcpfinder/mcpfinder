@@ -215,9 +215,12 @@ assert.match(markerCommand, /mcp-finder-db-snapshots\/data\.sqlite\.gz\.sha256/)
 const buildStep = parsedWorkflow.jobs.build.steps.find((step) => step.name === 'Build snapshot');
 assert.equal(buildStep?.env?.GLAMA_API_KEY, '${{ secrets.GLAMA_API_KEY }}');
 assert.equal(buildStep.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES, '30');
-// Smithery restarts a stalled crawl up to three times; three full passes do
+// Smithery restarts a stalled crawl across four attempts; four full passes do
 // not fit the default 5-minute budget.
 assert.equal(buildStep.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES, '12');
+// Local stdio keeps 500 ms because first-run live sync is gated on the
+// SDK's 60 s tool-call timeout; the snapshot job uses the 15/30/60 s ladder.
+assert.equal(buildStep.env.MCPFINDER_CRAWL_RESTART_BASE_MS, '15000');
 assert.equal(parsedWorkflow.jobs.build['timeout-minutes'], 90);
 
 const immutableUpload = workflow.indexOf('Upload immutable database to R2');

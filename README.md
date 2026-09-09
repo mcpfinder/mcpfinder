@@ -394,13 +394,23 @@ preventing upstream pagination loops.
 Smithery paginates through a fixed seed, and the seeded ordering occasionally
 returns the same `qualifiedName` on two different pages. That is a structural
 error — a corpus counted twice is not a corpus — so the crawl restarts from page
-one rather than committing what it has. Restarts are capped at three attempts,
-spaced by an exponential backoff, because the fault is transient upstream: the
-build of 2026-08-26 20:02 exhausted its two attempts and skipped a publication
-cycle that the 21:43 build then completed with 10,845 servers. Three full passes
-do not fit the 5-minute local budget, so the snapshot job sets
-`MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES=12`; custom values must be whole minutes
-from 1 through 15.
+one rather than committing what it has. Glama does the same for a cross-page
+server id duplicate, and both registries also restart the whole crawl after
+exhausted page-level transport retries (5xx, network/abort;
+`RegistryTransportError`); a 401/403 credential rejection or HTTP 429 does
+not — 429 is retried at page level, and restarting from page one would
+amplify load. Restarts are capped at four attempts. Local stdio waits 500 ms
+then 1 s then 2 s so a first-run live sync stays inside the SDK's 60 s
+tool-call timeout. The snapshot job sets `MCPFINDER_CRAWL_RESTART_BASE_MS=15000`
+(15 s then 30 s then 60 s) because the fault is transient upstream: the builds
+of 2026-09-03 and 2026-09-04 still lost Smithery after three attempts at 500 ms
+then 1 s, and the 2026-09-08 Glama HTTP 502 never restarted the crawl at all.
+Restarts run only while the remaining registry budget can cover the next wait;
+skipping a wait that would miss the deadline keeps the original fault rather
+than reporting a budget overrun. Custom values must be whole milliseconds from
+100 through 60000. Four full Smithery passes do not fit the 5-minute local
+budget, so the snapshot job also sets `MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES=12`;
+custom values must be whole minutes from 1 through 15.
 
 ### A frozen publication announces itself
 
@@ -410,24 +420,29 @@ visible only to whoever opens the Actions tab, and `publishedAt` is a pull-based
 signal nobody polls; that combination once let a stalled publication go
 unnoticed for six days.
 
-Two independent signals now cover it, and both file into the same GitHub issue,
-deduplicated by the `snapshot-freeze` label:
+Two independent signals now cover it, and when they alarm they file into the
+same GitHub issue, deduplicated by the `snapshot-freeze` label:
 
 1. **The build says it did not finish.** A final
    `if: (failure() || cancelled()) && steps.manifest-pointer.outcome != 'success'`
-   step in `.github/workflows/snapshot.yml` opens the freeze issue — or comments
-   on the open one — naming the failing step and linking the run. `cancelled()`
-   is there because a job that trips `timeout-minutes`, loses its runner, or is
-   stopped by hand is cancelled rather than failed, and those runs publish
-   nothing. The pointer clause is there because a failure *after* the manifest
-   pointer moved is not a freeze at all: `publishedAt` advanced and clients are
-   already bootstrapping the new snapshot, so a broken durable-fallback upload
-   files no issue — it closes an open one, on the same `publishedAt` criterion
-   the staleness monitor would use two hours later, and reports itself in the
-   run summary and the red run instead. The matching `if: success()` step closes
-   the issue with the new `publishedAt`. The job carries a minimal `permissions`
-   block (`contents: read`, `issues: write`, and `actions: read` so it can read
-   back which step failed).
+   step in `.github/workflows/snapshot.yml` still runs on those failures so it
+   can name the failing step and link the run, but it calls
+   `raise-unless-fresh` rather than `raise`. When the public manifest is
+   still fresh under the same 18-hour criterion, it logs that and files
+   nothing — a single failed 6-hourly cycle is a red Actions run, not a GitHub issue.
+   It raises (or comments on the open thread) only when the probe says stale or
+   unreadable — a stall already in progress — or when the probe itself fails.
+   `cancelled()` is there because a job that trips `timeout-minutes`, loses its
+   runner, or is stopped by hand is cancelled rather than failed, and those runs
+   publish nothing. The pointer clause is there because a failure *after* the
+   manifest pointer moved is not a freeze at all: `publishedAt` advanced and
+   clients are already bootstrapping the new snapshot, so a broken
+   durable-fallback upload files no issue — it closes an open one, on the same
+   `publishedAt` criterion the staleness monitor would use two hours later, and
+   reports itself in the run summary and the red run instead. The matching
+   `if: success()` step closes the issue with the new `publishedAt`. The job
+   carries a minimal `permissions` block (`contents: read`, `issues: write`,
+   and `actions: read` so it can read back which step failed).
 2. **The published manifest says nothing moved.**
    `.github/workflows/snapshot-staleness.yml` runs every two hours, fetches
    `https://mcpfinder.dev/api/v1/snapshot/manifest.json` the way a client would,

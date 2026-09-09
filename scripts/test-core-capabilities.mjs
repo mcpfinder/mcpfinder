@@ -35,7 +35,9 @@ db.prepare(`
   repository_url: 'https://github.com/example/filesystem',
   repository_source: 'github',
   published_at: '2026-01-01T00:00:00.000Z',
-  updated_at: '2026-03-01T00:00:00.000Z',
+  // 31–180 days from now is `active`; a fixed 2026-03-01 stamp aged into
+  // `aging` on 2026-08-28 and started failing CI without a product change.
+  updated_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
   status: 'active',
   popularity_score: 0,
   categories: '["filesystem"]',

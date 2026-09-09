@@ -52,6 +52,11 @@ jobs:
     # enrichment, vacuum/gzip, preflight, and upload. Raising any budget below
     # eats into that reserve — re-add them here before touching this ceiling.
     timeout-minutes: 90
+    # ubuntu-latest's AAAA routes to some registries black-hole; Node tries
+    # those first and undici waits out the 20 s abort per attempt. Force IPv4
+    # for every Node process in this job (install, tests, builder, wrangler).
+    env:
+      NODE_OPTIONS: --dns-result-order=ipv4first
     steps:
       - uses: actions/checkout@v6
 

@@ -28,6 +28,7 @@
  *   wrangler r2 object put mcp-finder-db-snapshots/manifest.json \
  *     --file=dist/snapshot/manifest.json
  */
+import { setDefaultResultOrder } from 'node:dns';
 import { createReadStream, createWriteStream } from 'node:fs';
 import { mkdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -41,6 +42,14 @@ import {
   fetchPreviousManifest,
 } from './snapshot-quality.mjs';
 import { snapshotBrotliManifestUrl, snapshotManifestUrl } from '../shared/snapshot-artifacts.js';
+
+// GitHub-hosted ubuntu-latest advertises AAAA records whose routes black-hole.
+// Node's default DNS order tries those first; undici then sits on connect until
+// the 20 s request abort. Two snapshot runs on 2026-09-09 burned Official's
+// entire 8-minute budget in fetchWithRetry (no `official: +N` line) while the
+// same registry answered a page in 0.7 s from a dual-stack Mac. IPv4-first is
+// the standard Actions workaround (actions/runner#3213).
+setDefaultResultOrder('ipv4first');
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..');

@@ -372,6 +372,7 @@ export async function syncOfficialRegistry(
   `);
 
   const staging = new CrawlStaging<RegistryServerEntry>(db, 'official');
+  let pages = 0;
   try {
     do {
       if (now() >= deadline) {
@@ -403,6 +404,12 @@ export async function syncOfficialRegistry(
       }
       if (nextCursor) seenCursors.add(nextCursor);
       staging.push(data.servers);
+      pages += 1;
+      if (pages === 1 || pages % 25 === 0) {
+        process.stderr.write(
+          `[mcpfinder] Official crawl: page ${pages}, staged=${staging.size}\n`,
+        );
+      }
       cursor = nextCursor;
       if (cursor) await delay(100, runtime);
     } while (cursor);

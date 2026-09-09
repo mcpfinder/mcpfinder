@@ -222,6 +222,7 @@ assert.equal(buildStep.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES, '12');
 // SDK's 60 s tool-call timeout; the snapshot job uses the 15/30/60 s ladder.
 assert.equal(buildStep.env.MCPFINDER_CRAWL_RESTART_BASE_MS, '15000');
 assert.equal(parsedWorkflow.jobs.build['timeout-minutes'], 90);
+assert.equal(parsedWorkflow.jobs.build.env?.NODE_OPTIONS, '--dns-result-order=ipv4first');
 
 const immutableUpload = workflow.indexOf('Upload immutable database to R2');
 const brotliUpload = workflow.indexOf('Upload immutable brotli database to R2');

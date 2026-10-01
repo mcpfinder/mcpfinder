@@ -13,6 +13,8 @@ const {
   buildEnvPlaceholders,
   envPlaceholderValue,
   getInstallCommand,
+  looksLikeCredentialName,
+  possibleUnlabeledSecrets,
   initDatabase,
   syncGlamaRegistry,
 } = await import('../packages/core/dist/index.js');
@@ -23,7 +25,7 @@ const {
  * newline-delimited JSON-RPC so the test needs no client SDK on the root
  * package's resolution path.
  */
-async function callInstallConfigTool(dataDir, serverName) {
+async function callInstallConfigTool(dataDir, serverName, toolName = 'get_install_config') {
   const child = spawn(process.execPath, [resolve('.', 'packages/mcp-server/dist/cli.js')], {
     env: {
       ...process.env,
@@ -72,10 +74,14 @@ async function callInstallConfigTool(dataDir, serverName) {
     });
     send({ jsonrpc: '2.0', method: 'notifications/initialized' });
     const result = await request(2, 'tools/call', {
-      name: 'get_install_config',
-      arguments: { name: serverName, platform: 'claude-desktop' },
+      name: toolName,
+      arguments:
+        toolName === 'get_install_config'
+          ? { name: serverName, platform: 'claude-desktop' }
+          : { name: serverName },
     });
-    return result.structuredContent;
+    // Attach the human-readable text so prose advisories can be asserted too.
+    return { ...result.structuredContent, _text: result.content?.[0]?.text ?? '' };
   } finally {
     lines.close();
     child.stdin.end();
@@ -139,6 +145,8 @@ const envVars = [
   { name: 'PORT', description: 'Port to bind.', default: 8080 },
   { name: 'DEBUG', description: 'Verbose logging.', default: false },
   { name: 'OPTIONS', description: 'Structured options.', default: { a: 1 } },
+  // Credential-looking but unlabelled (GitHub issue #23): advisory only.
+  { name: 'FOO_API_KEY', description: 'Foo key.' },
 ];
 
 const expectedEnv = {
@@ -150,12 +158,33 @@ const expectedEnv = {
   PORT: '8080',                         // non-string scalars become strings
   DEBUG: 'false',
   OPTIONS: '<VALUE>',                   // non-scalars never reach the config
+  FOO_API_KEY: '<VALUE>',               // name heuristic never changes masking
 };
 
 // Unit level: the helper both install.ts paths and the MCP server share.
 assert.deepEqual(buildEnvPlaceholders(envVars), expectedEnv);
 assert.equal(envPlaceholderValue({ name: 'X', description: 'prose' }), '<VALUE>');
 assert.equal(envPlaceholderValue({ name: 'X', isSecret: true }), '<YOUR_VALUE>');
+assert.equal(envPlaceholderValue({ name: 'FOO_API_KEY' }), '<VALUE>');
+
+// Credential-name heuristic (GitHub issue #23): precision over recall.
+for (const name of [
+  'GITHUB_TOKEN', 'OPENAI_API_KEY', 'STRIPE_SECRET_KEY', 'DB_PASSWORD', 'GOOGLE_CLIENT_SECRET',
+  'WALLET_MNEMONIC', 'LND_MACAROON', 'AWS_SECRET_ACCESS_KEY', 'SLACK_BOT_TOKEN', 'openai-apikey',
+  'REFRESH_TOKEN',
+]) {
+  assert.equal(looksLikeCredentialName(name), true, `${name} should look like a credential`);
+}
+for (const name of [
+  'AUTOMOX_MCP_TOKEN_BUDGET', 'SHOPIFY_TOKEN_LEEWAY_SECONDS', 'GOOGLE_MERCHANTS_TOKEN_URL',
+  'NG_TOKEN_SAVER_IDLE_MS', 'TURNSTILE_SITE_KEY', 'PUBLISHER_PUBLIC_URL', 'GOBOX_CLIENT_ID',
+  'AGENTMEMORY_UTCP_AUTH_ENV', 'ASPOSE_WORDS_LICENSE_PATH', 'ROOT_PATH', 'LOG_LEVEL',
+  'SSH_PRIVATE_KEY_FILE', 'STRIPE_PUBLIC_KEY', 'AWS_ACCESS_KEY_ID', 'SECRET_ID', 'SECRET_ARN',
+  'TOKEN_EXPIRY', 'TOKEN_REFRESH_INTERVAL', 'PASSWORD_MIN_LENGTH', 'GOOGLE_APPLICATION_CREDENTIALS',
+]) {
+  assert.equal(looksLikeCredentialName(name), false, `${name} should not look like a credential`);
+}
+assert.deepEqual(possibleUnlabeledSecrets(envVars), ['FOO_API_KEY']);
 
 // npm (npx) and pypi (uvx) install paths.
 const db = initDatabase(join(dir, 'install-config.sqlite'));
@@ -218,6 +247,15 @@ insert(serverDb, {
   package_identifier: '@example/npm-server',
   env_vars: envVars,
 });
+// No registry type and no remote: get_install_config takes the
+// non-auto-installable fallback branch.
+insert(serverDb, {
+  name: 'io.example/manual-server',
+  slug: 'manual-server',
+  registry_type: null,
+  package_identifier: null,
+  env_vars: envVars,
+});
 serverDb.prepare(
   `INSERT INTO sync_log (source, last_synced_at, last_successful_at, server_count, status)
    VALUES ('official', ?, ?, 1, 'ok')`,
@@ -232,6 +270,24 @@ assert.deepEqual(
   'mcp-server must emit the shared helper\'s env values',
 );
 assert.equal(installResult.requires_user_secrets, true, 'the secret must still be flagged');
+assert.deepEqual(installResult.possible_unlabeled_secrets, ['FOO_API_KEY']);
+const advisory = 'looks like a credential (not marked secret by the registry)';
+const advisoryLines = installResult._text.split('\n').filter((line) => line.includes(advisory));
+assert.equal(advisoryLines.length, 1, 'advisory only for unlabelled credential-like names');
+assert.ok(advisoryLines[0].includes('`FOO_API_KEY`'));
+
+const detailsResult = await callInstallConfigTool(serverDir, 'npm-server', 'get_server_details');
+const detailAdvisoryLines = detailsResult._text.split('\n').filter((line) => line.includes(advisory));
+assert.equal(detailAdvisoryLines.length, 1, 'details: advisory only for unlabelled credential-like names');
+assert.ok(detailAdvisoryLines[0].includes('`FOO_API_KEY`'));
+assert.ok(!detailAdvisoryLines[0].includes('`API_KEY`'), 'isSecret vars get no advisory');
+
+const fallbackResult = await callInstallConfigTool(serverDir, 'manual-server');
+assert.equal(fallbackResult.autoInstallable, false, 'manual-server should hit the fallback branch');
+assert.deepEqual(fallbackResult.possible_unlabeled_secrets, ['FOO_API_KEY']);
+const fallbackAdvisoryLines = fallbackResult._text.split('\n').filter((line) => line.includes(advisory));
+assert.equal(fallbackAdvisoryLines.length, 1, 'fallback: advisory only for unlabelled credential-like names');
+assert.ok(fallbackAdvisoryLines[0].includes('`FOO_API_KEY`'));
 for (const v of envVars) {
   if (!v.description) continue;
   assert.ok(

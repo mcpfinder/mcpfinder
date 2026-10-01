@@ -7,7 +7,7 @@ import { runSearchRelevanceChecks } from './search-relevance-checks.mjs';
 const dir = mkdtempSync(join(tmpdir(), 'mcpf-core-test-'));
 process.env.MCPFINDER_DATA_DIR = dir;
 
-const { initDatabase, getServerDetails } = await import('../packages/core/dist/index.js');
+const { initDatabase, getServerDetails, searchServers } = await import('../packages/core/dist/index.js');
 
 const db = initDatabase();
 
@@ -87,6 +87,7 @@ assert.equal(detail?.warningFlags.includes('single-source-only'), false);
 assert.equal(detail?.trustSignals.hasOfficialSource, true);
 assert.equal(detail?.trustSignals.multiSource, true);
 assert.equal(detail?.trustSignals.requiresSecrets, false);
+assert.equal(detail?.trustSignals.possibleUnlabeledSecrets, false);
 assert.equal(detail?.freshnessLabel, 'active');
 assert.equal(detail?.installComplexity, 'low');
 assert.equal(detail?.capabilityCount, 4);
@@ -95,6 +96,29 @@ assert.equal(
   detail?.toolsExposed.find((tool) => tool.name === 'filesystem_prompt')?.kind,
   'prompt',
 );
+
+// Unlabelled credential-like env var (GitHub issue #23): advisory signal in
+// both details and search results.
+db.prepare(`
+  INSERT INTO servers (
+    id, slug, name, description, registry_type, package_identifier, transport_type,
+    status, sources, raw_data, env_vars, source, last_synced_at
+  ) VALUES (
+    'io.example/ghtool', 'ghtool', 'io.example/ghtool', 'Zyxwq credential test server', 'npm',
+    '@example/ghtool', 'stdio', 'active', '["official"]', '{}', @env_vars, 'official', @now
+  )
+`).run({
+  env_vars: JSON.stringify([{ name: 'GITHUB_TOKEN', description: 'GitHub token' }]),
+  now: new Date().toISOString(),
+});
+const ghDetail = getServerDetails(db, 'ghtool');
+assert.equal(ghDetail?.trustSignals.possibleUnlabeledSecrets, true);
+assert.equal(ghDetail?.trustSignals.requiresSecrets, false);
+const ghSearch = searchServers(db, 'Zyxwq').find((r) => r.slug === 'ghtool' || r.name === 'io.example/ghtool');
+assert.ok(ghSearch, 'search should find the ghtool fixture');
+assert.equal(ghSearch.trustSignals.possibleUnlabeledSecrets, true);
+const fsSearch = searchServers(db, 'filesystem').find((r) => r.name === 'io.example/filesystem');
+assert.equal(fsSearch?.trustSignals.possibleUnlabeledSecrets, false);
 
 db.close();
 

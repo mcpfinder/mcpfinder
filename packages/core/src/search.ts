@@ -22,6 +22,7 @@ import type {
   TrustSignals,
 } from './types.js';
 import { categorizeServer } from './categories.js';
+import { looksLikeCredentialName } from './credential-hint.js';
 import { parseRawEnvelope, rawPayloads } from './raw-envelope.js';
 
 /**
@@ -470,7 +471,14 @@ function formatSearchResult(row: McpServer, idx: number): SearchResult {
   const confidenceBreakdown = getConfidenceBreakdown(row, sources, warningFlags);
   const confidenceScore = confidenceBreakdown.score;
   const toolsExposed = extractTools(row);
-  const trustSignals = getTrustSignals(row, sources);
+  let envVars: Array<{ name?: string; isSecret?: boolean }> = [];
+  try {
+    const parsed = JSON.parse(row.env_vars || '[]');
+    if (Array.isArray(parsed)) envVars = parsed;
+  } catch {
+    envVars = [];
+  }
+  const trustSignals = getTrustSignals(row, sources, envVars);
   const freshnessDays = getFreshnessDays(row);
 
   return {
@@ -796,7 +804,7 @@ function getConfidenceBreakdown(
 function getTrustSignals(
   row: McpServer,
   sources: string[],
-  envVars: Array<{ isSecret?: boolean }> = [],
+  envVars: Array<{ name?: string; isSecret?: boolean }> = [],
 ): TrustSignals {
   const freshnessDays = getFreshnessDays(row);
   return {
@@ -807,6 +815,9 @@ function getTrustSignals(
     multiSource: sources.length > 1,
     hasRecentUpdate: freshnessDays !== null && freshnessDays <= 180,
     requiresSecrets: envVars.some((envVar) => envVar.isSecret),
+    possibleUnlabeledSecrets: envVars.some(
+      (envVar) => !envVar.isSecret && looksLikeCredentialName(envVar.name ?? ''),
+    ),
   };
 }
 

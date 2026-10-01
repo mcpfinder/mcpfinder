@@ -184,6 +184,14 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
   get `<YOUR_VALUE>`, other variables get the registry-published `default`,
   then `placeholder`, then `<VALUE>`. Descriptions stay in the "Required
   environment variables" section under the snippet.
+- A registry `isSecret` flag is only ever present or absent, and absent means
+  unlabelled, not non-secret. Unlabelled variables whose names look like
+  credentials (`GITHUB_TOKEN`, `OPENAI_API_KEY`, ...) get an advisory in the
+  env-var listings ("looks like a credential (not marked secret by the
+  registry); treat it as one") and are listed in `get_install_config`'s
+  `possible_unlabeled_secrets`. This is advisory only: their config value is
+  still chosen exactly as for any unmarked variable (registry `default`, then
+  `placeholder`, then `<VALUE>`); the heuristic never changes it, and `requires_user_secrets` keeps its registry-only meaning.
 
 ## Configuration
 

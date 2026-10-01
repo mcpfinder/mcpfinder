@@ -23,6 +23,8 @@ import {
   listCategories,
   getServersByCategory,
   buildEnvPlaceholders,
+  looksLikeCredentialName,
+  possibleUnlabeledSecrets,
 } from '@mcpfinder/core';
 import { createCatalog } from './catalog.js';
 import { reportSyncResults } from './sync-report.js';
@@ -223,6 +225,13 @@ async function ensureSync(): Promise<string | null> {
 
 // ─── Output schemas (permissive — let record-shaped nested data through) ────
 
+/** Advisory for env vars the registry did not mark secret but whose name looks like a credential. */
+function credentialAdvisory(v: { name: string; isSecret?: boolean }): string {
+  return !v.isSecret && looksLikeCredentialName(v.name)
+    ? ' — looks like a credential (not marked secret by the registry); treat it as one'
+    : '';
+}
+
 const nextActionsSchema = z.array(z.string());
 
 // Every tool can answer "not ready yet". That state must stay distinguishable
@@ -272,6 +281,7 @@ const installOutputSchema = {
   envVarsNeeded: z.array(z.record(z.string(), z.unknown())).optional(),
   safe_to_autoinstall: z.boolean().optional(),
   requires_user_secrets: z.boolean().optional(),
+  possible_unlabeled_secrets: z.array(z.string()).optional(),
   warningFlags: z.array(z.string()).optional(),
   next_actions: nextActionsSchema,
 };
@@ -425,7 +435,7 @@ server.registerTool(
           detail.environmentVariables
             .map(
               (v) =>
-                `- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' (secret)' : ''}`,
+                `- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' (secret)' : ''}${credentialAdvisory(v)}`,
             )
             .join('\n')
         : '';
@@ -595,13 +605,14 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
       fallbackLines.push('', '**Required environment variables:**');
       for (const v of envVars) {
         fallbackLines.push(
-          `- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' (secret)' : ''}`,
+          `- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' (secret)' : ''}${credentialAdvisory(v)}`,
         );
       }
     }
     return makeTextResponse(fallbackLines.join('\n'), {
       found: true,
       autoInstallable: false,
+      possible_unlabeled_secrets: possibleUnlabeledSecrets(envVars),
       warningFlags: detail.warningFlags,
       next_actions: [],
     });
@@ -634,7 +645,7 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
     sections.push('', '## Required environment variables');
     for (const v of envVars) {
       sections.push(
-        `- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' ⚠️ secret — replace <YOUR_VALUE> with your actual value' : ''}`,
+        `- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' ⚠️ secret — replace <YOUR_VALUE> with your actual value' : ''}${credentialAdvisory(v)}`,
       );
     }
   }
@@ -652,6 +663,7 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
     envVarsNeeded: envVars,
     safe_to_autoinstall: envVars.length === 0,
     requires_user_secrets: envVars.some((v) => v.isSecret),
+    possible_unlabeled_secrets: possibleUnlabeledSecrets(envVars),
     warningFlags: detail.warningFlags,
     next_actions: [],
   });

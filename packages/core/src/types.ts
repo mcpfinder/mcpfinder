@@ -68,6 +68,8 @@ export interface TrustSignals {
   multiSource: boolean;
   hasRecentUpdate: boolean;
   requiresSecrets: boolean;
+  /** Some env var is not marked `isSecret` but its name looks like a credential. */
+  possibleUnlabeledSecrets: boolean;
 }
 
 /**

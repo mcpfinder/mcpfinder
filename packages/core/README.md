@@ -684,7 +684,11 @@ Glama-schema environment contributions are replaced per source and re-unioned
 through the same schema mapping the insert path uses, so a merged row keeps
 `default`, `format`, `writeOnly`-derived `isSecret`, and schema `required`
 instead of collapsing to name/description; unattributable legacy/enrichment
-entries are retained fail-safe. Smithery
+entries are retained fail-safe. Note that `isSecret` is only ever `true` or
+absent: an absent flag means *unlabelled*, not *non-secret* (most catalogue
+env vars carry no flag). `looksLikeCredentialName` is a conservative,
+advisory-only name heuristic for those (`trustSignals.possibleUnlabeledSecrets`
+uses it); it never changes generated config values. Smithery
 remains authoritative for its usage count, verification, and icon, so those
 may decrease without clearing other-source metadata. Invalid or missing source
 payloads retain existing aggregates rather than risking data loss.
@@ -736,6 +740,7 @@ fallback upload from presenting stale bytes as current.
 | `listCategories / getServersByCategory` | Category browsing. |
 | `getInstallCommand` | Generate client-specific JSON install config. |
 | `buildEnvPlaceholders / envPlaceholderValue` | Fill an `env` block from registry env var definitions: `<YOUR_VALUE>` for secrets, otherwise `default`, then `placeholder`, then `<VALUE>`. |
+| `looksLikeCredentialName / possibleUnlabeledSecrets` | Advisory name heuristic (`GITHUB_TOKEN`, `OPENAI_API_KEY` yes; `TOKEN_URL`, `*_KEY_FILE`, `SITE_KEY` no) for env vars the registry left unlabelled — absent `isSecret` means unlabelled, not non-secret. Never affects masking. |
 | `enrichSmitheryRepoUrls / enrichDeprecationFlags` | Build-time enrichment passes (GitHub probe, npm/GitHub deprecation flags). |
 
 Full TypeScript types are exported — see the `.d.ts` files in `dist/`.

@@ -193,12 +193,20 @@ Output fields
 - homepageUrl
 - capabilityCount              — number of tools/resources exposed
 - toolsExposed                 — array of tool names if upstream published
+- trustSignals                 — booleans incl. requiresSecrets (registry
+                                 isSecret only) and possibleUnlabeledSecrets
+                                 (an unlabelled var's name looks like a
+                                 credential; advisory)
 - lastSeenAt                   — most recent upstream observation
 - next_actions                 — usually a get_install_config suggestion
 
 What to do with this
 - If any environmentVariables.isSecret is true, warn the user and stop to
   collect those secrets before running the server.
+- isSecret is only ever true or absent; absent means "unlabelled", NOT
+  "not a secret". If a variable's name looks like a credential (the text
+  says "looks like a credential (not marked secret by the registry)"),
+  treat it as a secret too.
 - If warningFlags contains stale-over-18-months or missing-repository-url,
   ask the user to confirm before recommending.
 - If transport is "http" or "sse", confirm the user is OK with a remote
@@ -224,7 +232,9 @@ Output fields
 - config_path            — absolute path or hint where the user should
                            paste it (per-platform)
 - required_env_vars      — env vars the user must set
-- requires_user_secrets  — boolean, true when secrets are required
+- requires_user_secrets  — boolean, true when the registry marks a secret
+- possible_unlabeled_secrets — names not marked secret by the registry
+                           that look like credentials (advisory)
 - safe_to_autoinstall    — boolean. Agents SHOULD NOT auto-write a config
                            file if this is false.
 - restart_guidance       — short string explaining whether the client
@@ -234,6 +244,8 @@ Output fields
 Behaviour the agent should follow
 - If requires_user_secrets is true: show the snippet, list the secrets,
   and ask the user to provide them before merging anywhere.
+- Treat every name in possible_unlabeled_secrets as a credential too and
+  ask the user for it, even when requires_user_secrets is false.
 - If safe_to_autoinstall is false: never write to the client config file
   silently. Show the snippet and tell the user where it goes.
 
@@ -327,7 +339,10 @@ Recommended agent workflow
 4. get_server_details(name=<top candidate>).
 5. Inspect warningFlags and environmentVariables.
    - If any environmentVariables.isSecret is true, ask the user for the
-     secrets and only proceed once provided.
+     secrets and only proceed once provided. Absent isSecret does not mean
+     "not secret": also treat names in get_install_config's
+     possible_unlabeled_secrets (and env vars flagged "looks like a
+     credential") as credentials to ask the user for.
    - If warningFlags has stale-over-18-months or missing-repository-url,
      ask the user to confirm.
 6. get_install_config(name=<candidate>, platform=<client>).

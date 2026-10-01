@@ -1490,7 +1490,7 @@
         </tr>
         <tr>
           <td>Flags required secrets before install</td>
-          <td class="cell-strong">Yes (env vars + isSecret)</td>
+          <td class="cell-strong">Yes (env vars, registry isSecret + credential-name hints)</td>
           <td class="cell-weak">Sometimes, in prose</td>
           <td class="cell-weak">Raw schema only</td>
           <td class="cell-weak">Unreliable</td>
@@ -1543,7 +1543,7 @@
       </div>
       <div class="glossary-term">
         <dt>Environment variables</dt>
-        <dd>Configuration values the MCP server reads at startup, often secrets like API keys or database URLs. MCPfinder reports which are required and which are sensitive.</dd>
+        <dd>Configuration values the MCP server reads at startup, often secrets like API keys or database URLs. MCPfinder reports which are required, which the registry flags as sensitive, and which have credential-looking names.</dd>
       </div>
       <div class="glossary-term">
         <dt>Trust signals</dt>

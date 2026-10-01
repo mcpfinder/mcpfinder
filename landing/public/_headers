@@ -75,3 +75,22 @@
 
 /*.svg
   Cache-Control: public, max-age=86400, s-maxage=604800, immutable
+
+# SEO intent landings — short edge cache like homepage HTML
+/mcp-servers-for-claude/
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/mcp-servers-for-claude/index.html
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/mcp-servers-for-cursor/
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/mcp-servers-for-cursor/index.html
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/best-mcp-servers/
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/best-mcp-servers/index.html
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400

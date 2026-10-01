@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Best MCP Servers | How to Find & Compare with MCPfinder</title>
+  <meta name="description" content="How to find the best MCP servers for your AI client. Compare candidates across Official Registry, Glama, and Smithery with trust signals, tools, and install config from MCPfinder.">
+  <meta name="keywords" content="best MCP servers, best Model Context Protocol servers, MCP server directory, MCP server comparison, top MCP servers">
+  <meta name="author" content="Coder AI">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://mcpfinder.dev/best-mcp-servers/">
+  <link rel="icon" type="image/png" href="/mcpfinder-icon.png">
+  <link rel="apple-touch-icon" href="/mcpfinder-icon.png">
+  <meta name="theme-color" content="#0A0A0A">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="me" href="https://github.com/mcpfinder/mcpfinder">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mcpfinder.dev/best-mcp-servers/">
+  <meta property="og:title" content="Best MCP Servers | MCPfinder">
+  <meta property="og:description" content="How to find the best MCP servers for your AI client. Compare candidates across Official Registry, Glama, and Smithery with trust signals, tools, and install config from MCPfinder.">
+  <meta property="og:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
+  <meta property="og:site_name" content="MCPfinder">
+  <meta property="og:locale" content="en_US">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@coderaidev">
+  <meta name="twitter:title" content="Best MCP Servers | MCPfinder">
+  <meta name="twitter:description" content="How to find the best MCP servers for your AI client. Compare candidates across Official Registry, Glama, and Smithery with trust signals, tools, and install config from MCPfinder.">
+  <meta name="twitter:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "MCPfinder",
+      "item": "https://mcpfinder.dev/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Best MCP Servers",
+      "item": "https://mcpfinder.dev/best-mcp-servers/"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What are the best MCP servers right now?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "There is no universal ranking that stays correct. Use MCPfinder to search for your use case, compare confidence scores and warnings, and pick the server that fits your client and security needs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which registries does MCPfinder cover?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "MCPfinder aggregates the Official MCP Registry, Glama, and Smithery into one searchable index exposed through MCP tools."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is MCPfinder a directory website only?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. It is primarily an MCP server your AI client calls. The mcpfinder.dev site explains install and discovery; the product experience is agent-native search."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I browse categories?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use the browse_categories tool to list categories with counts or top servers in areas like database, filesystem, communication, or security."
+      }
+    }
+  ]
+}
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #0A0A0A;
+      --text-primary: #F5F5F5;
+      --text-secondary: #999;
+      --text-muted: #666;
+      --accent: #D4FF00;
+      --border: #333;
+      --font-mono: 'JetBrains Mono', monospace;
+      --max-width: 1100px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-mono);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      font-weight: 400;
+    }
+    a { color: var(--text-primary); text-decoration: none; transition: color 0.15s; }
+    a:hover { color: var(--accent); }
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 32px; }
+    .section-label {
+      font-size: 0.75rem; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--accent); margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; margin-bottom: 16px;
+    }
+    .section-desc {
+      color: var(--text-secondary); font-size: 1rem; max-width: 680px; margin-bottom: 40px;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--bg-primary); border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: var(--max-width); margin: 0 auto; padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between; height: 64px;
+    }
+    .nav-logo {
+      font-size: 1.1rem; font-weight: 700; color: var(--text-primary);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-links { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+    .nav-links a { color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-cta {
+      background: var(--accent); color: #000 !important; padding: 8px 16px;
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .nav-cta:hover { background: var(--text-primary); color: #000 !important; }
+    .hero { padding: 140px 0 64px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); padding: 8px 16px; font-size: 0.75rem;
+      color: var(--text-secondary); margin-bottom: 28px; text-transform: uppercase;
+      letter-spacing: 0.05em; font-weight: 500;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.15;
+      margin-bottom: 20px; max-width: 900px;
+    }
+    .hero h1 .highlight { color: var(--accent); }
+    .hero-lead {
+      font-size: 1rem; color: var(--text-secondary); max-width: 720px; margin-bottom: 36px;
+    }
+    .btn-group { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+      font-size: 0.85rem; font-weight: 700; font-family: var(--font-mono);
+      border: 1px solid var(--border); cursor: pointer; transition: all 0.15s;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--text-primary); border-color: var(--text-primary); color: #000; }
+    .btn-secondary { background: transparent; color: var(--text-primary); }
+    .btn-secondary:hover { background: var(--text-primary); color: #000; border-color: var(--text-primary); }
+    section { padding: 64px 0; }
+    .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .card {
+      border: 1px solid var(--border); padding: 28px; transition: border-color 0.15s;
+    }
+    .card:hover { border-color: var(--text-muted); }
+    .card h3 {
+      font-size: 0.95rem; margin-bottom: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .card p { color: var(--text-secondary); font-size: 0.85rem; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .step { border: 1px solid var(--border); padding: 28px; }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border: 1px solid var(--accent); color: var(--accent);
+      font-size: 0.8rem; font-weight: 700; margin-bottom: 20px;
+    }
+    .step h3 { font-size: 1rem; margin-bottom: 10px; font-weight: 700; }
+    .step p { color: var(--text-secondary); font-size: 0.85rem; }
+    .code-block { border: 1px solid var(--border); overflow: hidden; margin-top: 24px; max-width: 720px; }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .code-body { padding: 20px 24px; font-size: 0.8rem; line-height: 1.8; overflow-x: auto; }
+    .code-body .prompt { color: var(--accent); }
+    .code-body .comment { color: var(--text-muted); }
+    .faq-list { max-width: 800px; }
+    .faq-item { border-bottom: 1px solid var(--border); padding: 28px 0; }
+    .faq-item:first-child { border-top: 1px solid var(--border); }
+    .faq-q {
+      font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      margin-bottom: 12px;
+    }
+    .faq-a { color: var(--text-secondary); font-size: 0.85rem; }
+    .faq-a code {
+      background: rgba(212, 255, 0, 0.1); padding: 2px 4px; color: var(--accent); font-size: 0.8rem;
+    }
+    .related {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px;
+    }
+    .related a {
+      border: 1px solid var(--border); padding: 10px 14px; font-size: 0.75rem;
+      color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .related a:hover { border-color: var(--accent); color: var(--accent); }
+    .cta-section { text-align: center; padding: 80px 0; border-top: 1px solid var(--border); }
+    .cta-section h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; margin-bottom: 16px; }
+    .cta-section p { color: var(--text-secondary); margin-bottom: 32px; }
+    footer { border-top: 1px solid var(--border); padding: 48px 0; text-align: center; }
+    .footer-links { display: flex; gap: 28px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .footer-links a {
+      color: var(--text-muted); font-size: 0.8rem; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-credit { color: var(--text-muted); font-size: 0.75rem; }
+    .footer-credit a { color: var(--text-secondary); }
+    .footer-credit a:hover { color: var(--accent); }
+    .prose { color: var(--text-secondary); font-size: 0.9rem; max-width: 760px; }
+    .prose p { margin-bottom: 16px; }
+    .prose ul { margin: 0 0 16px 1.2em; }
+    .prose li { margin-bottom: 8px; }
+    @media (max-width: 768px) {
+      .card-grid, .steps { grid-template-columns: 1fr; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .container { padding: 0 20px; }
+    }
+
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+      MCPFINDER.DEV
+    </a>
+    <div class="nav-links">
+      <a href="/#how-it-works">HOW IT WORKS</a>
+      <a href="/#install">INSTALL</a>
+      <a href="/best-mcp-servers/">BEST MCP</a>
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
+      <a href="/#install" class="nav-cta">GET STARTED</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">GUIDE · DISCOVERY & COMPARISON</div>
+    <h1>Find the <span class="highlight">best MCP servers</span> for your stack</h1>
+    <p class="hero-lead">“Best” depends on your client, threat model, and the job to be done. MCPfinder ranks and explains candidates across registries so agents — and humans — can compare trust signals, tools, and install complexity instead of chasing one static top-10 list.</p>
+    <div class="btn-group">
+      <a href="/#install" class="btn btn-primary">INSTALL MCPFINDER</a>
+      <a href="https://github.com/mcpfinder/mcpfinder" class="btn btn-secondary" target="_blank" rel="noopener">VIEW ON GITHUB</a>
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <div class="container">
+    <div class="section-label">NO STATIC TOP-10</div>
+    <h2 class="section-title">Best is contextual. Search is the product.</h2>
+    <div class="prose">
+      <p>Lists go stale. Registries disagree. A great filesystem MCP for Claude Desktop may be the wrong pick for a locked-down Cursor workspace. MCPfinder treats discovery as a live query: keyword + use case in, scored candidates with reasons out.</p>
+      <ul>
+        <li>Aggregate Official MCP Registry, Glama, and Smithery</li>
+        <li>Surface confidence scores and warning flags</li>
+        <li>Inspect tool manifests and environment variables</li>
+        <li>Generate install config for Claude, Cursor, Claude Code, Cline, or Windsurf</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">EVALUATION CHECKLIST</div>
+    <h2 class="section-title">What “best” should mean</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Fit to the task</h3>
+        <p>Match capability (DB, browser, tickets, docs) before chasing download counts or stars alone.</p>
+      </div>
+      <div class="card">
+        <h3>Trust signals</h3>
+        <p>Prefer multi-source listings, recent updates, clear repos, and low warning-flag counts.</p>
+      </div>
+      <div class="card">
+        <h3>Install complexity</h3>
+        <p>Count secrets and unclear install methods. A slightly less flashy server that installs cleanly often wins.</p>
+      </div>
+      <div class="card">
+        <h3>Client compatibility</h3>
+        <p>Confirm transport and config shape for your AI client. MCPfinder emits client-specific snippets for that reason.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">PRACTICAL FLOW</div>
+    <h2 class="section-title">Compare, then install</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Search</h3>
+        <p>Call <code>search_mcp_servers</code> with the capability. Review scores and recommendation reasons.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Inspect</h3>
+        <p><code>get_server_details</code> shows tools, env vars, warnings, and transport before you commit.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Install</h3>
+        <p><code>get_install_config</code> produces paste-ready JSON for your client. Restart and verify the tools load.</p>
+      </div>
+    </div>
+    <div class="code-block">
+      <div class="code-header"><span>Quick start · any MCP client</span><span>EXAMPLE</span></div>
+      <pre class="code-body"><span class="comment"># Run MCPfinder via npx, then search from your agent</span>
+<span class="prompt">$</span> npx -y @mcpfinder/server
+
+<span class="comment"># Or ask your agent: "search MCP servers for sqlite"</span></pre>
+    </div>
+  </div>
+</section>
+
+
+<section>
+  <div class="container">
+    <div class="section-label">FAQ</div>
+    <h2 class="section-title">Common questions</h2>
+    <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">What are the best MCP servers right now?</div>
+      <div class="faq-a">There is no universal ranking that stays correct. Use MCPfinder to search for your use case, compare confidence scores and warnings, and pick the server that fits your client and security needs.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Which registries does MCPfinder cover?</div>
+      <div class="faq-a">MCPfinder aggregates the Official MCP Registry, Glama, and Smithery into one searchable index exposed through MCP tools.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is MCPfinder a directory website only?</div>
+      <div class="faq-a">No. It is primarily an MCP server your AI client calls. The mcpfinder.dev site explains install and discovery; the product experience is agent-native search.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How do I browse categories?</div>
+      <div class="faq-a">Use the <code>browse_categories</code> tool to list categories with counts or top servers in areas like database, filesystem, communication, or security.</div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">MORE GUIDES</div>
+    <h2 class="section-title">Related MCP finder pages</h2>
+    <div class="related">
+      <a href="/mcp-servers-for-claude/">MCP for Claude</a>
+      <a href="/mcp-servers-for-cursor/">MCP for Cursor</a>
+      <a href="/">Home</a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="container">
+    <h2>Let your agent find the right MCP</h2>
+    <p>Install MCPfinder once. Search registries, inspect trust signals, and paste client-ready config.</p>
+    <div class="btn-group" style="justify-content:center">
+      <a href="/#install" class="btn btn-primary">INSTALL NOW</a>
+      <a href="/llms.txt" class="btn btn-secondary">READ LLMS.TXT</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-links">
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
+      <a href="https://www.npmjs.com/package/@mcpfinder/server" target="_blank" rel="noopener">NPM</a>
+      <a href="/llms.txt">LLMS.TXT</a>
+      <a href="/sitemap.xml">SITEMAP</a>
+      <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP SPEC</a>
+      <a href="https://coderai.dev" target="_blank" rel="noopener">CODER AI</a>
+    </div>
+    <p class="footer-credit">
+      BUILT BY <a href="https://coderai.dev" target="_blank" rel="noopener">CODER AI</a> · AGPL-3.0 LICENSE
+    </p>
+  </div>
+</footer>
+</body>
+</html>

@@ -6,6 +6,27 @@ import { Bindings } from './types';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
+// Simple in-memory rate limiter to guard against high-volume request floods
+// exhausting Worker CPU limits (CWE-770).
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX_REQUESTS = 120;
+const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
+
+app.use('*', async (c, next) => {
+	const clientIp = c.req.header('CF-Connecting-IP') ?? 'unknown';
+	const now = Date.now();
+	const bucket = rateLimitBuckets.get(clientIp);
+	if (!bucket || now > bucket.resetAt) {
+		rateLimitBuckets.set(clientIp, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+	} else {
+		bucket.count += 1;
+		if (bucket.count > RATE_LIMIT_MAX_REQUESTS) {
+			return c.json({ error: 'Too Many Requests' }, 429);
+		}
+	}
+	await next();
+});
+
 app.use('/api/*', cors());
 
 app.onError((err, c) => {

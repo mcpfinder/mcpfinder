@@ -552,6 +552,12 @@ Two consequences worth knowing before they surprise you:
   with the evidence for why it is benign recorded in the file. Pin any future
   exemption to an exact version the same way, never to a bare package name.
 
+### Releasing
+
+A release always ships to **both npm and the official MCP Registry**
+(`dev.mcpfinder/server`) as one step. A Registry entry that lags behind npm
+is a broken release. Full checklist: [`docs/publish-playbook.md`](docs/publish-playbook.md).
+
 ## Current Limitations
 
 - The local `stdio` server is the canonical interface. Install via `npx -y @mcpfinder/server`.

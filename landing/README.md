@@ -12,6 +12,7 @@ on 2026-04-20 so the site lives alongside the code.
 landing/
 ├── public/
 │   ├── index.html                          # one-pager, fully self-contained (inline CSS)
+│   ├── analytics.js                        # GA4 (G-LPLFNBLWG4) + conversion events, included by every page
 │   ├── llms.txt                            # short AI-facing discovery guide
 │   ├── llms-full.txt                       # expanded AI-facing manual
 │   ├── robots.txt
@@ -45,6 +46,27 @@ Current state: `mcpfinder.dev` is served by the Cloudflare Pages project
 
 Keep the old Pages project around for a rollback window. When you're
 confident, delete it in the dashboard.
+
+## Analytics
+
+Every HTML page includes `/analytics.js` (GA4 property 524776900,
+`G-LPLFNBLWG4`). gtag.js is only fetched on `mcpfinder.dev`, so workers.dev
+previews and local servers never report into production. Conversion events:
+
+- `copy_install_snippet` (`snippet`, `copy_method`) — copying any element
+  marked `data-snippet="…"`, or clicking the "click to copy" CTA.
+- `click_install_link` (`destination`: `npm`) — following the npm package link.
+
+`click_repo_link` (GitHub repo link, also in nav/footer) is tracked but is not
+a conversion.
+
+Add `data-snippet` to new install snippets so copies are counted. Never put
+copied text or other user content into event params. `page_location` is sent
+as origin + known path (anything else becomes `/404`) + `utm_*`/`gclid`-style
+params only (values with `@` or over 100 chars dropped); other query params and
+the fragment are dropped. A same-origin `page_referrer` is cleaned the same way,
+an external one is cut to its origin. Add new pages to `KNOWN_PATHS` in
+`analytics.js`.
 
 ## Content state
 

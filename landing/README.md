@@ -62,8 +62,11 @@ a conversion.
 
 Add `data-snippet` to new install snippets so copies are counted. Never put
 copied text or other user content into event params. `page_location` is sent
-as origin + path + `utm_*`/`gclid`-style params only; other query params and
-the fragment are dropped.
+as origin + known path (anything else becomes `/404`) + `utm_*`/`gclid`-style
+params only (values with `@` or over 100 chars dropped); other query params and
+the fragment are dropped. A same-origin `page_referrer` is cleaned the same way,
+an external one is cut to its origin. Add new pages to `KNOWN_PATHS` in
+`analytics.js`.
 
 ## Content state
 

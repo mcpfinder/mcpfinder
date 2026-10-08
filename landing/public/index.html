@@ -1837,7 +1837,7 @@
       // A drag-select ends in a click too; leave the selection alone and let
       // the copy listener in analytics.js count it, so it isn't counted twice.
       var sel = window.getSelection && window.getSelection();
-      if (sel && !sel.isCollapsed && el.contains(sel.anchorNode)) return;
+      if (sel && !sel.isCollapsed && (el.contains(sel.anchorNode) || el.contains(sel.focusNode))) return;
       if (!navigator.clipboard) return;
       navigator.clipboard.writeText(el.dataset.copy).then(function () {
         el.title = 'Copied!';

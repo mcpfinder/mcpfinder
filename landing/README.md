@@ -55,10 +55,15 @@ previews and local servers never report into production. Conversion events:
 
 - `copy_install_snippet` (`snippet`, `copy_method`) — copying any element
   marked `data-snippet="…"`, or clicking the "click to copy" CTA.
-- `click_install_link` (`destination`: `npm` | `github`).
+- `click_install_link` (`destination`: `npm`) — following the npm package link.
+
+`click_repo_link` (GitHub repo link, also in nav/footer) is tracked but is not
+a conversion.
 
 Add `data-snippet` to new install snippets so copies are counted. Never put
-copied text or other user content into event params.
+copied text or other user content into event params. `page_location` is sent
+as origin + path + `utm_*`/`gclid`-style params only; other query params and
+the fragment are dropped.
 
 ## Content state
 

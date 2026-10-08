@@ -64,6 +64,11 @@
   Cache-Control: public, max-age=600, s-maxage=3600, stale-while-revalidate=86400
   Access-Control-Allow-Origin: *
 
+# GA4 loader — unhashed filename, so keep the edge cache short
+/analytics.js
+  Content-Type: text/javascript; charset=utf-8
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
 # Web manifest
 /manifest.webmanifest
   Content-Type: application/manifest+json; charset=utf-8

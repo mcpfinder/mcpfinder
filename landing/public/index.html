@@ -1133,6 +1133,8 @@
       }
     }
   </style>
+  <!-- Google Analytics 4 (G-LPLFNBLWG4); gtag.js only loads on mcpfinder.dev -->
+  <script src="/analytics.js" defer></script>
 </head>
 <body>
 
@@ -1285,7 +1287,7 @@
     <h2 class="section-title">UP AND RUNNING IN 30 SECONDS</h2>
     <p class="section-desc">Choose your preferred installation method. Works with Claude Desktop, Cursor, Windsurf, and any MCP-compatible client.</p>
     <div class="install-grid">
-      <div class="code-block">
+      <div class="code-block" data-snippet="npx_config">
         <div class="code-header">
           <div class="code-dots"><span></span><span></span><span></span></div>
           <span>NPX (NO INSTALL NEEDED)</span>
@@ -1304,7 +1306,7 @@
           }
         </div>
       </div>
-      <div class="code-block">
+      <div class="code-block" data-snippet="npm_global">
         <div class="code-header">
           <div class="code-dots"><span></span><span></span><span></span></div>
           <span>NPM (GLOBAL INSTALL)</span>
@@ -1658,7 +1660,7 @@
   <div class="container">
     <h2>INSTALL ONCE, LET YOUR AI USE IT DAILY</h2>
     <p>Use the local stdio server as the canonical interface, then point your assistant at MCPfinder whenever it needs a missing capability.</p>
-    <div class="cta-install" title="Click to copy">
+    <div class="cta-install" title="Click to copy" data-snippet="npx_command" data-copy="npx @mcpfinder/server">
       <span class="prompt">$</span> npx @mcpfinder/server
     </div>
     <br><br>
@@ -1829,6 +1831,18 @@
   }
 
   loadSnapshotManifest();
+
+  document.querySelectorAll('[data-copy]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      if (!navigator.clipboard) return;
+      navigator.clipboard.writeText(el.dataset.copy).then(function () {
+        el.title = 'Copied!';
+        if (typeof gtag === 'function') {
+          gtag('event', 'copy_install_snippet', { snippet: el.dataset.snippet, copy_method: 'button' });
+        }
+      }).catch(function () {});
+    });
+  });
 </script>
 </body>
 </html>

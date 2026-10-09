@@ -50,6 +50,13 @@ Agent Skill (install via one-liner, agent handles the config merge):
 - Claude Code install:
     mkdir -p ~/.claude/skills/install-mcpfinder && curl -sSf -o ~/.claude/skills/install-mcpfinder/SKILL.md https://mcpfinder.dev/skill/install-mcpfinder/SKILL.md
 
+Guides (human-readable pages):
+- https://mcpfinder.dev/how-to-find-mcp-servers/ — where to look for MCP servers and what to check before installing
+- https://mcpfinder.dev/best-mcp-servers/
+- https://mcpfinder.dev/best-mcp-servers-2026/
+- https://mcpfinder.dev/mcp-servers-for-claude/
+- https://mcpfinder.dev/mcp-servers-for-cursor/
+
 More detail:
 - https://mcpfinder.dev/llms-full.txt
 - https://github.com/mcpfinder/mcpfinder

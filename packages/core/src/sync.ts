@@ -141,6 +141,20 @@ function registryBudgetExceededMessage(
 // selects the documented stable deep-pagination path for the full catalogue.
 const SMITHERY_PAGINATION_SEED = 20260820;
 
+/**
+ * The seeded Smithery pagination path persistently repeats at least one
+ * qualifiedName on a later page (e.g. rajabohemia94729/fdfd, which failed
+ * every crawl restart of the 2026-10 builds), so a cross-page duplicate is
+ * skipped and its first occurrence kept. Past this many skips in one attempt
+ * the pagination itself is looping or drifting, and the attempt fails as a
+ * transient fault and restarts instead of silently passing.
+ *
+ * Trade-off: a small mid-crawl ordering drift that stays within the cap is
+ * now tolerated rather than triggering a restart, so an entry it pushes
+ * across a page boundary in the other direction can be missed for that sync.
+ */
+const MAX_SMITHERY_CROSS_PAGE_DUPLICATES = 25;
+
 class SmitheryCrossPageDuplicateError extends Error {}
 class GlamaCrossPageDuplicateError extends Error {}
 
@@ -790,6 +804,7 @@ export async function syncSmitheryRegistry(
       let shortPagePending = false;
       staging.reset();
       const seenQualifiedNames = new Set<string>();
+      let skippedDuplicates = 0;
 
       try {
         while (true) {
@@ -823,6 +838,7 @@ export async function syncSmitheryRegistry(
           }
 
           const pageQualifiedNames = new Set<string>();
+          const fresh: SmitheryServer[] = [];
           for (const entry of data.servers) {
             if (typeof entry.qualifiedName !== 'string' || entry.qualifiedName.length === 0) {
               throw new Error('Smithery API: qualifiedName must be a non-empty string');
@@ -830,21 +846,38 @@ export async function syncSmitheryRegistry(
             if (pageQualifiedNames.has(entry.qualifiedName)) {
               throw new Error(`Smithery API: duplicate qualifiedName ${entry.qualifiedName}`);
             }
-            if (seenQualifiedNames.has(entry.qualifiedName)) {
-              throw new SmitheryCrossPageDuplicateError(
-                `Smithery API: cross-page duplicate qualifiedName ${entry.qualifiedName}`,
-              );
-            }
             pageQualifiedNames.add(entry.qualifiedName);
+            if (seenQualifiedNames.has(entry.qualifiedName)) {
+              skippedDuplicates++;
+              if (skippedDuplicates > MAX_SMITHERY_CROSS_PAGE_DUPLICATES) {
+                throw new SmitheryCrossPageDuplicateError(
+                  `Smithery API: cross-page duplicate qualifiedName ${entry.qualifiedName} ` +
+                    `(page ${page}) exceeds ${MAX_SMITHERY_CROSS_PAGE_DUPLICATES} skipped duplicates`,
+                );
+              }
+              process.stderr.write(
+                `[mcpfinder] Smithery API: skipping cross-page duplicate qualifiedName ` +
+                  `${entry.qualifiedName} (page ${page})\n`,
+              );
+              continue;
+            }
+            fresh.push(entry);
           }
           for (const qualifiedName of pageQualifiedNames) seenQualifiedNames.add(qualifiedName);
 
+          // Terminal and short-page checks use the raw page: a page of nothing
+          // but skipped duplicates is not the empty terminal page.
           if (data.servers.length === 0) {
+            if (skippedDuplicates > 0) {
+              process.stderr.write(
+                `[mcpfinder] Smithery crawl: skipped ${skippedDuplicates} cross-page duplicate(s)\n`,
+              );
+            }
             crawlCompleted = true;
             break crawlAttempts;
           }
 
-          staging.push(data.servers);
+          staging.push(fresh);
           shortPagePending = data.servers.length < PAGE_LIMIT;
           page++;
           await delay(100, runtime);

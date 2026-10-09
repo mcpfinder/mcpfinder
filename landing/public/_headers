@@ -105,3 +105,9 @@
 
 /best-mcp-servers-2026/index.html
   Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/how-to-find-mcp-servers/
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/how-to-find-mcp-servers/index.html
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400

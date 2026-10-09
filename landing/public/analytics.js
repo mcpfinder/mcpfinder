@@ -19,7 +19,7 @@
   // is dropped so it never reaches GA. The fragment is dropped too.
   var KEEP_PARAMS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id', 'gclid', 'gbraid', 'wbraid', 'dclid'];
   // Pages served from landing/public; any other path is reported as /404.
-  var KNOWN_PATHS = ['/', '/mcp-servers-for-claude/', '/mcp-servers-for-cursor/', '/best-mcp-servers/', '/best-mcp-servers-2026/'];
+  var KNOWN_PATHS = ['/', '/mcp-servers-for-claude/', '/mcp-servers-for-cursor/', '/best-mcp-servers/', '/best-mcp-servers-2026/', '/how-to-find-mcp-servers/'];
 
   // origin + known path + allowlisted campaign params. A campaign value is
   // dropped if it contains '@' or is longer than 100 chars.

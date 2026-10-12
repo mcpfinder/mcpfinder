@@ -23,6 +23,14 @@ jobs:
         with:
           submodules: false # mcp-inspector submodule is dev-only, skip for CI speed
 
+      # Self-hosted runners (personal Macs) must be unreachable from public or
+      # fork PRs; fails if any workflow loosens or drops the job guard.
+      - name: Check self-hosted runner guard
+        run: |
+          python3 -c 'import yaml' 2>/dev/null || python3 -m pip install --quiet 'pyyaml==6.0.2'
+          python3 scripts/test-check-self-hosted-guard.py
+          python3 scripts/check-self-hosted-guard.py .github/workflows
+
       - uses: pnpm/action-setup@v5
 
       - uses: actions/setup-node@v6

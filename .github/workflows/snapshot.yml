@@ -38,6 +38,16 @@ jobs:
   # build job replays them, keeping merge, quality gate and publication in one
   # GitHub-hosted job. See scripts/glama-capture-lib.mjs.
   glama-capture:
+    # HARD RULE (2026-10-12): self-hosted runners are personal Macs and never
+    # run code from public or fork PRs. Exact guard enforced by
+    # scripts/check-self-hosted-guard.py in CI; fails closed for anything else.
+    if: >-
+      github.actor == 'lksrz' && github.triggering_actor == 'lksrz' &&
+      (github.event_name == 'schedule' || github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login == 'lksrz'))
     runs-on: [self-hosted, macOS, ARM64, mcpfinder-snapshot]
     permissions:
       contents: read

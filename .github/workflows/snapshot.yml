@@ -162,6 +162,9 @@ jobs:
           # deep cursor pages (~10 s each at the origin vs ~0.2 s on GitHub-
           # hosted), so the local 8-minute budget is too tight here.
           MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES: '25'
+          # Cold deep pages have taken 26 s at the origin; the shared 20 s
+          # abort would burn every retry on one page.
+          MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS: '60'
           # Smithery now restarts a stalled crawl across four attempts, and
           # four full passes do not fit the default 5-minute budget.
           # Twelve minutes covers them and still leaves the 110-minute ceiling

@@ -62,6 +62,17 @@ const PAGE_LIMIT = 100;
  */
 const DEFAULT_OFFICIAL_SYNC_BUDGET_MINUTES = 8;
 const MAX_OFFICIAL_SYNC_BUDGET_MINUTES = 30;
+const DEFAULT_OFFICIAL_REQUEST_TIMEOUT_SECONDS = 20;
+const MIN_OFFICIAL_REQUEST_TIMEOUT_SECONDS = 5;
+const MAX_OFFICIAL_REQUEST_TIMEOUT_SECONDS = 120;
+/**
+ * Extra page-level rounds after one page exhausted its transport retries. The
+ * crawl resumes at that same cursor with everything staged so far kept, so a
+ * single cold page does not throw away the pages before it. Still bounded by
+ * the sync deadline.
+ */
+const OFFICIAL_PAGE_RESUME_ROUNDS = 2;
+const OFFICIAL_PAGE_RESUME_WAIT_MS = 5_000;
 const DEFAULT_GLAMA_SYNC_BUDGET_MINUTES = 12;
 const MAX_GLAMA_SYNC_BUDGET_MINUTES = 40;
 const DEFAULT_SMITHERY_SYNC_BUDGET_MINUTES = 5;
@@ -261,6 +272,28 @@ function getOfficialSyncBudgetMinutes(): number {
 }
 
 /**
+ * Per-request abort timeout for the Official registry. Local stdio keeps the
+ * shared 20 s default; the snapshot job raises it because cold deep cursor
+ * pages have taken 26 s at the origin. Bounded so a typo cannot turn one hung
+ * request into the whole budget.
+ */
+function getOfficialRequestTimeoutMs(): number {
+  const name = 'MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS';
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return DEFAULT_OFFICIAL_REQUEST_TIMEOUT_SECONDS * 1000;
+  const seconds = /^\d+$/.test(raw) ? Number(raw) : NaN;
+  if (
+    !(seconds >= MIN_OFFICIAL_REQUEST_TIMEOUT_SECONDS && seconds <= MAX_OFFICIAL_REQUEST_TIMEOUT_SECONDS)
+  ) {
+    throw new Error(
+      `${name} must be an integer between ${MIN_OFFICIAL_REQUEST_TIMEOUT_SECONDS} and ` +
+        MAX_OFFICIAL_REQUEST_TIMEOUT_SECONDS,
+    );
+  }
+  return seconds * 1000;
+}
+
+/**
  * Smithery's five minutes covered a single ~109-page crawl with room to spare,
  * but not the four the restart budget now allows: the deadline would abort the
  * loop before the later attempts could run, making them dead code. Local stdio
@@ -377,8 +410,10 @@ export async function syncOfficialRegistry(
   let totalUpserted = 0;
   const now = runtime.now ?? Date.now;
   let budgetMinutes: number;
+  let requestTimeoutMs: number;
   try {
     budgetMinutes = getOfficialSyncBudgetMinutes();
+    requestTimeoutMs = getOfficialRequestTimeoutMs();
   } catch (error) {
     // Same auditable trail as every other Official failure: the sync log
     // records why nothing ran instead of the source silently going stale.
@@ -435,10 +470,30 @@ export async function syncOfficialRegistry(
       if (lastSync) url.searchParams.set('updated_since', lastSync);
       if (cursor) url.searchParams.set('cursor', cursor);
 
-      const { response: res, data, errorText } = await fetchJsonPageWithRetry<RegistryListResponse>(
-        url.toString(),
-        { label: 'Registry API', deadline, ...runtime },
-      );
+      let page: Awaited<ReturnType<typeof fetchJsonPageWithRetry<RegistryListResponse>>>;
+      for (let round = 0; ; round++) {
+        try {
+          page = await fetchJsonPageWithRetry<RegistryListResponse>(url.toString(), {
+            label: 'Registry API',
+            deadline,
+            timeoutMs: requestTimeoutMs,
+            ...runtime,
+          });
+          break;
+        } catch (error) {
+          if (!(error instanceof RegistryTransportError) || round >= OFFICIAL_PAGE_RESUME_ROUNDS) {
+            throw error;
+          }
+          process.stderr.write(
+            `[mcpfinder] Official crawl: page ${pages + 1} failed (${error.message}); ` +
+              `resuming at the same cursor, round ${round + 2}/${OFFICIAL_PAGE_RESUME_ROUNDS + 1}\n`,
+          );
+          // Brief pause before re-asking a cold origin; never past the deadline.
+          await delay(OFFICIAL_PAGE_RESUME_WAIT_MS, runtime);
+          assertBeforeDeadline(deadline, runtime, 'Registry API');
+        }
+      }
+      const { response: res, data, errorText } = page;
       if (!res.ok) {
         throw new Error(`Registry API error: ${res.status} ${res.statusText} — ${errorText ?? ''}`);
       }

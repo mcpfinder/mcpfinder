@@ -624,6 +624,77 @@ try {
     assert.equal(syncLog(badDb, 'official').status, 'error');
     badDb.close();
   }
+  // Official per-request timeout: validated like the budget, and the value
+  // actually reaches the abort timer (a fetch that only settles on abort).
+  const originalOfficialTimeout = process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS;
+  delete process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+  for (const bad of ['4', '121', 'abc', '7.5']) {
+    process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS = bad;
+    const badDb = initDatabase(join(dir, `official-timeout-bad-${bad}.sqlite`));
+    await assert.rejects(
+      syncOfficialRegistry(badDb, runtime(officialOnePage)),
+      /MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS must be an integer between 5 and 120/,
+    );
+    assert.equal(syncLog(badDb, 'official').status, 'error');
+    badDb.close();
+  }
+  process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS = '5';
+  {
+    const timeoutDb = initDatabase(join(dir, 'official-timeout-5.sqlite'));
+    let firstAbortMs;
+    const started = Date.now();
+    let hangs = 1;
+    const result = await syncOfficialRegistry(
+      timeoutDb,
+      runtime(async (_url, init) => {
+        if (hangs-- > 0) {
+          return new Promise((_, reject) => {
+            init.signal.addEventListener('abort', () => {
+              firstAbortMs = Date.now() - started;
+              reject(new Error('aborted'));
+            });
+          });
+        }
+        return officialOnePage();
+      }, Date.now),
+    );
+    assert.equal(result, 1);
+    assert.ok(firstAbortMs >= 4_500 && firstAbortMs < 15_000, `abort after ${firstAbortMs} ms`);
+    timeoutDb.close();
+  }
+  delete process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS;
+
+  // A page that exhausts its transport retries resumes at the same cursor
+  // with earlier pages kept; only after every resume round does the sync fail.
+  for (const [failures, ok] of [[4, true], [8, true], [12, false]]) {
+    const resumeDb = initDatabase(join(dir, `official-resume-${failures}.sqlite`));
+    const urls = [];
+    let page2Failures = failures;
+    const run = syncOfficialRegistry(
+      resumeDb,
+      runtime(async (url) => {
+        urls.push(String(url));
+        const second = String(url).includes('cursor=official-next');
+        if (second && page2Failures-- > 0) throw new Error('socket hang up');
+        return Response.json({
+          servers: [officialEntry(second ? 'official/resume-2' : 'official/resume-1')],
+          metadata: { nextCursor: second ? null : 'official-next', count: 1 },
+        });
+      }),
+    );
+    if (ok) {
+      assert.equal(await run, 2, `${failures} page-2 failures`);
+      assert.equal(syncLog(resumeDb, 'official').status, 'ok');
+    } else {
+      await assert.rejects(run, /giving up after 4 attempts/);
+      assert.equal(syncLog(resumeDb, 'official').status, 'error');
+    }
+    // Page 1 is fetched exactly once: resuming never restarts the crawl.
+    assert.equal(urls.filter((u) => !u.includes('cursor=')).length, 1);
+    resumeDb.close();
+  }
+  if (originalOfficialTimeout === undefined) delete process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS;
+  else process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS = originalOfficialTimeout;
   if (originalOfficialBudget === undefined) delete process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
   else process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES = originalOfficialBudget;
 

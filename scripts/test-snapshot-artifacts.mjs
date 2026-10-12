@@ -221,6 +221,7 @@ assert.equal(buildStep.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES, '12');
 // Self-hosted runners see cold CDN edges on the Official registry's deep
 // cursor pages; the local 8-minute default does not fit a full crawl there.
 assert.equal(buildStep.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES, '25');
+assert.equal(buildStep.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS, '60');
 // Local stdio keeps 500 ms because first-run live sync is gated on the
 // SDK's 60 s tool-call timeout; the snapshot job uses the 15/30/60 s ladder.
 assert.equal(buildStep.env.MCPFINDER_CRAWL_RESTART_BASE_MS, '15000');

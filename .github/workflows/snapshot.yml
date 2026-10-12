@@ -31,7 +31,17 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Self-hosted since 2026-10-12: from GitHub-hosted runner IPs Glama answers
+    # page 1 with HTTP 200 and an EMPTY body (runs 38178541789, 38210400789,
+    # probe 38218078092), while the same key from our own network gets full
+    # JSON. Runners with this label are registered on aic-studio (primary) and
+    # aic-wfs-mini (fallback); GitHub hands the job to whichever is online and
+    # idle, so one machine being down does not stop the build. Same pattern as
+    # the aicommander mac release build. Secrets, publish steps and cron are
+    # unchanged. This workflow has only schedule/workflow_dispatch triggers; the
+    # repo requires approval for every external fork-PR run, so a fork cannot
+    # reach these machines without a maintainer approving it.
+    runs-on: [self-hosted, macOS, ARM64, mcpfinder-snapshot]
     # Least privilege, with two additions the freeze signal at the end of this
     # job needs: `issues: write` to open/update/close the alarm, and
     # `actions: read` so `gh run view --json jobs` can name the step that broke

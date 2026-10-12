@@ -42,6 +42,7 @@ import {
   fetchPreviousManifest,
 } from './snapshot-quality.mjs';
 import { snapshotBrotliManifestUrl, snapshotManifestUrl } from '../shared/snapshot-artifacts.js';
+import { loadReplay } from './glama-capture-lib.mjs';
 
 // GitHub-hosted ubuntu-latest advertises AAAA records whose routes black-hole.
 // Node's default DNS order tries those first; undici then sits on connect until
@@ -99,6 +100,7 @@ const {
   syncOfficialRegistry,
   syncGlamaRegistry,
   syncSmitheryRegistry,
+  updateSyncLog,
   getServerCount,
   enrichSmitheryRepoUrls,
   enrichDeprecationFlags,
@@ -179,7 +181,41 @@ async function carryOverFlags(targetDb, workDir, previousManifest) {
 
 const counts = {};
 counts.official = await run('official', syncOfficialRegistry);
-if (!flag('--no-glama')) counts.glama = await run('glama   ', syncGlamaRegistry);
+if (!flag('--no-glama')) {
+  // MCPFINDER_GLAMA_CAPTURE_DIR: replay a Glama crawl recorded on a
+  // self-hosted runner (scripts/glama-capture.mjs) instead of crawling from
+  // here; Glama sends GitHub-hosted IPs empty bodies. A missing, stale or
+  // truncated capture is recorded as a Glama sync error, so the quality gate
+  // keeps the previous snapshot instead of publishing without Glama.
+  const captureDir = process.env.MCPFINDER_GLAMA_CAPTURE_DIR;
+  if (captureDir) {
+    let replay = null;
+    try {
+      replay = await loadReplay(resolve(repoRoot, captureDir));
+      console.log(
+        `[build-snapshot] glama: replaying capture from ${replay.header.capturedAt} ` +
+          `(${replay.header.servers} servers, ${replay.header.responses} responses)`,
+      );
+    } catch (error) {
+      console.error(`[build-snapshot] glama: ${error.message}`);
+      updateSyncLog(db, 'glama', 0, 'error', `capture: ${error.message}`);
+      counts.glama = 0;
+    }
+    if (replay) {
+      counts.glama = await run('glama   ', (target) =>
+        syncGlamaRegistry(target, { fetchImpl: replay.fetch }),
+      );
+      const unfaithful = replay.verdict();
+      if (unfaithful) {
+        // The sync may have reported ok, but not from the recorded crawl.
+        console.error(`[build-snapshot] glama: ${unfaithful}`);
+        updateSyncLog(db, 'glama', 0, 'error', `capture: ${unfaithful}`);
+      }
+    }
+  } else {
+    counts.glama = await run('glama   ', syncGlamaRegistry);
+  }
+}
 if (!flag('--no-smithery')) counts.smithery = await run('smithery', syncSmitheryRegistry);
 
 function syncLogEntries() {

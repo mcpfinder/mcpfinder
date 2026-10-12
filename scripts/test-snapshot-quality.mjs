@@ -15,6 +15,7 @@ import { runSnapshotGlamaCrawlChecks } from './snapshot-glama-crawl-checks.mjs';
 import { runSnapshotEnrichChecks } from './snapshot-enrich-checks.mjs';
 import { runSnapshotMergeChecks } from './snapshot-merge-checks.mjs';
 import { runSnapshotSmitheryPaginationChecks } from './snapshot-smithery-pagination-checks.mjs';
+import { runSnapshotGlamaCaptureChecks } from './snapshot-glama-capture-checks.mjs';
 
 const dir = mkdtempSync(join(tmpdir(), 'mcpf-snapshot-quality-'));
 const originalGlamaBudget = process.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES;
@@ -426,6 +427,8 @@ try {
   await runSnapshotSmitheryPaginationChecks(dir);
 
   await runSnapshotMergeChecks(dir);
+
+  await runSnapshotGlamaCaptureChecks(dir);
 
   // Glama retries a malformed page before any insert and can recover healthy.
   const recoveredDb = initDatabase(join(dir, 'glama-recovered.sqlite'));

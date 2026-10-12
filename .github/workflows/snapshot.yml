@@ -30,18 +30,60 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    # Self-hosted since 2026-10-12: from GitHub-hosted runner IPs Glama answers
-    # page 1 with HTTP 200 and an EMPTY body (runs 38178541789, 38210400789,
-    # probe 38218078092), while the same key from our own network gets full
-    # JSON. Runners with this label are registered on aic-studio (primary) and
-    # aic-wfs-mini (fallback); GitHub hands the job to whichever is online and
-    # idle, so one machine being down does not stop the build. Same pattern as
-    # the aicommander mac release build. Secrets, publish steps and cron are
-    # unchanged. This workflow has only schedule/workflow_dispatch triggers; the
-    # repo requires approval for every external fork-PR run, so a fork cannot
-    # reach these machines without a maintainer approving it.
+  # Glama crawl on the self-hosted runners (aic-studio / aic-wfs-mini), split
+  # out on 2026-10-12. Glama answers GitHub-hosted IPs with HTTP 200 and an
+  # EMPTY body (probe run 38218078092) but our network with full JSON, while
+  # the Official registry is the reverse (~95 s here vs ~47 min from our
+  # network). So only Glama runs here: it records the raw responses and the
+  # build job replays them, keeping merge, quality gate and publication in one
+  # GitHub-hosted job. See scripts/glama-capture-lib.mjs.
+  glama-capture:
     runs-on: [self-hosted, macOS, ARM64, mcpfinder-snapshot]
+    permissions:
+      contents: read
+    # Glama budget 30 + install/build; queue time on a busy runner is not counted.
+    timeout-minutes: 50
+    env:
+      NODE_OPTIONS: --dns-result-order=ipv4first
+    steps:
+      # Persistent runner on a personal machine: do not leave the job token in
+      # .git/config; this job never pushes.
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter @mcpfinder/core build
+
+      - name: Capture Glama crawl
+        run: node scripts/glama-capture.mjs --out=dist/glama-capture
+        env:
+          GLAMA_API_KEY: ${{ secrets.GLAMA_API_KEY }}
+          MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES: '30'
+          MCPFINDER_CRAWL_RESTART_BASE_MS: '15000'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glama-capture
+          path: dist/glama-capture
+          if-no-files-found: error
+          retention-days: 1
+
+  build:
+    needs: glama-capture
+    # Run even when the capture failed: the Glama replay then records an error,
+    # the quality gate keeps the previous snapshot, and the freeze signal below
+    # still fires. Only a cancelled workflow skips the build.
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
     # Least privilege, with two additions the freeze signal at the end of this
     # job needs: `issues: write` to open/update/close the alarm, and
     # `actions: read` so `gh run view --json jobs` can name the step that broke
@@ -79,6 +121,15 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Missing artifact (capture failed) is not fatal here: the build step
+      # records it as a Glama sync error and the quality gate refuses to publish.
+      - name: Download Glama capture
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: glama-capture
+          path: dist/glama-capture
+
       - name: Build core and test snapshot publication
         run: |
           pnpm --filter @mcpfinder/core build
@@ -88,6 +139,8 @@ jobs:
       - name: Build snapshot
         run: node scripts/build-snapshot.mjs
         env:
+          # Replay the Glama crawl recorded by the glama-capture job.
+          MCPFINDER_GLAMA_CAPTURE_DIR: dist/glama-capture
           GITHUB_SHA: ${{ github.sha }}
           # Manual-only escape hatch for an intentional corpus reset. It does
           # not bypass missing/error source status checks.

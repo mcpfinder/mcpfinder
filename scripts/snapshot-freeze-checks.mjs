@@ -55,17 +55,22 @@ export async function runSnapshotFreezeChecks({ workflow, parsedWorkflow, durabl
     contents: 'read',
     issues: 'write',
   });
-  // The arithmetic justifying `timeout-minutes: 90` must match the budgets set
+  // The arithmetic justifying `timeout-minutes` must match the budgets set
   // below it, or the next person to raise one has no reserve left to spend.
-  const budgets = ['MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES', 'MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES'];
+  const budgets = [
+    'MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES',
+    'MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES',
+    'MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES',
+  ];
   const budgetMinutes = budgets.map((name) =>
     Number(parsedWorkflow.jobs.build.steps.find((step) => step.env?.[name])?.env[name]),
   );
-  const [glamaBudget, smitheryBudget] = budgetMinutes;
+  const [glamaBudget, smitheryBudget, officialBudget] = budgetMinutes;
   assert.ok(budgetMinutes.every(Number.isFinite));
   const budgetComment = /Registry budgets can consume (\d+) minutes \(Official (\d+) \+ Glama (\d+) \+\n\s*# Smithery (\d+)\); keep at least (\d+) minutes/.exec(workflow);
   assert.ok(budgetComment, 'the timeout comment must spell out the budget arithmetic');
   const [, total, official, glamaSaid, smitherySaid, reserve] = budgetComment.map(Number);
+  assert.equal(official, officialBudget);
   assert.equal(glamaSaid, glamaBudget);
   assert.equal(smitherySaid, smitheryBudget);
   assert.equal(official + glamaSaid + smitherySaid, total);

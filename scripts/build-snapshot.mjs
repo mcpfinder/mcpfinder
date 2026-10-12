@@ -47,7 +47,7 @@ import { loadReplay } from './glama-capture-lib.mjs';
 // GitHub-hosted ubuntu-latest advertises AAAA records whose routes black-hole.
 // Node's default DNS order tries those first; undici then sits on connect until
 // the 20 s request abort. Two snapshot runs on 2026-09-09 burned Official's
-// entire 8-minute budget in fetchWithRetry (no `official: +N` line) while the
+// entire (then fixed) 8-minute budget in fetchWithRetry (no `official: +N` line) while the
 // same registry answered a page in 0.7 s from a dual-stack Mac. IPv4-first is
 // the standard Actions workaround (actions/runner#3213).
 setDefaultResultOrder('ipv4first');

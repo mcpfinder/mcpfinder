@@ -218,10 +218,13 @@ assert.equal(buildStep.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES, '30');
 // Smithery restarts a stalled crawl across four attempts; four full passes do
 // not fit the default 5-minute budget.
 assert.equal(buildStep.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES, '12');
+// Self-hosted runners see cold CDN edges on the Official registry's deep
+// cursor pages; the local 8-minute default does not fit a full crawl there.
+assert.equal(buildStep.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES, '25');
 // Local stdio keeps 500 ms because first-run live sync is gated on the
 // SDK's 60 s tool-call timeout; the snapshot job uses the 15/30/60 s ladder.
 assert.equal(buildStep.env.MCPFINDER_CRAWL_RESTART_BASE_MS, '15000');
-assert.equal(parsedWorkflow.jobs.build['timeout-minutes'], 90);
+assert.equal(parsedWorkflow.jobs.build['timeout-minutes'], 110);
 assert.equal(parsedWorkflow.jobs.build.env?.NODE_OPTIONS, '--dns-result-order=ipv4first');
 
 const immutableUpload = workflow.indexOf('Upload immutable database to R2');
@@ -260,7 +263,7 @@ assert.doesNotMatch(digestStep.run, /brotli digest must differ/);
 // Publication order is unchanged, and nothing brotli sits between the
 // preflight and the manifest pointer.
 assert.ok(manifestUpload > preflight);
-assert.match(workflow, /timeout-minutes: 90/);
+assert.match(workflow, /timeout-minutes: 110/);
 assert.doesNotMatch(workflow, /run: pnpm test(?:\s|$)/);
 assert.doesNotMatch(workflow, /check:types/);
 

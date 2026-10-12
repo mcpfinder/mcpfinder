@@ -60,7 +60,8 @@ const PAGE_LIMIT = 100;
  * three are required sources, so any degradation blocks snapshot publication
  * (see scripts/snapshot-quality.mjs).
  */
-const OFFICIAL_SYNC_BUDGET_MS = 8 * 60_000;
+const DEFAULT_OFFICIAL_SYNC_BUDGET_MINUTES = 8;
+const MAX_OFFICIAL_SYNC_BUDGET_MINUTES = 30;
 const DEFAULT_GLAMA_SYNC_BUDGET_MINUTES = 12;
 const MAX_GLAMA_SYNC_BUDGET_MINUTES = 40;
 const DEFAULT_SMITHERY_SYNC_BUDGET_MINUTES = 5;
@@ -240,6 +241,26 @@ function getGlamaSyncBudgetMinutes(): number {
 }
 
 /**
+ * Local stdio keeps the historical 8-minute Official budget. The snapshot job
+ * runs on self-hosted runners (since 2026-10-12) whose CDN edge rarely has the
+ * deep cursor pages cached, so cold pages can take ~10 s each at the origin and
+ * a full crawl no longer fits in 8 minutes; the job raises it. Reject invalid
+ * values instead of silently turning a typo into an unbounded sync.
+ */
+function getOfficialSyncBudgetMinutes(): number {
+  const raw = process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+  if (raw === undefined || raw === '') return DEFAULT_OFFICIAL_SYNC_BUDGET_MINUTES;
+  const minutes = /^\d+$/.test(raw) ? Number(raw) : NaN;
+  if (!(minutes >= 1 && minutes <= MAX_OFFICIAL_SYNC_BUDGET_MINUTES)) {
+    throw new Error(
+      'MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES must be an integer between 1 and ' +
+        MAX_OFFICIAL_SYNC_BUDGET_MINUTES,
+    );
+  }
+  return minutes;
+}
+
+/**
  * Smithery's five minutes covered a single ~109-page crawl with room to spare,
  * but not the four the restart budget now allows: the deadline would abort the
  * loop before the later attempts could run, making them dead code. Local stdio
@@ -355,7 +376,18 @@ export async function syncOfficialRegistry(
   const seenCursors = new Set<string>();
   let totalUpserted = 0;
   const now = runtime.now ?? Date.now;
-  const deadline = now() + OFFICIAL_SYNC_BUDGET_MS;
+  let budgetMinutes: number;
+  try {
+    budgetMinutes = getOfficialSyncBudgetMinutes();
+  } catch (error) {
+    // Same auditable trail as every other Official failure: the sync log
+    // records why nothing ran instead of the source silently going stale.
+    const message = error instanceof Error ? error.message : String(error);
+    updateSyncLog(db, 'official', 0, 'error', message);
+    process.stderr.write(`[mcpfinder] Official sync error: ${message}\n`);
+    throw error;
+  }
+  const deadline = now() + budgetMinutes * 60_000;
 
   const upsert = db.prepare(`
     INSERT INTO servers (
@@ -391,7 +423,7 @@ export async function syncOfficialRegistry(
     do {
       if (now() >= deadline) {
         throw new Error(
-          `Official registry sync exceeded its ${OFFICIAL_SYNC_BUDGET_MS / 60_000}-minute budget ` +
+          `Official registry sync exceeded its ${budgetMinutes}-minute budget ` +
             `(upstream too slow) — discarded ${staging.size} staged servers; ` +
             'existing last-known-good database unchanged',
         );

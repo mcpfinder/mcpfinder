@@ -109,11 +109,11 @@ jobs:
       actions: read
       contents: read
       issues: write
-    # Registry budgets can consume 50 minutes (Official 8 + Glama 30 +
-    # Smithery 12); keep at least 40 minutes for install, focused tests,
+    # Registry budgets can consume 67 minutes (Official 25 + Glama 30 +
+    # Smithery 12); keep at least 43 minutes for install, focused tests,
     # enrichment, vacuum/gzip, preflight, and upload. Raising any budget below
     # eats into that reserve — re-add them here before touching this ceiling.
-    timeout-minutes: 90
+    timeout-minutes: 110
     # ubuntu-latest's AAAA routes to some registries black-hole; Node tries
     # those first and undici waits out the 20 s abort per attempt. Force IPv4
     # for every Node process in this job (install, tests, builder, wrangler).
@@ -156,11 +156,15 @@ jobs:
           # not bypass missing/error source status checks.
           MCPFINDER_SNAPSHOT_QUALITY_OVERRIDE: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_quality_regression && '1' || '0' }}
           # Glama has repeatedly needed more than the 12-minute local budget.
-          # Thirty minutes leaves headroom inside the 90-minute job ceiling.
+          # Thirty minutes leaves headroom inside the 110-minute job ceiling.
           MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES: '30'
+          # Self-hosted runners hit cold CDN edges for the Official registry's
+          # deep cursor pages (~10 s each at the origin vs ~0.2 s on GitHub-
+          # hosted), so the local 8-minute budget is too tight here.
+          MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES: '25'
           # Smithery now restarts a stalled crawl across four attempts, and
           # four full passes do not fit the default 5-minute budget.
-          # Twelve minutes covers them and still leaves the 90-minute ceiling
+          # Twelve minutes covers them and still leaves the 110-minute ceiling
           # untouched next to Glama's 30.
           MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES: '12'
           # Local stdio keeps the 500 ms restart ladder because first-run live
@@ -317,7 +321,7 @@ jobs:
       # thread instead of opening two parallel ones.
       - name: Signal frozen publication
         # `failure()` on its own is false when the job is *cancelled*, and a job
-        # that trips `timeout-minutes: 90`, loses its runner, or is stopped by
+        # that trips `timeout-minutes: 110`, loses its runner, or is stopped by
         # hand is cancelled rather than failed — precisely the runs that publish
         # nothing. Hence `cancelled()` as well. One honest limit remains: after a
         # cancellation the runner gives post-cancellation steps only a short

@@ -587,6 +587,46 @@ try {
   if (originalGlamaBudget === undefined) delete process.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES;
   else process.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES = originalGlamaBudget;
 
+  // Official budget: unset keeps the 8-minute local default, a valid override
+  // widens the deadline, and invalid values fail loudly with an audit trail.
+  const originalOfficialBudget = process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+  const officialOnePage = async () =>
+    Response.json({ servers: [officialEntry('official/budget')], metadata: { nextCursor: null, count: 1 } });
+  for (const [value, elapsedMin, ok] of [
+    [undefined, 7, true],
+    [undefined, 9, false],
+    ['', 7, true],
+    ['25', 20, true],
+    ['25', 26, false],
+  ]) {
+    if (value === undefined) delete process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+    else process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES = value;
+    const budgetDb = initDatabase(join(dir, `official-budget-${value ?? 'unset'}-${elapsedMin}.sqlite`));
+    let calls = 0;
+    const times = [0, elapsedMin * 60_000];
+    const run = syncOfficialRegistry(
+      budgetDb,
+      runtime(async (...args) => { calls++; return officialOnePage(...args); },
+        () => times[Math.min(calls, times.length - 1)]),
+    );
+    if (ok) assert.equal(await run, 1, `budget ${value} at ${elapsedMin} min`);
+    else await assert.rejects(run, /deadline|budget/, `budget ${value} at ${elapsedMin} min`);
+    assert.equal(syncLog(budgetDb, 'official').status, ok ? 'ok' : 'error');
+    budgetDb.close();
+  }
+  for (const bad of ['0', '31', 'abc', '8.5', '-1']) {
+    process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES = bad;
+    const badDb = initDatabase(join(dir, `official-budget-bad-${bad}.sqlite`));
+    await assert.rejects(
+      syncOfficialRegistry(badDb, runtime(officialOnePage)),
+      /MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES must be an integer between 1 and 30/,
+    );
+    assert.equal(syncLog(badDb, 'official').status, 'error');
+    badDb.close();
+  }
+  if (originalOfficialBudget === undefined) delete process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+  else process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES = originalOfficialBudget;
+
   // Registry deadline is checked after fetch and JSON parse, including a
   // terminal page that would otherwise be marked healthy.
   let deadlineNow = 0;

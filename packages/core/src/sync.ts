@@ -60,7 +60,19 @@ const PAGE_LIMIT = 100;
  * three are required sources, so any degradation blocks snapshot publication
  * (see scripts/snapshot-quality.mjs).
  */
-const OFFICIAL_SYNC_BUDGET_MS = 8 * 60_000;
+const DEFAULT_OFFICIAL_SYNC_BUDGET_MINUTES = 8;
+const MAX_OFFICIAL_SYNC_BUDGET_MINUTES = 30;
+const DEFAULT_OFFICIAL_REQUEST_TIMEOUT_SECONDS = 20;
+const MIN_OFFICIAL_REQUEST_TIMEOUT_SECONDS = 5;
+const MAX_OFFICIAL_REQUEST_TIMEOUT_SECONDS = 120;
+/**
+ * Extra page-level rounds after one page exhausted its transport retries. The
+ * crawl resumes at that same cursor with everything staged so far kept, so a
+ * single cold page does not throw away the pages before it. Still bounded by
+ * the sync deadline.
+ */
+const OFFICIAL_PAGE_RESUME_ROUNDS = 2;
+const OFFICIAL_PAGE_RESUME_WAIT_MS = 5_000;
 const DEFAULT_GLAMA_SYNC_BUDGET_MINUTES = 12;
 const MAX_GLAMA_SYNC_BUDGET_MINUTES = 40;
 const DEFAULT_SMITHERY_SYNC_BUDGET_MINUTES = 5;
@@ -240,6 +252,48 @@ function getGlamaSyncBudgetMinutes(): number {
 }
 
 /**
+ * Local stdio keeps the historical 8-minute Official budget. The registry's
+ * deep cursor pages have become slow (several seconds each, cold pages up to
+ * ~26 s), so a full crawl no longer fits in 8 minutes even on GitHub-hosted
+ * runners (run 38237994053); the snapshot build job raises it. Reject invalid
+ * values instead of silently turning a typo into an unbounded sync.
+ */
+function getOfficialSyncBudgetMinutes(): number {
+  const raw = process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+  if (raw === undefined || raw === '') return DEFAULT_OFFICIAL_SYNC_BUDGET_MINUTES;
+  const minutes = /^\d+$/.test(raw) ? Number(raw) : NaN;
+  if (!(minutes >= 1 && minutes <= MAX_OFFICIAL_SYNC_BUDGET_MINUTES)) {
+    throw new Error(
+      'MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES must be an integer between 1 and ' +
+        MAX_OFFICIAL_SYNC_BUDGET_MINUTES,
+    );
+  }
+  return minutes;
+}
+
+/**
+ * Per-request abort timeout for the Official registry. Local stdio keeps the
+ * shared 20 s default; the snapshot job raises it because cold deep cursor
+ * pages have taken 26 s at the origin. Bounded so a typo cannot turn one hung
+ * request into the whole budget.
+ */
+function getOfficialRequestTimeoutMs(): number {
+  const name = 'MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS';
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return DEFAULT_OFFICIAL_REQUEST_TIMEOUT_SECONDS * 1000;
+  const seconds = /^\d+$/.test(raw) ? Number(raw) : NaN;
+  if (
+    !(seconds >= MIN_OFFICIAL_REQUEST_TIMEOUT_SECONDS && seconds <= MAX_OFFICIAL_REQUEST_TIMEOUT_SECONDS)
+  ) {
+    throw new Error(
+      `${name} must be an integer between ${MIN_OFFICIAL_REQUEST_TIMEOUT_SECONDS} and ` +
+        MAX_OFFICIAL_REQUEST_TIMEOUT_SECONDS,
+    );
+  }
+  return seconds * 1000;
+}
+
+/**
  * Smithery's five minutes covered a single ~109-page crawl with room to spare,
  * but not the four the restart budget now allows: the deadline would abort the
  * loop before the later attempts could run, making them dead code. Local stdio
@@ -355,7 +409,20 @@ export async function syncOfficialRegistry(
   const seenCursors = new Set<string>();
   let totalUpserted = 0;
   const now = runtime.now ?? Date.now;
-  const deadline = now() + OFFICIAL_SYNC_BUDGET_MS;
+  let budgetMinutes: number;
+  let requestTimeoutMs: number;
+  try {
+    budgetMinutes = getOfficialSyncBudgetMinutes();
+    requestTimeoutMs = getOfficialRequestTimeoutMs();
+  } catch (error) {
+    // Same auditable trail as every other Official failure: the sync log
+    // records why nothing ran instead of the source silently going stale.
+    const message = error instanceof Error ? error.message : String(error);
+    updateSyncLog(db, 'official', 0, 'error', message);
+    process.stderr.write(`[mcpfinder] Official sync error: ${message}\n`);
+    throw error;
+  }
+  const deadline = now() + budgetMinutes * 60_000;
 
   const upsert = db.prepare(`
     INSERT INTO servers (
@@ -391,7 +458,7 @@ export async function syncOfficialRegistry(
     do {
       if (now() >= deadline) {
         throw new Error(
-          `Official registry sync exceeded its ${OFFICIAL_SYNC_BUDGET_MS / 60_000}-minute budget ` +
+          `Official registry sync exceeded its ${budgetMinutes}-minute budget ` +
             `(upstream too slow) — discarded ${staging.size} staged servers; ` +
             'existing last-known-good database unchanged',
         );
@@ -403,10 +470,37 @@ export async function syncOfficialRegistry(
       if (lastSync) url.searchParams.set('updated_since', lastSync);
       if (cursor) url.searchParams.set('cursor', cursor);
 
-      const { response: res, data, errorText } = await fetchJsonPageWithRetry<RegistryListResponse>(
-        url.toString(),
-        { label: 'Registry API', deadline, ...runtime },
-      );
+      let page: Awaited<ReturnType<typeof fetchJsonPageWithRetry<RegistryListResponse>>>;
+      for (let round = 0; ; round++) {
+        try {
+          page = await fetchJsonPageWithRetry<RegistryListResponse>(url.toString(), {
+            label: 'Registry API',
+            deadline,
+            timeoutMs: requestTimeoutMs,
+            ...runtime,
+          });
+          break;
+        } catch (error) {
+          // 429 is not resumed: the upstream asked for less traffic. A wait
+          // that would not fit before the deadline rethrows the original
+          // error rather than sleeping past the budget.
+          if (
+            !(error instanceof RegistryTransportError) ||
+            /HTTP 429/.test(error.message) ||
+            round >= OFFICIAL_PAGE_RESUME_ROUNDS ||
+            now() + OFFICIAL_PAGE_RESUME_WAIT_MS >= deadline
+          ) {
+            throw error;
+          }
+          process.stderr.write(
+            `[mcpfinder] Official crawl: page ${pages + 1} failed (${error.message}); ` +
+              `resuming at the same cursor, round ${round + 2}/${OFFICIAL_PAGE_RESUME_ROUNDS + 1}\n`,
+          );
+          await delay(OFFICIAL_PAGE_RESUME_WAIT_MS, runtime);
+          assertBeforeDeadline(deadline, runtime, 'Registry API');
+        }
+      }
+      const { response: res, data, errorText } = page;
       if (!res.ok) {
         throw new Error(`Registry API error: ${res.status} ${res.statusText} — ${errorText ?? ''}`);
       }

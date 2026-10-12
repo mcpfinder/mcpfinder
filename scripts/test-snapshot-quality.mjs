@@ -587,6 +587,164 @@ try {
   if (originalGlamaBudget === undefined) delete process.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES;
   else process.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES = originalGlamaBudget;
 
+  // Official budget: unset keeps the 8-minute local default, a valid override
+  // widens the deadline, and invalid values fail loudly with an audit trail.
+  const originalOfficialBudget = process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+  const officialOnePage = async () =>
+    Response.json({ servers: [officialEntry('official/budget')], metadata: { nextCursor: null, count: 1 } });
+  for (const [value, elapsedMin, ok] of [
+    [undefined, 7, true],
+    [undefined, 9, false],
+    ['', 7, true],
+    ['25', 20, true],
+    ['25', 26, false],
+  ]) {
+    if (value === undefined) delete process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+    else process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES = value;
+    const budgetDb = initDatabase(join(dir, `official-budget-${value ?? 'unset'}-${elapsedMin}.sqlite`));
+    let calls = 0;
+    const times = [0, elapsedMin * 60_000];
+    const run = syncOfficialRegistry(
+      budgetDb,
+      runtime(async (...args) => { calls++; return officialOnePage(...args); },
+        () => times[Math.min(calls, times.length - 1)]),
+    );
+    if (ok) assert.equal(await run, 1, `budget ${value} at ${elapsedMin} min`);
+    else await assert.rejects(run, /deadline|budget/, `budget ${value} at ${elapsedMin} min`);
+    assert.equal(syncLog(budgetDb, 'official').status, ok ? 'ok' : 'error');
+    budgetDb.close();
+  }
+  for (const bad of ['0', '31', 'abc', '8.5', '-1']) {
+    process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES = bad;
+    const badDb = initDatabase(join(dir, `official-budget-bad-${bad}.sqlite`));
+    await assert.rejects(
+      syncOfficialRegistry(badDb, runtime(officialOnePage)),
+      /MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES must be an integer between 1 and 30/,
+    );
+    assert.equal(syncLog(badDb, 'official').status, 'error');
+    badDb.close();
+  }
+  // Official per-request timeout: validated like the budget, and the value
+  // actually reaches the abort timer (a fetch that only settles on abort).
+  const originalOfficialTimeout = process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS;
+  delete process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+  for (const bad of ['4', '121', 'abc', '7.5']) {
+    process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS = bad;
+    const badDb = initDatabase(join(dir, `official-timeout-bad-${bad}.sqlite`));
+    await assert.rejects(
+      syncOfficialRegistry(badDb, runtime(officialOnePage)),
+      /MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS must be an integer between 5 and 120/,
+    );
+    assert.equal(syncLog(badDb, 'official').status, 'error');
+    badDb.close();
+  }
+  process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS = '5';
+  {
+    const timeoutDb = initDatabase(join(dir, 'official-timeout-5.sqlite'));
+    let firstAbortMs;
+    const started = Date.now();
+    let hangs = 1;
+    const result = await syncOfficialRegistry(
+      timeoutDb,
+      runtime(async (_url, init) => {
+        if (hangs-- > 0) {
+          return new Promise((_, reject) => {
+            init.signal.addEventListener('abort', () => {
+              firstAbortMs = Date.now() - started;
+              reject(new Error('aborted'));
+            });
+          });
+        }
+        return officialOnePage();
+      }, Date.now),
+    );
+    assert.equal(result, 1);
+    assert.ok(firstAbortMs >= 4_500 && firstAbortMs < 15_000, `abort after ${firstAbortMs} ms`);
+    timeoutDb.close();
+  }
+  delete process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS;
+
+  // A page that exhausts its transport retries resumes at the same cursor
+  // with earlier pages kept; only after every resume round does the sync fail.
+  for (const [failures, ok] of [[4, true], [8, true], [12, false]]) {
+    const resumeDb = initDatabase(join(dir, `official-resume-${failures}.sqlite`));
+    const urls = [];
+    let page2Failures = failures;
+    const run = syncOfficialRegistry(
+      resumeDb,
+      runtime(async (url) => {
+        urls.push(String(url));
+        const second = String(url).includes('cursor=official-next');
+        if (second && page2Failures-- > 0) throw new Error('socket hang up');
+        return Response.json({
+          servers: [officialEntry(second ? 'official/resume-2' : 'official/resume-1')],
+          metadata: { nextCursor: second ? null : 'official-next', count: 1 },
+        });
+      }),
+    );
+    if (ok) {
+      assert.equal(await run, 2, `${failures} page-2 failures`);
+      assert.equal(syncLog(resumeDb, 'official').status, 'ok');
+    } else {
+      await assert.rejects(run, /giving up after 4 attempts/);
+      assert.equal(syncLog(resumeDb, 'official').status, 'error');
+    }
+    // Page 1 is fetched exactly once: resuming never restarts the crawl.
+    assert.equal(urls.filter((u) => !u.includes('cursor=')).length, 1);
+    resumeDb.close();
+  }
+  // Advancing clock: with less than the 5 s resume wait left, the original
+  // transport error surfaces and no sleep runs past the deadline; HTTP 429 is
+  // never resumed.
+  {
+    let clockMs = 0;
+    let lateFailures = 0;
+    const sleeps = [];
+    const advancing = {
+      now: () => clockMs,
+      sleep: async (ms) => { sleeps.push(ms); clockMs += ms; },
+      fetchImpl: async (url) => {
+        if (String(url).includes('cursor=official-next')) {
+          // Attempts 1-3 fail early (their backoffs fit); the 4th lands the
+          // clock 3 s before the 8-minute deadline, so transport retries are
+          // exhausted with less than the 5 s resume wait left.
+          lateFailures++;
+          if (lateFailures === 4) clockMs = 8 * 60_000 - 3_000;
+          throw new Error('socket hang up');
+        }
+        return Response.json({
+          servers: [officialEntry('official/late-1')],
+          metadata: { nextCursor: 'official-next', count: 1 },
+        });
+      },
+    };
+    const lateDb = initDatabase(join(dir, 'official-resume-late.sqlite'));
+    await assert.rejects(syncOfficialRegistry(lateDb, advancing), /giving up after 4 attempts/);
+    assert.equal(lateFailures, 4, 'no resume round without room for its wait');
+    assert.ok(clockMs <= 8 * 60_000, `clock ${clockMs} ran past the deadline`);
+    assert.ok(!sleeps.includes(5_000), 'resume wait must not start without room for it');
+    lateDb.close();
+
+    let tooMany = 0;
+    const rateDb = initDatabase(join(dir, 'official-resume-429.sqlite'));
+    await assert.rejects(
+      syncOfficialRegistry(
+        rateDb,
+        runtime(async () => {
+          tooMany++;
+          return new Response('slow down', { status: 429 });
+        }),
+      ),
+      /HTTP 429/,
+    );
+    assert.equal(tooMany, 4, '429 gets one round of transport retries, no resume');
+    rateDb.close();
+  }
+  if (originalOfficialTimeout === undefined) delete process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS;
+  else process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS = originalOfficialTimeout;
+  if (originalOfficialBudget === undefined) delete process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;
+  else process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES = originalOfficialBudget;
+
   // Registry deadline is checked after fetch and JSON parse, including a
   // terminal page that would otherwise be marked healthy.
   let deadlineNow = 0;

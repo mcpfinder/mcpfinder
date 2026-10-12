@@ -603,7 +603,11 @@ Glama attribution on every page displaying this data
 `MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES` can raise Glama's default 12-minute
 wall-clock budget for batch builds. It accepts integer values from 1 through
 40; invalid or unbounded values fail explicitly. The snapshot workflow uses 30
-minutes within its 90-minute job timeout. Malformed HTTP 200 JSON pages are
+minutes within its 90-minute job timeout.
+`MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES` raises the Official registry's default
+8-minute budget the same way (integers 1 through 30; the snapshot job uses 25), and
+`MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS` its per-request abort (default 20,
+5 through 120; the job uses 60). Malformed HTTP 200 JSON pages are
 retried at the same cursor before the sync records an error. The hard registry
 budget includes consuming and parsing the terminal response body; a page that
 finishes after its deadline is intentionally degraded rather than accepted as

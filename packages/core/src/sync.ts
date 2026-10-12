@@ -481,14 +481,21 @@ export async function syncOfficialRegistry(
           });
           break;
         } catch (error) {
-          if (!(error instanceof RegistryTransportError) || round >= OFFICIAL_PAGE_RESUME_ROUNDS) {
+          // 429 is not resumed: the upstream asked for less traffic. A wait
+          // that would not fit before the deadline rethrows the original
+          // error rather than sleeping past the budget.
+          if (
+            !(error instanceof RegistryTransportError) ||
+            /HTTP 429/.test(error.message) ||
+            round >= OFFICIAL_PAGE_RESUME_ROUNDS ||
+            now() + OFFICIAL_PAGE_RESUME_WAIT_MS >= deadline
+          ) {
             throw error;
           }
           process.stderr.write(
             `[mcpfinder] Official crawl: page ${pages + 1} failed (${error.message}); ` +
               `resuming at the same cursor, round ${round + 2}/${OFFICIAL_PAGE_RESUME_ROUNDS + 1}\n`,
           );
-          // Brief pause before re-asking a cold origin; never past the deadline.
           await delay(OFFICIAL_PAGE_RESUME_WAIT_MS, runtime);
           assertBeforeDeadline(deadline, runtime, 'Registry API');
         }

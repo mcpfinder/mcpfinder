@@ -693,6 +693,48 @@ try {
     assert.equal(urls.filter((u) => !u.includes('cursor=')).length, 1);
     resumeDb.close();
   }
+  // Advancing clock: with less than the 5 s resume wait left, the original
+  // transport error surfaces and no sleep runs past the deadline; HTTP 429 is
+  // never resumed.
+  {
+    let clockMs = 0;
+    const sleeps = [];
+    const advancing = {
+      now: () => clockMs,
+      sleep: async (ms) => { sleeps.push(ms); clockMs += ms; },
+      fetchImpl: async (url) => {
+        if (String(url).includes('cursor=official-next')) {
+          // Each failed attempt lands the clock 3 s before the 8-minute deadline.
+          clockMs = 8 * 60_000 - 3_000;
+          throw new Error('socket hang up');
+        }
+        return Response.json({
+          servers: [officialEntry('official/late-1')],
+          metadata: { nextCursor: 'official-next', count: 1 },
+        });
+      },
+    };
+    const lateDb = initDatabase(join(dir, 'official-resume-late.sqlite'));
+    await assert.rejects(syncOfficialRegistry(lateDb, advancing), /giving up after 4 attempts|deadline/);
+    assert.ok(clockMs <= 8 * 60_000, `clock ${clockMs} ran past the deadline`);
+    assert.ok(!sleeps.includes(5_000), 'resume wait must not start without room for it');
+    lateDb.close();
+
+    let tooMany = 0;
+    const rateDb = initDatabase(join(dir, 'official-resume-429.sqlite'));
+    await assert.rejects(
+      syncOfficialRegistry(
+        rateDb,
+        runtime(async () => {
+          tooMany++;
+          return new Response('slow down', { status: 429 });
+        }),
+      ),
+      /HTTP 429/,
+    );
+    assert.equal(tooMany, 4, '429 gets one round of transport retries, no resume');
+    rateDb.close();
+  }
   if (originalOfficialTimeout === undefined) delete process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS;
   else process.env.MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS = originalOfficialTimeout;
   if (originalOfficialBudget === undefined) delete process.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES;

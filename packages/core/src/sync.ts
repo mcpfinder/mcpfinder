@@ -252,10 +252,10 @@ function getGlamaSyncBudgetMinutes(): number {
 }
 
 /**
- * Local stdio keeps the historical 8-minute Official budget. The snapshot job
- * runs on self-hosted runners (since 2026-10-12) whose CDN edge rarely has the
- * deep cursor pages cached, so cold pages can take ~10 s each at the origin and
- * a full crawl no longer fits in 8 minutes; the job raises it. Reject invalid
+ * Local stdio keeps the historical 8-minute Official budget. The registry's
+ * deep cursor pages have become slow (several seconds each, cold pages up to
+ * ~26 s), so a full crawl no longer fits in 8 minutes even on GitHub-hosted
+ * runners (run 38237994053); the snapshot build job raises it. Reject invalid
  * values instead of silently turning a typo into an unbounded sync.
  */
 function getOfficialSyncBudgetMinutes(): number {

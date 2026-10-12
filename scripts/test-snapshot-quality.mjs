@@ -698,14 +698,18 @@ try {
   // never resumed.
   {
     let clockMs = 0;
+    let lateFailures = 0;
     const sleeps = [];
     const advancing = {
       now: () => clockMs,
       sleep: async (ms) => { sleeps.push(ms); clockMs += ms; },
       fetchImpl: async (url) => {
         if (String(url).includes('cursor=official-next')) {
-          // Each failed attempt lands the clock 3 s before the 8-minute deadline.
-          clockMs = 8 * 60_000 - 3_000;
+          // Attempts 1-3 fail early (their backoffs fit); the 4th lands the
+          // clock 3 s before the 8-minute deadline, so transport retries are
+          // exhausted with less than the 5 s resume wait left.
+          lateFailures++;
+          if (lateFailures === 4) clockMs = 8 * 60_000 - 3_000;
           throw new Error('socket hang up');
         }
         return Response.json({
@@ -715,7 +719,8 @@ try {
       },
     };
     const lateDb = initDatabase(join(dir, 'official-resume-late.sqlite'));
-    await assert.rejects(syncOfficialRegistry(lateDb, advancing), /giving up after 4 attempts|deadline/);
+    await assert.rejects(syncOfficialRegistry(lateDb, advancing), /giving up after 4 attempts/);
+    assert.equal(lateFailures, 4, 'no resume round without room for its wait');
     assert.ok(clockMs <= 8 * 60_000, `clock ${clockMs} ran past the deadline`);
     assert.ok(!sleeps.includes(5_000), 'resume wait must not start without room for it');
     lateDb.close();

@@ -386,8 +386,9 @@ through 40. `MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES` does the same for the
 Official registry (default 8, 1 through 30); the snapshot job sets 25 because
 the registry's deep cursor pages have become slow (several seconds each).
 `MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS` sets the Official per-request abort
-(default 20, 5 through 120; the snapshot job uses 60). A page that exhausts its
-retries is resumed at the same cursor up to two more times before the sync fails. HTTP 200 pages with truncated or malformed JSON are retried on the
+(default 20, 5 through 120; the snapshot job uses 60). A page whose transport retries
+are exhausted is resumed at the same cursor up to two more times before the sync
+fails; HTTP 429, deadline and malformed/invalid-page failures are never resumed. HTTP 200 pages with truncated or malformed JSON are retried on the
 same cursor before the source is marked as errored. The hard registry deadline
 covers the terminal response body as well as transport and parsing: a page that
 finishes after the budget is deliberately marked degraded, protecting the

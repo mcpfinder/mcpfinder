@@ -156,8 +156,8 @@ jobs:
           # Manual-only escape hatch for an intentional corpus reset. It does
           # not bypass missing/error source status checks.
           MCPFINDER_SNAPSHOT_QUALITY_OVERRIDE: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_quality_regression && '1' || '0' }}
-          # Glama has repeatedly needed more than the 12-minute local budget.
-          # Thirty minutes leaves headroom inside the 90-minute job ceiling.
+          # Bounds the Glama replay of the capture job's recording (seconds in
+          # practice); not part of the live-crawl arithmetic above.
           MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES: '30'
           # The Official registry's deep cursor pages are slow (several s each
           # since 2026-10; run 38237994053 hit the 8-minute default on
@@ -168,8 +168,7 @@ jobs:
           MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS: '60'
           # Smithery now restarts a stalled crawl across four attempts, and
           # four full passes do not fit the default 5-minute budget.
-          # Twelve minutes covers them and still leaves the 90-minute ceiling
-          # untouched next to Glama's 30.
+          # Twelve minutes covers them inside the 90-minute ceiling.
           MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES: '12'
           # Local stdio keeps the 500 ms restart ladder because first-run live
           # sync is gated on the SDK's 60 s tool-call timeout. CI waits

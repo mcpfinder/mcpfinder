@@ -603,7 +603,7 @@ Glama attribution on every page displaying this data
 `MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES` can raise Glama's default 12-minute
 wall-clock budget for batch builds. It accepts integer values from 1 through
 40; invalid or unbounded values fail explicitly. The snapshot workflow uses 30
-minutes within its 110-minute job timeout.
+minutes within its 90-minute job timeout.
 `MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES` raises the Official registry's default
 8-minute budget the same way (integers 1 through 30; the snapshot job uses 25), and
 `MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS` its per-request abort (default 20,

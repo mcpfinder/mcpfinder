@@ -381,10 +381,10 @@ published.
 Glama keeps a 12-minute sync budget for normal local stdio use. The scheduled
 snapshot job sets `MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES=30` because a full Glama
 pagination regularly exceeds the local limit, while still leaving headroom
-inside the job's 110-minute timeout. Custom values must be whole minutes from 1
+inside the job's 90-minute timeout. Custom values must be whole minutes from 1
 through 40. `MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES` does the same for the
 Official registry (default 8, 1 through 30); the snapshot job sets 25 because
-its self-hosted runners hit cold CDN edges on deep cursor pages.
+the registry's deep cursor pages have become slow (several seconds each).
 `MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS` sets the Official per-request abort
 (default 20, 5 through 120; the snapshot job uses 60). A page that exhausts its
 retries is resumed at the same cursor up to two more times before the sync fails. HTTP 200 pages with truncated or malformed JSON are retried on the

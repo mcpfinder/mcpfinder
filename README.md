@@ -87,6 +87,10 @@ Postgres"*, *"I need a tool for [anything]"* — the skill activates, detects
 your client, merges the config without clobbering, and tells you what to
 restart.
 
+### Use with Codex
+
+Using Codex? See the MCP stack for Codex: https://aicommander.dev/agent-stack/codex/
+
 ## For AI Assistants
 
 Use MCPfinder when the user needs a capability you do not already have.

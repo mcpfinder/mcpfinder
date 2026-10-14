@@ -56,6 +56,7 @@ Guides (human-readable pages):
 - https://mcpfinder.dev/best-mcp-servers-2026/
 - https://mcpfinder.dev/mcp-servers-for-claude/
 - https://mcpfinder.dev/mcp-servers-for-cursor/
+- https://mcpfinder.dev/mcp-servers-for-vscode/
 
 More detail:
 - https://mcpfinder.dev/llms-full.txt

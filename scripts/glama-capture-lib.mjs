@@ -1,13 +1,13 @@
 /**
  * Record/replay of Glama registry HTTP responses, so the Glama crawl can run
- * on a machine Glama answers (the self-hosted runners) while the merge, the
+ * on a machine Glama answers (our Macs, ops/glama-capture/) while the merge, the
  * quality gate and publication stay in the GitHub-hosted build job.
  *
  * Why: since 2026-10-11 Glama answers GitHub-hosted runner IPs with HTTP 200
  * and an EMPTY body (probe run 38218078092), while our own network gets full
  * JSON. The Official registry is the opposite: ~95 s from GitHub-hosted, ~47
  * min from our network. Each crawl runs where it works and the bytes travel
- * as an artifact.
+ * through the R2 bucket mcpfinder-glama-capture.
  *
  * A capture is a directory with two files:
  *   header.json      {"v":1,"source":"glama","capturedAt":"<ISO>",

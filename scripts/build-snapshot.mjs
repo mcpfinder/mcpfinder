@@ -183,7 +183,7 @@ const counts = {};
 counts.official = await run('official', syncOfficialRegistry);
 if (!flag('--no-glama')) {
   // MCPFINDER_GLAMA_CAPTURE_DIR: replay a Glama crawl recorded on a
-  // self-hosted runner (scripts/glama-capture.mjs) instead of crawling from
+  // Mac (scripts/glama-capture.mjs via ops/glama-capture/, fetched from R2) instead of crawling from
   // here; Glama sends GitHub-hosted IPs empty bodies. A missing, stale or
   // truncated capture is recorded as a Glama sync error, so the quality gate
   // keeps the previous snapshot instead of publishing without Glama.

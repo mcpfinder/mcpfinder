@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MCP Servers for VS Code | Discover & Install with MCPfinder</title>
-  <meta name="description" content="Find MCP servers for VS Code and GitHub Copilot. Search multiple MCP registries, inspect tools and env vars, and generate a VS Code .vscode/mcp.json install config with MCPfinder.">
-  <meta name="keywords" content="MCP servers for VS Code, VS Code MCP, GitHub Copilot MCP, Model Context Protocol VS Code, install MCP VS Code">
+  <meta name="description" content="Find MCP servers for VS Code (Cline). Search multiple MCP registries, inspect tools and env vars, and generate a .vscode/mcp.json install config with MCPfinder.">
+  <meta name="keywords" content="MCP servers for VS Code, VS Code MCP, Cline MCP, Model Context Protocol VS Code, install MCP VS Code">
   <meta name="author" content="Coder AI">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://mcpfinder.dev/mcp-servers-for-vscode/">
@@ -18,7 +18,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mcpfinder.dev/mcp-servers-for-vscode/">
   <meta property="og:title" content="MCP Servers for VS Code | MCPfinder">
-  <meta property="og:description" content="Find MCP servers for VS Code and GitHub Copilot. Search multiple MCP registries, inspect tools and env vars, and generate a VS Code .vscode/mcp.json install config with MCPfinder.">
+  <meta property="og:description" content="Find MCP servers for VS Code (Cline). Search multiple MCP registries, inspect tools and env vars, and generate a .vscode/mcp.json install config with MCPfinder.">
   <meta property="og:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
   <meta property="og:site_name" content="MCPfinder">
   <meta property="og:locale" content="en_US">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:site" content="@coderaidev">
   <meta name="twitter:title" content="MCP Servers for VS Code | MCPfinder">
-  <meta name="twitter:description" content="Find MCP servers for VS Code and GitHub Copilot. Search multiple MCP registries, inspect tools and env vars, and generate a VS Code .vscode/mcp.json install config with MCPfinder.">
+  <meta name="twitter:description" content="Find MCP servers for VS Code (Cline). Search multiple MCP registries, inspect tools and env vars, and generate a .vscode/mcp.json install config with MCPfinder.">
   <meta name="twitter:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
 
   <script type="application/ld+json">
@@ -59,7 +59,7 @@
       "name": "Does VS Code support MCP servers?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VS Code with GitHub Copilot connects to local stdio MCP servers through a project .vscode/mcp.json file. Once configured, the agent can call those tools from chat."
+        "text": "Yes. VS Code can connect MCP servers through a project .vscode/mcp.json file. Once configured, an agent such as Cline can call those tools from chat."
       }
     },
     {
@@ -67,7 +67,7 @@
       "name": "How is MCPfinder different from browsing mcp.so or a registry UI?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "MCPfinder is itself an MCP server, so VS Code with GitHub Copilot can search and evaluate candidates without leaving the editor. It also aggregates multiple registries and adds trust / install signals."
+        "text": "MCPfinder is itself an MCP server, so an agent in VS Code can search and evaluate candidates without leaving the editor. It also aggregates multiple registries and adds trust / install signals."
       }
     },
     {
@@ -75,7 +75,7 @@
       "name": "Can I use MCPfinder only for VS Code?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. The same package also targets Claude Desktop, Claude Code, Cline, and Windsurf if you use more than one client."
+        "text": "Yes. The same package also targets Claude Desktop, Claude Code, Cursor, and Windsurf if you use more than one client."
       }
     },
     {
@@ -83,7 +83,7 @@
       "name": "Is there a VS Code-specific install path?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Ask MCPfinder for get_install_config with Cline as the client. It returns a ready-to-paste snippet that uses the servers key and a project .vscode/mcp.json path."
+        "text": "Ask MCPfinder for get_install_config with platform=\"cline\". It returns a ready-to-paste snippet that uses the servers key and a project .vscode/mcp.json path."
       }
     }
   ]
@@ -269,9 +269,9 @@
 
 <section class="hero">
   <div class="container">
-    <div class="hero-badge">GUIDE · CURSOR IDE</div>
+    <div class="hero-badge">GUIDE · VS CODE</div>
     <h1>MCP servers for <span class="highlight">VS Code</span></h1>
-    <p class="hero-lead">VS Code with GitHub Copilot can run MCP servers so the in-editor agent reaches databases, browsers, docs, and APIs. MCPfinder searches Official Registry, Glama, and Smithery, then emits a VS Code-compatible install config so you spend less time hunting directories.</p>
+    <p class="hero-lead">VS Code can run MCP servers so agents like Cline reach databases, browsers, docs, and APIs. MCPfinder searches Official Registry, Glama, and Smithery, then emits a VS Code-compatible install config so you spend less time hunting directories.</p>
     <div class="btn-group">
       <a href="/#install" class="btn btn-primary">INSTALL MCPFINDER</a>
       <a href="https://github.com/mcpfinder/mcpfinder" class="btn btn-secondary" target="_blank" rel="noopener">VIEW ON GITHUB</a>
@@ -282,10 +282,10 @@
 
 <section>
   <div class="container">
-    <div class="section-label">CURSOR + MCP</div>
+    <div class="section-label">VS CODE + MCP</div>
     <h2 class="section-title">Give VS Code an on-demand MCP catalog</h2>
     <div class="prose">
-      <p>GitHub Copilot in VS Code is strongest when it can pull the right tools for the repo in front of you. MCP servers supply those tools — filesystem helpers, issue trackers, SQL, browsers, and more — but picking and configuring them from scattered registries is slow.</p>
+      <p>Agents in VS Code are strongest when they can pull the right tools for the repo in front of you. MCP servers supply those tools — filesystem helpers, issue trackers, SQL, browsers, and more — but picking and configuring them from scattered registries is slow.</p>
       <p>MCPfinder installs as one MCP server inside VS Code. From there the agent can search catalogued servers, inspect manifests and warnings, and ask for a VS Code-ready JSON snippet.</p>
     </div>
   </div>
@@ -361,19 +361,19 @@
     <div class="faq-list">
     <div class="faq-item">
       <div class="faq-q">Does VS Code support MCP servers?</div>
-      <div class="faq-a">Yes. VS Code with GitHub Copilot connects to local stdio MCP servers through a project .vscode/mcp.json file. Once configured, the agent can call those tools from chat.</div>
+      <div class="faq-a">Yes. VS Code can connect MCP servers through a project .vscode/mcp.json file. Once configured, an agent such as Cline can call those tools from chat.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">How is MCPfinder different from browsing mcp.so or a registry UI?</div>
-      <div class="faq-a">MCPfinder is itself an MCP server, so VS Code with GitHub Copilot can search and evaluate candidates without leaving the editor. It also aggregates multiple registries and adds trust / install signals.</div>
+      <div class="faq-a">MCPfinder is itself an MCP server, so an agent in VS Code can search and evaluate candidates without leaving the editor. It also aggregates multiple registries and adds trust / install signals.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Can I use MCPfinder only for VS Code?</div>
-      <div class="faq-a">Yes. The same package also targets Claude Desktop, Claude Code, Cline, and Windsurf if you use more than one client.</div>
+      <div class="faq-a">Yes. The same package also targets Claude Desktop, Claude Code, Cursor, and Windsurf if you use more than one client.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Is there a VS Code-specific install path?</div>
-      <div class="faq-a">Ask MCPfinder for <code>get_install_config</code> with Cline as the client. It returns a ready-to-paste snippet that uses the servers key and a project .vscode/mcp.json path.</div>
+      <div class="faq-a">Ask MCPfinder for <code>get_install_config</code> with <code>platform=&quot;cline&quot;</code>. It returns a ready-to-paste snippet that uses the servers key and a project .vscode/mcp.json path.</div>
     </div>
     </div>
   </div>
@@ -385,6 +385,7 @@
     <h2 class="section-title">Related MCP finder pages</h2>
     <div class="related">
       <a href="/mcp-servers-for-claude/">MCP for Claude</a>
+      <a href="/mcp-servers-for-cursor/">MCP for Cursor</a>
       <a href="/best-mcp-servers/">Best MCP servers</a>
       <a href="/best-mcp-servers-2026/">Best MCP 2026</a>
       <a href="/how-to-find-mcp-servers/">How to find MCP</a>

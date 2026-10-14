@@ -13,6 +13,9 @@ name: build-snapshot
 #                             registries are required the quality gate fails and
 #                             nothing is published: an incomplete snapshot never
 #                             replaces the complete one already being served.
+#   GLAMA_CAPTURE_R2_ACCESS_KEY_ID / GLAMA_CAPTURE_R2_SECRET_ACCESS_KEY
+#                           — S3 credentials of an R2 token with Object Read on
+#                             the bucket mcpfinder-glama-capture only.
 
 on:
   schedule:
@@ -30,69 +33,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Glama crawl on the self-hosted runners (aic-studio / aic-wfs-mini), split
-  # out on 2026-10-12. Glama answers GitHub-hosted IPs with HTTP 200 and an
-  # EMPTY body (probe run 38218078092) but our network with full JSON, while
-  # the Official registry is the reverse (~95 s here vs ~47 min from our
-  # network). So only Glama runs here: it records the raw responses and the
-  # build job replays them, keeping merge, quality gate and publication in one
-  # GitHub-hosted job. See scripts/glama-capture-lib.mjs.
-  glama-capture:
-    # HARD RULE (2026-10-12): self-hosted runners are personal Macs and never
-    # run code from public or fork PRs. Exact guard enforced by
-    # scripts/check-self-hosted-guard.py in CI; fails closed for anything else.
-    if: >-
-      github.actor == 'lksrz' && github.triggering_actor == 'lksrz' &&
-      (github.event_name == 'schedule' || github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.user.login == 'lksrz'))
-    runs-on: [self-hosted, macOS, ARM64, mcpfinder-snapshot]
-    permissions:
-      contents: read
-    # Glama budget 30 + install/build; queue time on a busy runner is not counted.
-    timeout-minutes: 50
-    env:
-      NODE_OPTIONS: --dns-result-order=ipv4first
-    steps:
-      # Persistent runner on a personal machine: do not leave the job token in
-      # .git/config; this job never pushes.
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - uses: pnpm/action-setup@v5
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm --filter @mcpfinder/core build
-
-      - name: Capture Glama crawl
-        run: node scripts/glama-capture.mjs --out=dist/glama-capture
-        env:
-          GLAMA_API_KEY: ${{ secrets.GLAMA_API_KEY }}
-          MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES: '30'
-          MCPFINDER_CRAWL_RESTART_BASE_MS: '15000'
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: glama-capture
-          path: dist/glama-capture
-          if-no-files-found: error
-          retention-days: 1
-
   build:
-    needs: glama-capture
-    # Run even when the capture failed: the Glama replay then records an error,
-    # the quality gate keeps the previous snapshot, and the freeze signal below
-    # still fires. Only a cancelled workflow skips the build.
-    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     # Least privilege, with two additions the freeze signal at the end of this
     # job needs: `issues: write` to open/update/close the alarm, and
@@ -110,7 +51,7 @@ jobs:
       contents: read
       issues: write
     # Registry budgets can consume 37 minutes (Official 25 + Smithery 12; Glama
-    # only replays the capture job's recording here and never crawls live);
+    # only replays the R2 capture here and never crawls live);
     # keep at least 50 minutes for install, focused tests, enrichment,
     # vacuum/gzip, preflight, and upload. Raising any budget below
     # eats into that reserve — re-add them here before touching this ceiling.
@@ -132,31 +73,58 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Missing artifact (capture failed) is not fatal here: the build step
-      # records it as a Glama sync error and the quality gate refuses to publish.
-      - name: Download Glama capture
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: glama-capture
-          path: dist/glama-capture
+      # The Glama crawl runs on our Macs (LaunchAgent com.mcpfinder.glama-capture,
+      # ops/glama-capture/): Glama answers GitHub-hosted IPs with HTTP 200 and an
+      # EMPTY body (probe run 38218078092). The Macs upload each capture to the
+      # dedicated R2 bucket mcpfinder-glama-capture as <UTC ts>/header.json +
+      # responses.jsonl.gz and then move the latest.json pointer. This job only
+      # reads that bucket (bucket-scoped read-only token). A missing pointer or
+      # object, a checksum mismatch, or a capture older than 12 h fails the job
+      # here, so nothing is published and the freeze signal below fires.
+      - name: Download Glama capture from R2
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_KEY_ID: ${{ secrets.GLAMA_CAPTURE_R2_ACCESS_KEY_ID }}
+          R2_SECRET: ${{ secrets.GLAMA_CAPTURE_R2_SECRET_ACCESS_KEY }}
+        run: |
+          set -euo pipefail
+          for v in R2_ACCOUNT_ID R2_KEY_ID R2_SECRET; do
+            [ -n "${!v}" ] || { echo "::error::Glama capture: secret for $v is not set"; exit 1; }
+          done
+          base="https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com/mcpfinder-glama-capture"
+          r2() {
+            curl --fail --silent --show-error --retry 3 --max-time 300 \
+              --aws-sigv4 "aws:amz:auto:s3" \
+              --config <(printf 'user = "%s:%s"\n' "$R2_KEY_ID" "$R2_SECRET") "$@"
+          }
+          dir=dist/glama-capture
+          mkdir -p "$dir"
+          r2 -o "$dir/latest.json" "$base/latest.json" \
+            || { echo "::error::Glama capture: latest.json missing or unreadable in R2"; exit 1; }
+          prefix=$(node scripts/glama-capture-pointer.mjs "$dir/latest.json")
+          r2 -o "$dir/header.json" "$base/${prefix}header.json" \
+            || { echo "::error::Glama capture: ${prefix}header.json missing in R2"; exit 1; }
+          r2 -o "$dir/responses.jsonl.gz" "$base/${prefix}responses.jsonl.gz" \
+            || { echo "::error::Glama capture: ${prefix}responses.jsonl.gz missing in R2"; exit 1; }
+          node scripts/glama-capture-pointer.mjs "$dir/latest.json" --verify="$dir"
 
       - name: Build core and test snapshot publication
         run: |
           pnpm --filter @mcpfinder/core build
           node scripts/test-snapshot-quality.mjs
           node scripts/test-snapshot-artifacts.mjs
+          node scripts/test-glama-capture-pointer.mjs
 
       - name: Build snapshot
         run: node scripts/build-snapshot.mjs
         env:
-          # Replay the Glama crawl recorded by the glama-capture job.
+          # Replay the Glama crawl downloaded from R2 above.
           MCPFINDER_GLAMA_CAPTURE_DIR: dist/glama-capture
           GITHUB_SHA: ${{ github.sha }}
           # Manual-only escape hatch for an intentional corpus reset. It does
           # not bypass missing/error source status checks.
           MCPFINDER_SNAPSHOT_QUALITY_OVERRIDE: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_quality_regression && '1' || '0' }}
-          # Bounds the Glama replay of the capture job's recording (seconds in
+          # Bounds the Glama replay of the downloaded recording (seconds in
           # practice); not part of the live-crawl arithmetic above.
           MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES: '30'
           # The Official registry's deep cursor pages are slow (several s each

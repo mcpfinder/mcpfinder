@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.mcpfinder.glama-capture</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/caffeinate</string><string>-i</string><string>-s</string>
+    <string>/bin/bash</string><string>@WRAPPER@</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict><key>ROLE</key><string>@ROLE@</string></dict>
+  <key>StartInterval</key><integer>@INTERVAL@</integer>
+  <key>RunAtLoad</key><true/>
+  <key>ProcessType</key><string>Background</string>
+  <key>StandardOutPath</key><string>@LOGDIR@/mcpfinder-glama-capture.launchd.log</string>
+  <key>StandardErrorPath</key><string>@LOGDIR@/mcpfinder-glama-capture.launchd.log</string>
+</dict>
+</plist>

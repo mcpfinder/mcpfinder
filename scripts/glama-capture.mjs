@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Run the real Glama sync and record every response for the build job to
- * replay (see glama-capture-lib.mjs). Runs on the self-hosted runners.
+ * replay (see glama-capture-lib.mjs). Runs on our Macs from the LaunchAgent
+ * in ops/glama-capture/, which uploads the result to R2.
  *
  *   node scripts/glama-capture.mjs --out=<dir>
  *

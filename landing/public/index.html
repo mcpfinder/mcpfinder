@@ -279,7 +279,7 @@
         "name": "Is MCPfinder free to use?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes! MCPfinder is completely free and open-source. Install it via npm with npx @mcpfinder/server or add it to your project with npm install @mcpfinder/server."
+          "text": "Yes! MCPfinder is completely free and open-source. Install it via npm with npx -y @mcpfinder/server or add it to your project with npm install @mcpfinder/server."
         }
       },
       {
@@ -1294,13 +1294,13 @@
         </div>
         <div class="code-body">
           <span class="comment"># Run directly — no install needed</span><br>
-          <span class="prompt">$</span> <span class="cmd">npx @mcpfinder/server</span><br><br>
+          <span class="prompt">$</span> <span class="cmd">npx -y @mcpfinder/server</span><br><br>
           <span class="comment"># Or add to your MCP config:</span><br>
           {<br>
           &nbsp;&nbsp;<span class="key">"mcpServers"</span>: {<br>
           &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"mcpfinder"</span>: {<br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"command"</span>: <span class="string">"npx"</span>,<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"args"</span>: [<span class="string">"@mcpfinder/server"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@mcpfinder/server"</span>]<br>
           &nbsp;&nbsp;&nbsp;&nbsp;}<br>
           &nbsp;&nbsp;}<br>
           }
@@ -1610,7 +1610,7 @@
           IS MCPFINDER FREE TO USE?
         </div>
         <div class="faq-a">
-          Yes! MCPfinder is completely free and open-source under the AGPL-3.0 license. Install it via npm with <code>npx @mcpfinder/server</code> or add it to your project with <code>npm install @mcpfinder/server</code>. No API keys or subscriptions required.
+          Yes! MCPfinder is completely free and open-source under the AGPL-3.0 license. Install it via npm with <code>npx -y @mcpfinder/server</code> or add it to your project with <code>npm install @mcpfinder/server</code>. No API keys or subscriptions required.
         </div>
       </div>
       <div class="faq-item">
@@ -1662,8 +1662,8 @@
   <div class="container">
     <h2>INSTALL ONCE, LET YOUR AI USE IT DAILY</h2>
     <p>Use the local stdio server as the canonical interface, then point your assistant at MCPfinder whenever it needs a missing capability.</p>
-    <div class="cta-install" title="Click to copy" data-snippet="npx_command" data-copy="npx @mcpfinder/server">
-      <span class="prompt">$</span> npx @mcpfinder/server
+    <div class="cta-install" title="Click to copy" data-snippet="npx_command" data-copy="npx -y @mcpfinder/server">
+      <span class="prompt">$</span> npx -y @mcpfinder/server
     </div>
     <br><br>
     <div class="btn-group">

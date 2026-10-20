@@ -694,6 +694,15 @@ it then publishes a `.sha256` commit marker. The Worker may use the durable key
 only when requested, manifest, and marker SHA all match, preventing a failed
 fallback upload from presenting stale bytes as current.
 
+## Breaking changes in 2.0.0
+
+Smithery is no longer a source (its API, proxy and hosted server URLs stop
+working on 2026-10-31, https://smithery.ai/future). Removed exports:
+`syncSmitheryRegistry`, `enrichSmitheryRepoUrls`, `SmitheryServer`,
+`SmitheryListResponse`. Sync covers the
+Official MCP Registry and Glama only; `use_count` and `verified` are always 0
+now (Smithery was their only source). See [CHANGELOG](./CHANGELOG.md).
+
 ## Exports
 
 | Export | Purpose |

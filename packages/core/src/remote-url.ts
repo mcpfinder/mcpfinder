@@ -81,9 +81,9 @@ export function normalizeRemoteUrlKey(url: unknown): string | null {
   if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
   const host = parsed.hostname.toLowerCase().replace(/\.$/, '');
   if (!host) return null;
-  // URL drops the scheme's own default port; drop the other one too so that
-  // http://h:443 and https://h:80 compare like their scheme-less forms.
-  const port = parsed.port && parsed.port !== '80' && parsed.port !== '443' ? `:${parsed.port}` : '';
+  // URL already drops the scheme's own default port (https:443, http:80); any
+  // other explicit port is significant.
+  const port = parsed.port ? `:${parsed.port}` : '';
   const path = parsed.pathname.replace(/\/+$/, '');
   return `${host}${port}${path}${parsed.search}`;
 }

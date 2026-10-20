@@ -201,8 +201,9 @@ Glama publishes a directory page per server (`https://glama.ai/mcp/servers/<id>`
 not an MCP endpoint. Since 2.0.1 that page is shown as the server's **Listing**,
 servers known only from Glama are no longer marked remote, and
 `get_install_config` answers "No install method known" (with the repository and
-listing links) when a server has neither a package nor a remote endpoint. Two
-Official Registry entries for the same endpoint are merged into one result.
+listing links) when a server has neither a package nor a remote endpoint. The
+published catalog keeps one entry where two Official Registry entries list the
+same endpoint.
 
 ## Upgrading to 2.0.0
 

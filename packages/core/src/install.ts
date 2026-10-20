@@ -149,19 +149,24 @@ export function getInstallCommand(
   }
 
   const platform = PLATFORM_INFO[client];
+  const noPackage = !row.package_identifier;
   return {
     client,
     serverName: serverKey,
     configFilePath: platform.configPath,
     config: {
-      note: NO_INSTALL_METHOD_NOTE,
+      note: noPackage
+        ? NO_INSTALL_METHOD_NOTE
+        : `Unable to generate auto-config for registry type ${row.registry_type || 'unknown'}. Check the repository for installation instructions.`,
       repositoryUrl: row.repository_url,
       listingUrl: row.listing_url ?? null,
       registryType: row.registry_type,
       packageIdentifier: row.package_identifier,
     },
     instructions: [
-      NO_INSTALL_METHOD_NOTE,
+      noPackage
+        ? NO_INSTALL_METHOD_NOTE
+        : `Could not auto-generate config (registry type: ${row.registry_type || 'unknown'}).`,
       row.repository_url ? `Repository: ${row.repository_url}` : null,
       row.listing_url ? `Listing: ${row.listing_url}` : null,
       !row.repository_url && !row.listing_url ? 'No repository or listing URL is known.' : null,

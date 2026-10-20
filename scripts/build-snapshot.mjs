@@ -101,6 +101,7 @@ const {
   updateSyncLog,
   getServerCount,
   enrichDeprecationFlags,
+  mergeSameRemoteOfficialEntries,
 } = await import(corePath);
 
 const dbPath = join(outDir, 'data.sqlite');
@@ -213,6 +214,20 @@ if (!flag('--no-glama')) {
     counts.glama = await run('glama   ', syncGlamaRegistry);
   }
 }
+// Fold pairs of Official entries that publish the same remote endpoint
+// (core official-url-merge.ts). Runs here, on a catalog built from scratch,
+// after Glama has merged in, and never in a client's incremental sync.
+const urlMerge = mergeSameRemoteOfficialEntries(db);
+console.log(
+  `[build-snapshot] url-merge: ${urlMerge.merged.length} merged, ${urlMerge.skipped.length} skipped`,
+);
+for (const m of urlMerge.merged) {
+  console.log(`[build-snapshot]   merged ${m.removed} -> ${m.kept} (${m.url})`);
+}
+for (const k of urlMerge.skipped) {
+  console.log(`[build-snapshot]   skipped ${k.reason}: ${k.ids.join(', ')} (${k.url})`);
+}
+
 // Smithery is no longer a source: its API shuts down on 2026-10-31
 // (https://smithery.ai/future). Official + Glama are the whole corpus.
 

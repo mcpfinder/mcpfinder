@@ -12,19 +12,24 @@
   out of `remote_url` (idempotent, best effort).
 - `getInstallCommand` for a server with no package and no remote endpoint
   returns a "no install method known" result (`config.note` =
-  `NO_INSTALL_METHOD_NOTE`, plus `repositoryUrl` / `listingUrl`) instead of a
-  config.
+  `NO_INSTALL_METHOD_NOTE`, plus `repositoryUrl` / `listingUrl`). A package
+  on an unsupported registry still gets the "unable to generate auto-config"
+  note.
 
 ### Added
-- `mergeSameRemoteOfficialEntries`: at the end of every Official sync, two
-  Official entries that publish the same remote endpoint are folded into one
-  row. URLs compare scheme-insensitively with a lowercase host, no default
-  port and no trailing slash; path and query stay significant. Only groups of
-  exactly two are merged, templated URLs (`{hostname}`) are skipped, and so is
-  a pair whose publishers and descriptions look unrelated. The richer row is
-  kept (more sources, package, repository, env vars, longer description), the
-  other row's sources and missing fields are folded in, and the other row is
-  removed. On the 2026-10-20 catalog this merges 31 pairs and skips 3.
+- `mergeSameRemoteOfficialEntries`: when the published snapshot is built
+  (`scripts/build-snapshot.mjs`, on a catalog built from scratch), one of two
+  Official entries that publish the same remote endpoint is dropped. URLs
+  compare scheme-insensitively with a lowercase host, no default port and no
+  trailing slash; path, query and any other port stay significant. Only
+  groups of exactly two are merged; templated URLs (`{hostname}`) are skipped,
+  and so is a pair whose publishers and descriptions look unrelated. The
+  richer row is kept as it is (active status, more sources, package,
+  repository, env vars, longer description); the dropped row must be
+  Official-only, so no other source's data is lost. The dropped entry's name
+  no longer resolves. Not run by `syncOfficialRegistry`: a client gets the
+  result by adopting the snapshot. On the 2026-10-20 catalog this drops 30
+  rows and skips 4 pairs.
 - `listing_url` column, `ServerDetail.listingUrl`, `isDirectoryListingUrl`,
   `normalizeRemoteUrlKey`, `NO_INSTALL_METHOD_NOTE`.
 

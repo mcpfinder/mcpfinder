@@ -429,7 +429,7 @@ export async function runSnapshotMergeChecks(dir) {
     servers: [
       // Same publisher token, scheme/case/trailing-slash/default-port variants.
       remoteEntry('com.acme/tool', 'https://API.Acme.com/mcp/', 'Acme tool', 'https://github.com/acme/tool'),
-      remoteEntry('io.github.acme/tool-mcp', 'http://api.acme.com:443/mcp', ''),
+      remoteEntry('io.github.acme/tool-mcp', 'http://api.acme.com/mcp', ''),
       // Different publishers, identical descriptions (fork listing).
       remoteEntry('io.github.alice/reviews', 'https://mcp.apify.com?tools=x/reviews', 'Scrape app reviews from stores'),
       remoteEntry('io.github.bob/reviews-fork', 'https://mcp.apify.com/?tools=x/reviews', 'Scrape app reviews from stores'),
@@ -442,36 +442,48 @@ export async function runSnapshotMergeChecks(dir) {
       // Query is significant: different tools, not merged.
       remoteEntry('io.github.frank/a', 'https://mcp.example.org/mcp?tools=a', 'Same text here please'),
       remoteEntry('io.github.frank/b', 'https://mcp.example.org/mcp?tools=b', 'Same text here please'),
+      // Two-letter suffix shared by unrelated publishers is not a publisher match.
+      remoteEntry('uk.co.alpha/a', 'https://shared.example.com/mcp', 'Weather forecasts for farms'),
+      remoteEntry('uk.co.beta/b', 'https://shared.example.com/mcp', 'Invoice parsing for accountants'),
+      // Templated host: skipped and reported.
+      remoteEntry('io.github.henry/tpl', 'https://{hostname}:8080/mcp', 'Self hosted'),
+      remoteEntry('io.github.henry/tpl2', 'https://{hostname}:8080/mcp', 'Self hosted'),
       // Group of three: skipped.
       remoteEntry('io.github.gina/one', 'https://three.example.net/mcp', 'Gina server'),
       remoteEntry('io.github.gina/two', 'https://three.example.net/mcp', 'Gina server'),
       remoteEntry('io.github.gina/three', 'https://three.example.net/mcp', 'Gina server'),
     ],
-    metadata: { nextCursor: null, count: 13 },
+    metadata: { nextCursor: null, count: 17 },
   };
+  const { mergeSameRemoteOfficialEntries, normalizeRemoteUrlKey } =
+    await import('../packages/core/dist/index.js');
+  assert.equal(normalizeRemoteUrlKey('HTTPS://Api.Acme.com:443/mcp/'), 'api.acme.com/mcp');
+  assert.equal(normalizeRemoteUrlKey('http://api.acme.com:80/mcp'), 'api.acme.com/mcp');
+  assert.equal(normalizeRemoteUrlKey('http://api.acme.com:443/mcp'), 'api.acme.com:443/mcp');
+  assert.equal(normalizeRemoteUrlKey('https://a.example/mcp?tools=X'), 'a.example/mcp?tools=X');
   const urlMergeDb = initDatabase(join(dir, 'official-url-merge.sqlite'));
-  const ids = () => urlMergeDb.prepare('SELECT id FROM servers ORDER BY id').all().map((r) => r.id);
-  for (let round = 0; round < 2; round++) {
-    await syncOfficialRegistry(urlMergeDb, runtime(async () => Response.json(urlMergeFeed)));
-    // Stable across re-syncs: the dropped id is re-added and folded again.
-    assert.deepEqual(ids(), [
-      'com.acme/tool',
-      'io.github.alice/reviews',
-      'io.github.carol/marketnow',
-      'io.github.dave/marketnow-mcp',
-      'io.github.erin/tpl',
-      'io.github.erin/tpl2',
-      'io.github.frank/a',
-      'io.github.frank/b',
-      'io.github.gina/one',
-      'io.github.gina/three',
-      'io.github.gina/two',
-    ]);
-  }
-  const acme = urlMergeDb.prepare("SELECT * FROM servers WHERE id = 'com.acme/tool'").get();
-  assert.equal(acme.repository_url, 'https://github.com/acme/tool');
-  assert.deepEqual(JSON.parse(acme.sources), ['official']);
-  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM sync_log WHERE source = ?').get('official').c, 1);
+  // The pass is not part of the sync: a sync alone keeps every entry.
+  await syncOfficialRegistry(urlMergeDb, runtime(async () => Response.json(urlMergeFeed)));
+  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 17);
+  // Make the acme pair Official+Glama on one side to check the
+  // would-drop-other-source guard, and mark one reviews row deprecated.
+  urlMergeDb.exec(`UPDATE servers SET sources = '["glama","official"]' WHERE id = 'io.github.acme/tool-mcp'`);
+  urlMergeDb.exec(`UPDATE servers SET status = 'deprecated', description = description || ' and much more text here' WHERE id = 'io.github.alice/reviews'`);
+  const result = mergeSameRemoteOfficialEntries(urlMergeDb);
+  assert.deepEqual(result.merged, [
+    { url: 'api.acme.com/mcp', kept: 'io.github.acme/tool-mcp', removed: 'com.acme/tool' },
+    { url: 'mcp.apify.com?tools=x/reviews', kept: 'io.github.bob/reviews-fork', removed: 'io.github.alice/reviews' },
+  ]);
+  assert.deepEqual(result.skipped.map((k) => [k.reason, k.ids]), [
+    ['unrelated', ['io.github.carol/marketnow', 'io.github.dave/marketnow-mcp']],
+    ['unrelated', ['uk.co.alpha/a', 'uk.co.beta/b']],
+    ['group-larger-than-2', ['io.github.gina/one', 'io.github.gina/three', 'io.github.gina/two']],
+    ['templated-url', ['io.github.erin/tpl', 'io.github.erin/tpl2']],
+    ['templated-url', ['io.github.henry/tpl', 'io.github.henry/tpl2']],
+  ]);
+  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 15);
+  // Idempotent.
+  assert.deepEqual(mergeSameRemoteOfficialEntries(urlMergeDb).merged, []);
   urlMergeDb.close();
 
   // ── 2.0.1: Glama directory URLs move out of remote_url on open ──────────

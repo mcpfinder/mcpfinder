@@ -43,7 +43,6 @@ import {
 } from './registry-page-validation.js';
 import { mergeServerData, mergeServerSources } from './server-merge.js';
 import { firstUsableRemoteUrl, listingUrl } from './remote-url.js';
-import { mergeSameRemoteOfficialEntries } from './official-url-merge.js';
 
 const REGISTRY_BASE = 'https://registry.modelcontextprotocol.io';
 const GLAMA_BASE = 'https://glama.ai/api/mcp/v1';
@@ -481,14 +480,6 @@ export async function syncOfficialRegistry(
         if (existed) mergeServerData(db, row.id, row);
         existingIds.add(row.id);
         mergeServerSources(db, row.id, 'official');
-      }
-      // Fold Official pairs that publish the same endpoint (official-url-merge.ts).
-      const urlMerge = mergeSameRemoteOfficialEntries(db);
-      if (urlMerge.merged.length > 0 || urlMerge.skipped.length > 0) {
-        process.stderr.write(
-          `[mcpfinder] Official same-URL merge: ${urlMerge.merged.length} merged, ` +
-          `${urlMerge.skipped.length} skipped\n`,
-        );
       }
       assertBeforeDeadline(deadline, runtime, 'Registry API');
       // The log row commits with the rows it describes. Written after the

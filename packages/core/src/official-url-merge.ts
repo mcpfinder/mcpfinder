@@ -4,7 +4,7 @@
  * Some publishers list one hosted endpoint under two Official Registry names
  * (a re-namespaced re-publish, a fork of an Apify actor listing, a partner
  * listing next to the vendor's own). Both rows then point at the same server.
- * This pass folds such a pair into one row, under a deliberately conservative
+ * This pass drops one row of such a pair, under a deliberately conservative
  * rule:
  *
  * - URLs compare by normalizeRemoteUrlKey: scheme-insensitive, lowercase host,
@@ -14,11 +14,18 @@
  * - The pair must look related: a shared publisher token (registry namespace
  *   or GitHub owner), near-identical descriptions, or the same server name
  *   with somewhat similar descriptions. Otherwise it is skipped and reported.
+ * - The dropped row must be Official-only (`sources = ["official"]`), so no
+ *   other source's payload is lost, and must not be the only active row of
+ *   the pair.
  *
- * The richer row is kept; the other row's sources and any fields the kept row
- * lacks are folded in, and the other row is deleted. The Official sync re-adds
- * the deleted id on its next crawl and this pass, which runs at the end of
- * every Official sync, folds it again: the result is stable.
+ * The kept row is left as it is (its `sources` already include `official`); no
+ * fields are copied over, so every field keeps its raw_data provenance. The
+ * dropped entry's name no longer resolves.
+ *
+ * It runs once, at snapshot build time (scripts/build-snapshot.mjs), on a
+ * catalog built from scratch. It is not part of a client's incremental sync:
+ * a merge cannot be undone, and an incremental crawl only sees entries that
+ * changed. A client gets the merged catalog by adopting the snapshot.
  */
 import type { DatabaseSync } from 'node:sqlite';
 import { normalizeRemoteUrlKey } from './remote-url.js';
@@ -29,25 +36,21 @@ interface CandidateRow {
   description: string;
   remote_url: string;
   repository_url: string | null;
-  repository_source: string | null;
-  registry_type: string | null;
   package_identifier: string | null;
-  transport_type: string | null;
-  icon_url: string | null;
-  listing_url: string | null;
   env_vars: string | null;
   sources: string;
+  status: string | null;
   updated_at: string | null;
 }
 
 export interface OfficialUrlMergeResult {
   merged: Array<{ url: string; kept: string; removed: string }>;
-  skipped: Array<{ url: string; ids: string[]; reason: 'templated-url' | 'group-larger-than-2' | 'unrelated' }>;
+  skipped: Array<{ url: string; ids: string[]; reason: 'templated-url' | 'group-larger-than-2' | 'unrelated' | 'would-drop-other-source' }>;
 }
 
 const GENERIC_TOKENS = new Set([
-  'io', 'github', 'com', 'ai', 'dev', 'app', 'net', 'org', 'xyz', 'co', 'nz', 'site',
-  'www', 'mcp', 'api', 'server', 'servers',
+  'github', 'com', 'dev', 'app', 'net', 'org', 'xyz', 'site', 'www', 'mcp', 'api',
+  'server', 'servers', 'cloud', 'tech', 'online', 'info', 'biz', 'gitlab',
 ]);
 
 const TEMPLATE_RE = /[{}]|%7b|%7d/i;
@@ -68,8 +71,10 @@ function githubOwner(url: string | null): string | null {
 
 function publisherTokens(row: CandidateRow): Set<string> {
   const namespace = row.name.split('/')[0].toLowerCase();
+  // Tokens of 3+ characters only: two-letter labels are TLDs and country
+  // suffixes (`io`, `ai`, `uk`, `co`) that unrelated publishers share.
   const tokens = new Set(
-    namespace.split(/[.\-_]/).filter((t) => t.length > 0 && !GENERIC_TOKENS.has(t)),
+    namespace.split(/[.\-_]/).filter((t) => t.length >= 3 && !GENERIC_TOKENS.has(t)),
   );
   const owner = githubOwner(row.repository_url);
   if (owner) tokens.add(owner);
@@ -118,6 +123,7 @@ function hasEnvVars(raw: string | null): boolean {
 /** Negative when `a` is the richer row. Deterministic (falls back to id). */
 function compareRichness(a: CandidateRow, b: CandidateRow): number {
   const score = (r: CandidateRow) => [
+    r.status === 'active' ? 1 : 0,
     parseSources(r.sources).length,
     r.package_identifier ? 1 : 0,
     r.repository_url ? 1 : 0,
@@ -133,45 +139,19 @@ function compareRichness(a: CandidateRow, b: CandidateRow): number {
   return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 }
 
-function foldInto(db: DatabaseSync, keep: CandidateRow, drop: CandidateRow): void {
-  const sources = [...new Set([...parseSources(keep.sources), ...parseSources(drop.sources)])].sort();
-  const takeRepo = !keep.repository_url && !!drop.repository_url;
-  const takePackage = !keep.package_identifier && !!drop.package_identifier;
-  db.prepare(
-    `UPDATE servers SET
-       sources = ?,
-       description = CASE WHEN description = '' THEN ? ELSE description END,
-       repository_url = ?, repository_source = ?,
-       registry_type = ?, package_identifier = ?, transport_type = ?,
-       icon_url = COALESCE(icon_url, ?),
-       listing_url = COALESCE(listing_url, ?),
-       env_vars = CASE WHEN env_vars IS NULL OR env_vars = '[]' THEN ? ELSE env_vars END
-     WHERE id = ?`,
-  ).run(
-    JSON.stringify(sources),
-    drop.description || '',
-    takeRepo ? drop.repository_url : keep.repository_url,
-    takeRepo ? drop.repository_source : keep.repository_source,
-    takePackage ? drop.registry_type : keep.registry_type,
-    takePackage ? drop.package_identifier : keep.package_identifier,
-    takePackage ? drop.transport_type : keep.transport_type,
-    drop.icon_url,
-    drop.listing_url,
-    drop.env_vars || '[]',
-    keep.id,
-  );
-  db.prepare('DELETE FROM servers WHERE id = ?').run(drop.id);
+function isOfficialOnly(row: CandidateRow): boolean {
+  const sources = parseSources(row.sources);
+  return sources.length === 1 && sources[0] === 'official';
 }
 
 /**
- * Run the pass. Call inside the Official sync's transaction, after the crawl
- * is applied. Returns what was merged and what was deliberately left alone.
+ * Run the pass on a freshly built catalog. Returns what was merged and what
+ * was deliberately left alone.
  */
 export function mergeSameRemoteOfficialEntries(db: DatabaseSync): OfficialUrlMergeResult {
   const rows = db.prepare(
-    `SELECT id, name, description, remote_url, repository_url, repository_source,
-            registry_type, package_identifier, transport_type, icon_url, listing_url,
-            env_vars, sources, updated_at
+    `SELECT id, name, description, remote_url, repository_url, package_identifier,
+            env_vars, sources, status, updated_at
        FROM servers
       WHERE has_remote = 1 AND remote_url IS NOT NULL AND sources LIKE '%"official"%'`,
   ).all() as unknown as CandidateRow[];
@@ -179,7 +159,10 @@ export function mergeSameRemoteOfficialEntries(db: DatabaseSync): OfficialUrlMer
   const groups = new Map<string, CandidateRow[]>();
   for (const row of rows) {
     if (!parseSources(row.sources).includes('official')) continue;
-    const key = normalizeRemoteUrlKey(row.remote_url);
+    // A templated host (`https://{hostname}/mcp`) does not parse as a URL;
+    // group it by its literal text so it is reported as skipped.
+    const key = normalizeRemoteUrlKey(row.remote_url) ??
+      (TEMPLATE_RE.test(row.remote_url) ? row.remote_url.trim().toLowerCase() : null);
     if (!key) continue;
     const group = groups.get(key);
     if (group) group.push(row);
@@ -187,6 +170,7 @@ export function mergeSameRemoteOfficialEntries(db: DatabaseSync): OfficialUrlMer
   }
 
   const result: OfficialUrlMergeResult = { merged: [], skipped: [] };
+  const remove = db.prepare('DELETE FROM servers WHERE id = ?');
   for (const [url, group] of [...groups].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
     if (group.length < 2) continue;
     const ids = group.map((r) => r.id).sort();
@@ -204,7 +188,11 @@ export function mergeSameRemoteOfficialEntries(db: DatabaseSync): OfficialUrlMer
       continue;
     }
     const [keep, drop] = compareRichness(a, b) <= 0 ? [a, b] : [b, a];
-    foldInto(db, keep, drop);
+    if (!isOfficialOnly(drop)) {
+      result.skipped.push({ url, ids, reason: 'would-drop-other-source' });
+      continue;
+    }
+    remove.run(drop.id);
     result.merged.push({ url, kept: keep.id, removed: drop.id });
   }
   return result;

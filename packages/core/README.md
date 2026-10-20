@@ -699,9 +699,11 @@ fallback upload from presenting stale bytes as current.
 `remote_url` / `has_remote` mean an MCP endpoint a client can connect to.
 Glama's `url` is its directory page, so it is stored as `listing_url` and never
 as a remote (`isDirectoryListingUrl`); older catalogs are cleaned on open.
-`mergeSameRemoteOfficialEntries` runs at the end of each Official sync and folds
-pairs of Official entries with the same normalized remote URL (exact groups of
-two, templated URLs and unrelated-looking pairs skipped). See the CHANGELOG.
+`mergeSameRemoteOfficialEntries` runs when the snapshot is built (not in a
+client's sync) and drops one of a pair of Official entries with the same
+normalized remote URL (exact groups of two; templated URLs, unrelated-looking
+pairs and pairs where the dropped row carries another source are skipped). See
+the CHANGELOG.
 
 ## Breaking changes in 2.0.0
 
@@ -738,7 +740,7 @@ now (Smithery was their only source). See [CHANGELOG](./CHANGELOG.md).
 | `enrichDeprecationFlags` | Build-time enrichment pass (npm/GitHub deprecation flags). |
 | `usableRemoteUrl / firstUsableRemoteUrl` | Drop remote endpoints on retired hosts (Smithery's `server.smithery.ai`, `*.run.tools`, `registry.smithery.ai`, which stop working on 2026-10-31) and directory listing pages (`isDirectoryListingUrl`). |
 | `normalizeRemoteUrlKey` | Comparison key for a remote URL (scheme-insensitive, lowercase host, no default port or trailing slash). |
-| `mergeSameRemoteOfficialEntries` | Fold pairs of Official entries with the same remote endpoint (run by `syncOfficialRegistry`). |
+| `mergeSameRemoteOfficialEntries` | Drop one of a pair of Official entries with the same remote endpoint (run by the snapshot build, not by sync). |
 | `NO_INSTALL_METHOD_NOTE` | The note `getInstallCommand` returns when a server has no package and no remote endpoint. |
 
 Full TypeScript types are exported — see the `.d.ts` files in `dist/`.

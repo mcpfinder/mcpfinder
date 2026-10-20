@@ -11,8 +11,10 @@
   points to the repository and listing (`installType: "none"`,
   `repositoryUrl`, `listingUrl`). A local catalog from an earlier version is
   cleaned on first open.
-- Two Official Registry entries that publish the same remote endpoint are
-  merged into one result (conservative rule, see `@mcpfinder/core` 2.0.1).
+- The published catalog snapshot drops one of two Official Registry entries
+  that publish the same remote endpoint (conservative rule, see
+  `@mcpfinder/core` 2.0.1); a client gets this by adopting the snapshot. The
+  dropped entry's name no longer resolves.
 - Requires `@mcpfinder/core` ^2.0.1.
 
 ## 2.0.0 — 2026-10-20

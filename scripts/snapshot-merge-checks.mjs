@@ -445,6 +445,13 @@ export async function runSnapshotMergeChecks(dir) {
       // Two-letter suffix shared by unrelated publishers is not a publisher match.
       remoteEntry('uk.co.alpha/a', 'https://shared.example.com/mcp', 'Weather forecasts for farms'),
       remoteEntry('uk.co.beta/b', 'https://shared.example.com/mcp', 'Invoice parsing for accountants'),
+      // Same package, but the dropped row declares an env var the kept one lacks.
+      { server: { name: 'io.github.jack/env-a', version: '1.0.0', description: 'Jack env server with a longer description',
+        packages: [{ registryType: 'npm', identifier: '@jack/env', environmentVariables: [{ name: 'API_KEY' }] }],
+        remotes: [{ type: 'streamable-http', url: 'https://env.example.com/mcp' }] } },
+      { server: { name: 'io.github.jack/env-b', version: '1.0.0', description: 'Jack env server',
+        packages: [{ registryType: 'npm', identifier: '@jack/env', environmentVariables: [{ name: 'API_KEY' }, { name: 'TENANT_ID' }] }],
+        remotes: [{ type: 'streamable-http', url: 'https://env.example.com/mcp' }] } },
       // Shared TLD label is not a publisher match either.
       remoteEntry('tools.acme/weather', 'https://tld.example.com/mcp', 'Weather forecasts for farms'),
       remoteEntry('tools.beta/invoices', 'https://tld.example.com/mcp', 'Invoice parsing for accountants'),
@@ -459,7 +466,7 @@ export async function runSnapshotMergeChecks(dir) {
       remoteEntry('io.github.gina/two', 'https://three.example.net/mcp', 'Gina server'),
       remoteEntry('io.github.gina/three', 'https://three.example.net/mcp', 'Gina server'),
     ],
-    metadata: { nextCursor: null, count: 21 },
+    metadata: { nextCursor: null, count: 23 },
   };
   const { mergeSameRemoteOfficialEntries, normalizeRemoteUrlKey } =
     await import('../packages/core/dist/index.js');
@@ -471,7 +478,7 @@ export async function runSnapshotMergeChecks(dir) {
   const urlMergeDb = initDatabase(join(dir, 'official-url-merge.sqlite'));
   // The pass is not part of the sync: a sync alone keeps every entry.
   await syncOfficialRegistry(urlMergeDb, runtime(async () => Response.json(urlMergeFeed)));
-  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 21);
+  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 23);
   // Make the acme pair Official+Glama on one side to check the
   // would-drop-other-source guard, and mark one reviews row deprecated.
   urlMergeDb.exec(`UPDATE servers SET sources = '["glama","official"]' WHERE id = 'io.github.acme/tool-mcp'`);
@@ -483,6 +490,7 @@ export async function runSnapshotMergeChecks(dir) {
   assert.deepEqual(result.skipped.map((k) => [k.reason, k.ids]), [
     // The Glama-merged row ranks richer but lacks the other row's repository.
     ['would-lose-fields', ['com.acme/tool', 'io.github.acme/tool-mcp']],
+    ['would-lose-fields', ['io.github.jack/env-a', 'io.github.jack/env-b']],
     ['unrelated', ['io.github.carol/marketnow', 'io.github.dave/marketnow-mcp']],
     ['unrelated', ['uk.co.alpha/a', 'uk.co.beta/b']],
     ['group-larger-than-2', ['io.github.gina/one', 'io.github.gina/three', 'io.github.gina/two']],
@@ -490,7 +498,7 @@ export async function runSnapshotMergeChecks(dir) {
     ['templated-url', ['io.github.erin/tpl', 'io.github.erin/tpl2']],
     ['templated-url', ['io.github.henry/tpl', 'io.github.henry/tpl2']],
   ]);
-  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 20);
+  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 22);
   // Idempotent.
   assert.deepEqual(mergeSameRemoteOfficialEntries(urlMergeDb).merged, []);
   urlMergeDb.close();

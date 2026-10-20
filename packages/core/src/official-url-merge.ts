@@ -15,8 +15,10 @@
  *   or GitHub owner), near-identical descriptions, or the same server name
  *   with somewhat similar descriptions. Otherwise it is skipped and reported.
  * - The dropped row must be Official-only (`sources = ["official"]`), so no
- *   other source's payload is lost, and must not have a package, repository
- *   or env vars the kept row lacks. An active row ranks above an inactive one.
+ *   other source's payload is lost; its package and env var names must be on
+ *   the kept row, and the kept row needs a repository if it has one
+ *   (keptCovers). An active row
+ *   ranks above an inactive one.
  *
  * The kept row is left as it is (its `sources` already include `official`); no
  * fields are copied over, so every field keeps its raw_data provenance. The
@@ -143,6 +145,35 @@ function compareRichness(a: CandidateRow, b: CandidateRow): number {
   return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 }
 
+function envVarNames(raw: string | null): Set<string> | null {
+  try {
+    const parsed = JSON.parse(raw || '[]');
+    if (!Array.isArray(parsed)) return null;
+    return new Set(parsed.map((v) => (v && typeof v === 'object' ? String(v.name) : String(v))));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * True when deleting `drop` loses nothing needed to install the endpoint: its
+ * package and every env var name it declares are on the kept row, and the
+ * kept row has a repository if the dropped one does. Nothing is copied over,
+ * so anything less is a skip.
+ */
+function keptCovers(keep: CandidateRow, drop: CandidateRow): boolean {
+  if (drop.package_identifier && drop.package_identifier !== keep.package_identifier) return false;
+  // A different repository is expected (a fork or re-publish of the same
+  // endpoint) and the kept row's own repository describes that endpoint; a
+  // missing one is not covered.
+  if (drop.repository_url && !keep.repository_url) return false;
+  const dropVars = envVarNames(drop.env_vars);
+  const keepVars = envVarNames(keep.env_vars);
+  if (!dropVars || !keepVars) return false;
+  for (const name of dropVars) if (!keepVars.has(name)) return false;
+  return true;
+}
+
 function isOfficialOnly(row: CandidateRow): boolean {
   const sources = parseSources(row.sources);
   return sources.length === 1 && sources[0] === 'official';
@@ -196,9 +227,7 @@ export function mergeSameRemoteOfficialEntries(db: DatabaseSync): OfficialUrlMer
       result.skipped.push({ url, ids, reason: 'would-drop-other-source' });
       continue;
     }
-    if ((drop.package_identifier && !keep.package_identifier) ||
-      (drop.repository_url && !keep.repository_url) ||
-      (hasEnvVars(drop.env_vars) && !hasEnvVars(keep.env_vars))) {
+    if (!keptCovers(keep, drop)) {
       result.skipped.push({ url, ids, reason: 'would-lose-fields' });
       continue;
     }

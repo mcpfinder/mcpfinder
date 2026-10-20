@@ -28,8 +28,9 @@
   groups of exactly two are merged; templated URLs (`{hostname}`) and URLs
   with credentials are skipped, and so is a pair whose publishers and
   descriptions look unrelated. The richer row is kept as it is (active status
-  first); the dropped row must be Official-only and must not have a package,
-  repository or env vars the kept row lacks, so no data is lost. The dropped
+  first); the dropped row must be Official-only, its package and env var
+  names must be on the kept row, and the kept row needs a repository if the
+  dropped one has one (a fork's different repository link is not kept). The dropped
   entry's name no longer resolves in the snapshot. Not run by
   `syncOfficialRegistry`: a client gets the result by adopting the snapshot,
   and its own later Official syncs re-add a dropped entry when its publisher

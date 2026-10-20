@@ -306,7 +306,7 @@ export function searchServers(
   const sanitized = sanitizeFtsQuery(expandedQuery, hasAlias);
 
   if (!sanitized) {
-    // Fix #2: empty query → return top popular servers
+    // Fix #2: empty query → browse: Official first, then most recently updated
     return getPopularServers(db, limit, filters);
   }
 
@@ -427,7 +427,8 @@ export function searchServers(
 }
 
 /**
- * Get most popular servers (for empty query / onboarding).
+ * Browse servers for an empty query / onboarding: Official first, then the
+ * (currently empty) verified/use_count signals, then most recently updated.
  * Prioritizes: official > verified > high use_count > recent.
  */
 function getPopularServers(

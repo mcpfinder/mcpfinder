@@ -26,7 +26,7 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "query": { "type": "string", "description": "Keyword, use case, or technology. Empty returns the most popular servers." },
+          "query": { "type": "string", "description": "Keyword, use case, or technology. Empty browses servers: Official Registry entries first, then the most recently updated." },
           "limit": { "type": "number", "minimum": 1, "maximum": 50, "default": 10 },
           "transportType": { "type": "string", "enum": ["stdio", "streamable-http", "sse", "any"], "default": "any" },
           "registryType": { "type": "string", "enum": ["npm", "pypi", "oci", "any"], "default": "any" },

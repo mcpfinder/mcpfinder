@@ -349,7 +349,7 @@
     <div class="prose" id="listed-is-not-responding" style="margin-top: 32px;">
       <h3>Listed is not the same as responding</h3>
       <p>A registry entry shows that someone published a server, not that its endpoint answers right now. <a href="https://dev.to/eidon_ze_598ff4e987ed54d2/state-of-the-mcp-registry-week-of-2026-10-19-2fpb" target="_blank" rel="noopener">mcpreflight&rsquo;s weekly read-only scan</a> of the Official MCP Registry (published 19 October 2026) found that 4,783 of 9,991 remote endpoints (47.9%) completed a clean anonymous handshake, 3,171 answered with an authentication challenge (HTTP 401), 1,984 gave no anonymous response, and 53 failed.</p>
-      <p>For a remote server, a 401 asking for authentication is normal; no response at all is a reason to check the repository before you install. MCPfinder&rsquo;s trust signals and warning flags come from registry metadata plus npm and GitHub checks (such as source count, repository, recency, deprecated packages and archived repos), not from a live connection test of the server.</p>
+      <p>For a remote server that requires sign-in, a 401 asking for authentication is normal; no anonymous response is a reason to check the repository before you install. MCPfinder&rsquo;s trust signals and warning flags come from registry metadata plus npm and GitHub checks (such as source count, repository, recency, deprecated packages and archived repos), not from a live connection test of the server.</p>
     </div>
   </div>
 </section>

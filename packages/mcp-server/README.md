@@ -175,7 +175,9 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
 
 - Ranked results with `confidenceScore` plus a transparent
   `confidenceBreakdown` (`base`, `official`, `verified`, `popularity`,
-  `multiSource`, `penalties`).
+  `multiSource`, `penalties`). Since 2.0.0 `verified` and `popularity` are
+  always 0 (and `useCount`/`verified` in details are 0/false): Smithery was
+  their only source and is no longer synced — see [CHANGELOG](./CHANGELOG.md).
 - `warningFlags`: `deprecated-npm`, `archived-repo`, `stale-over-18-months`,
   `single-source-only`, `missing-repository-url`, `install-method-unclear`.
 - Install metadata: target file path per OS, required env vars (secrets
@@ -192,6 +194,15 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
   `possible_unlabeled_secrets`. This is advisory only: their config value is
   still chosen exactly as for any unmarked variable (registry `default`, then
   `placeholder`, then `<VALUE>`); the heuristic never changes it, and `requires_user_secrets` keeps its registry-only meaning.
+
+## Upgrading to 2.0.0
+
+2.0.0 removes Smithery as a source: its registry API, proxy and hosted server
+URLs stop working on 2026-10-31 (https://smithery.ai/future). The live sync now
+calls only the Official MCP Registry and Glama, `registrySource: "smithery"`
+is gone, remote URLs on retired Smithery hosts are never offered, and a 1.x
+local catalog is cleaned on first open (Smithery-only servers removed, Smithery
+URLs and popularity/verified values cleared). Details in [CHANGELOG](./CHANGELOG.md).
 
 ## Configuration
 

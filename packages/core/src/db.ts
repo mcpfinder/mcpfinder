@@ -225,6 +225,7 @@ function migrateSchema(db: DatabaseSync): void {
   );
 
   clearRetiredRemoteUrls(db);
+  clearRetiredSourceData(db);
 }
 
 /**
@@ -250,6 +251,66 @@ function clearRetiredRemoteUrls(db: DatabaseSync): void {
     db.exec('BEGIN IMMEDIATE');
     try {
       for (const row of stale) clear.run(row.id);
+      db.exec('COMMIT');
+    } catch (err) {
+      db.exec('ROLLBACK');
+      throw err;
+    }
+  } catch {
+    /* busy or read-only: try again on the next open */
+  }
+}
+
+/**
+ * Remove what the retired Smithery source left in a catalog built before 2.0.0,
+ * so an upgraded install matches a fresh one: rows only Smithery listed are
+ * deleted (nothing can refresh them), `smithery` is dropped from `sources`, and
+ * the signals only Smithery supplied — `use_count`, `verified`, Smithery-hosted
+ * icons — are reset. Fresh snapshots and new syncs never contain any of this,
+ * so on them every statement matches nothing. Same best-effort rules as above.
+ */
+function clearRetiredSourceData(db: DatabaseSync): void {
+  try {
+    const legacy = db
+      .prepare(
+        `SELECT id, source, sources FROM servers
+         WHERE sources LIKE '%"smithery"%' OR source = 'smithery'`,
+      )
+      .all() as Array<{ id: string; source: string | null; sources: string }>;
+    const needsSignalReset = db
+      .prepare(
+        `SELECT 1 FROM servers
+         WHERE use_count <> 0 OR verified <> 0 OR icon_url LIKE '%smithery.ai%' LIMIT 1`,
+      )
+      .get();
+    if (legacy.length === 0 && !needsSignalReset) return;
+    const remove = db.prepare('DELETE FROM servers WHERE id = ?');
+    // A row Smithery inserted first keeps `source = 'smithery'`; hand it to a
+    // live source so that source's sync refreshes the row exactly.
+    const setSources = db.prepare('UPDATE servers SET sources = ?, source = ? WHERE id = ?');
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      for (const row of legacy) {
+        let sources: unknown;
+        try {
+          sources = JSON.parse(row.sources);
+        } catch {
+          continue;
+        }
+        if (!Array.isArray(sources)) continue;
+        const kept = sources.filter((s) => typeof s === 'string' && s !== 'smithery');
+        if (kept.length === 0) remove.run(row.id);
+        else {
+          const primary = row.source && row.source !== 'smithery'
+            ? row.source
+            : kept.includes('official') ? 'official' : kept.sort()[0];
+          setSources.run(JSON.stringify(kept.sort()), primary, row.id);
+        }
+      }
+      db.exec(`UPDATE servers SET use_count = 0 WHERE use_count <> 0`);
+      db.exec(`UPDATE servers SET verified = 0 WHERE verified <> 0`);
+      db.exec(`UPDATE servers SET icon_url = NULL WHERE icon_url LIKE '%smithery.ai%'`);
+      db.exec(`DELETE FROM sync_log WHERE source = 'smithery'`);
       db.exec('COMMIT');
     } catch (err) {
       db.exec('ROLLBACK');

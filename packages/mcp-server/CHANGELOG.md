@@ -20,8 +20,10 @@ call fails for that source (Official and Glama still sync). Please upgrade.
 
 ### Fixed
 - `get_install_config` never emits a remote URL on a retired Smithery host,
-  even if an older local catalog still holds one. Such URLs are also cleared
-  when the catalog is opened.
+  even if an older local catalog still holds one.
+- A local catalog built by 1.x is cleaned when first opened: Smithery-only
+  servers are removed, and Smithery URLs, popularity and verified values are
+  cleared (see the @mcpfinder/core changelog).
 
 ## 1.5.0 and earlier
 

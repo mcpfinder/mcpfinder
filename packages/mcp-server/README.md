@@ -200,8 +200,9 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
 2.0.0 removes Smithery as a source: its registry API, proxy and hosted server
 URLs stop working on 2026-10-31 (https://smithery.ai/future). The live sync now
 calls only the Official MCP Registry and Glama, `registrySource: "smithery"`
-is gone, remote URLs on retired Smithery hosts are never offered, and an older
-local catalog is cleaned on first open. Details in [CHANGELOG](./CHANGELOG.md).
+is gone, remote URLs on retired Smithery hosts are never offered, and a 1.x
+local catalog is cleaned on first open (Smithery-only servers removed, Smithery
+URLs and popularity/verified values cleared). Details in [CHANGELOG](./CHANGELOG.md).
 
 ## Configuration
 

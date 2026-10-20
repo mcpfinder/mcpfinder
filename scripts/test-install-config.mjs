@@ -485,7 +485,9 @@ refreshDb.close();
 const retiredPath = join(dir, 'retired-remotes.sqlite');
 const retiredDb = initDatabase(retiredPath);
 insert(retiredDb, { name: 'io.example/smithery-only', slug: 'smithery-only', registry_type: null, package_identifier: null, env_vars: [], sources: ['smithery'], source: 'smithery', remote_url: 'https://registry.smithery.ai/servers/example/smithery-only' });
-insert(retiredDb, { name: 'io.example/proxied', slug: 'proxied', registry_type: null, package_identifier: null, env_vars: [], remote_url: 'https://server.smithery.ai/example/mcp' });
+insert(retiredDb, { name: 'io.example/proxied', slug: 'proxied', registry_type: null, package_identifier: null, env_vars: [], remote_url: 'https://server.smithery.ai/example/mcp', sources: ['official', 'smithery'] });
+retiredDb.prepare("UPDATE servers SET use_count = 1234, verified = 1, icon_url = 'https://api.smithery.ai/servers/x/icon' WHERE slug = 'proxied'").run();
+retiredDb.prepare("INSERT OR REPLACE INTO sync_log (source, last_synced_at, server_count, status) VALUES ('smithery', '2026-10-01T00:00:00Z', 1, 'ok')").run();
 insert(retiredDb, { name: 'io.example/runtools', slug: 'runtools', registry_type: null, package_identifier: null, env_vars: [], remote_url: 'https://linear.run.tools' });
 insert(retiredDb, { name: 'io.example/vendor', slug: 'vendor', registry_type: null, package_identifier: null, env_vars: [], remote_url: 'https://mcp.example.com/mcp?via=smithery.ai' });
 
@@ -503,10 +505,16 @@ const reopened = initDatabase(retiredPath);
 const remotes = Object.fromEntries(
   reopened.prepare('SELECT slug, remote_url, has_remote FROM servers').all().map((r) => [r.slug, [r.remote_url, r.has_remote]]),
 );
-assert.deepEqual(remotes['smithery-only'], [null, 0]);
+assert.equal(remotes['smithery-only'], undefined, 'a Smithery-only legacy row is removed on open');
 assert.deepEqual(remotes.proxied, [null, 0]);
 assert.deepEqual(remotes.runtools, [null, 0]);
 assert.deepEqual(remotes.vendor, ['https://mcp.example.com/mcp?via=smithery.ai', 1]);
+assert.deepEqual(
+  { ...reopened.prepare("SELECT sources, use_count, verified, icon_url FROM servers WHERE slug = 'proxied'").get() },
+  { sources: '["official"]', use_count: 0, verified: 0, icon_url: null },
+  'legacy Smithery provenance and signals are cleared on open',
+);
+assert.equal(reopened.prepare("SELECT COUNT(*) AS n FROM sync_log WHERE source = 'smithery'").get().n, 0);
 reopened.close();
 
 if (originalGlamaKey === undefined) delete process.env.GLAMA_API_KEY;

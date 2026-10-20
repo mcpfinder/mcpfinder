@@ -20,9 +20,12 @@ Glama remain.
 - `usableRemoteUrl` / `firstUsableRemoteUrl`: drop remote endpoints on retired
   hosts. Applied when Official / Glama data is ingested and merged, and when
   install configs are generated.
-- Opening an older local catalog clears remote URLs on retired hosts
-  (idempotent, best effort). Refreshing a row that still lists `smithery` in
-  `sources` drops it and rebuilds the row from Official / Glama data.
+- Opening a catalog built by 1.x cleans out what Smithery left (idempotent,
+  best effort): rows only Smithery listed are deleted, `smithery` is dropped
+  from `sources`, `use_count` / `verified` / Smithery-hosted icons are reset,
+  and remote URLs on retired hosts are cleared. Other fields Smithery supplied
+  to merged rows (e.g. a longer description) stay until the row is replaced by
+  a snapshot. Merges ignore a retired source left in `sources`.
 
 ## 1.5.0 and earlier
 

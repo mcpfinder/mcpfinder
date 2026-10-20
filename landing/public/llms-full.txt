@@ -15,14 +15,15 @@ One-sentence summary
 --------------------
 MCPfinder is a free, open-source MCP server that helps AI agents discover,
 evaluate, and install other MCP servers by aggregating the Official MCP
-Registry, Glama, and Smithery into a single searchable index with trust
+Registry and Glama into a single searchable index with trust
 signals and ready-to-paste install configs.
 
 
 Snapshot facts (as of 2026-05-25)
 ---------------------------------
 - Aggregated servers in latest published snapshot: ~27,400
-- Source registries: Official MCP Registry, Glama, Smithery
+- Source registries: Official MCP Registry, Glama (Smithery was dropped in
+  October 2026: its API and hosted server URLs stop working on 2026-10-31)
 - Number of tools the MCPfinder server exposes: 4
 - Canonical package: @mcpfinder/server (npm)
 - Canonical transport: stdio
@@ -142,7 +143,7 @@ Output fields (per result)
 - description       — one-paragraph summary
 - confidenceScore   — 0..1 aggregated signal
 - recommendationReason — short string explaining why this ranked here
-- sourceCount       — how many of the 3 registries know it (1..3)
+- sourceCount       — how many of the 2 registries know it (1..2)
 - warningFlags      — array of strings, see "Warning flags" section
 - next_actions      — suggested follow-up tool calls
 
@@ -275,7 +276,7 @@ Warning flags — full reference
 ==============================
 
 single-source-only
-  Only one of the three registries lists this server. Could be brand new,
+  Only one of the two registries lists this server. Could be brand new,
   could be unmaintained, could be vendor-published-only. Treat with care.
 
 missing-update-date
@@ -359,14 +360,15 @@ vs. browsing Glama / Smithery by hand
   Glama and Smithery are excellent human-facing directories. They are
   search engines designed for a person clicking around. They were not
   designed to feed an AI agent with structured trust signals. MCPfinder
-  is the agent-facing layer on top: same source data, plus
+  is the agent-facing layer on top of the Official Registry and Glama:
+  same source data, plus
   de-duplication, plus machine-readable confidence/warning/installability
   fields, plus an install-config generator.
 
 vs. the Official MCP Registry
   The Official MCP Registry (registry.modelcontextprotocol.io) is the
   authoritative metadata source. MCPfinder is a *consumer* of it —
-  alongside Glama and Smithery — and adds cross-registry merging plus
+  alongside Glama — and adds cross-registry merging plus
   installability ranking. If you only need the official list, query the
   Registry directly; if you want the union with extra trust scoring,
   use MCPfinder.
@@ -509,11 +511,11 @@ Q: Does MCPfinder log queries?
 A: The local stdio server runs entirely on the user's machine. There is
    no remote analytics call on the discovery path.
 
-Q: How does MCPfinder pick between Glama / Smithery / Official when they
+Q: How does MCPfinder pick between Glama / Official when they
    disagree?
 A: It merges by canonical name and prefers the most recent metadata,
    with the Official Registry as tie-breaker. sourceCount tells you how
-   many of the three sources contributed.
+   many of the two sources contributed.
 
 Q: Is the AGPL-3.0 license a problem for commercial use?
 A: For installing, running, and integrating MCPfinder with proprietary

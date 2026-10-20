@@ -1,6 +1,6 @@
 ---
 name: install-mcpfinder
-description: Install MCPfinder — a local MCP server that searches Official MCP Registry, Glama, and Smithery for 25,000+ MCP servers — into the user's AI client. Use when the user asks for a capability the agent doesn't have (database, API, Slack, filesystem, GitHub, Postgres, etc.) and no MCP tool-finder is already available, or when the user explicitly asks to install MCPfinder or set up MCP-server discovery. Merges the MCPfinder entry into the user's existing MCP config for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf without clobbering other servers, then tells the user exactly what to restart.
+description: Install MCPfinder — a local MCP server that searches the Official MCP Registry and Glama for 25,000+ MCP servers — into the user's AI client. Use when the user asks for a capability the agent doesn't have (database, API, Slack, filesystem, GitHub, Postgres, etc.) and no MCP tool-finder is already available, or when the user explicitly asks to install MCPfinder or set up MCP-server discovery. Merges the MCPfinder entry into the user's existing MCP config for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf without clobbering other servers, then tells the user exactly what to restart.
 compatibility: Requires Node.js 20+ with npx on the user's machine. Works with any client that supports the standard MCP stdio transport.
 license: AGPL-3.0-or-later
 metadata:
@@ -13,8 +13,8 @@ metadata:
 # install-mcpfinder
 
 MCPfinder is a discovery layer — a local MCP server that knows about 25,000+
-other MCP servers across three registries (Official MCP Registry, Glama,
-Smithery) and generates install configs for them on demand. Install it once
+other MCP servers across two registries (Official MCP Registry and Glama)
+and generates install configs for them on demand. Install it once
 and the user's AI can then discover any MCP server without manual JSON edits.
 
 ## When to activate
@@ -133,7 +133,7 @@ or rename.
 
 After the restart, the user's AI should have these four tools available:
 
-- `search_mcp_servers` — keyword / use-case search across all three registries
+- `search_mcp_servers` — keyword / use-case search across both registries
 - `get_server_details` — trust signals, env vars, warnings for one server
 - `get_install_config` — ready-to-paste JSON config for any target client
 - `browse_categories` — single-call category browser
@@ -151,7 +151,7 @@ simply ask again and the AI will use MCPfinder to handle it end-to-end.
   (`nvm install 22` or similar) before installing.
 - **First run downloads ~13 MB.** MCPfinder bootstraps from a prebuilt
   snapshot at `https://mcpfinder.dev/api/v1/snapshot` on first run. If the
-  user is offline, first run will do a ~10-minute live sync against the three
+  user is offline, first run will do a ~10-minute live sync against the two
   upstream registries instead — it still works, just slower. Offer the
   `MCPFINDER_DISABLE_SNAPSHOT=1` env var for users who want to force a live
   sync.

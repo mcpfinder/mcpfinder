@@ -1,6 +1,6 @@
 {
   "name": "@mcpfinder/server",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "mcpName": "dev.mcpfinder/server",
   "repository": {
     "type": "git",
@@ -40,7 +40,7 @@
   "author": "Coder AI <hello@coderai.dev>",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "@mcpfinder/core": "workspace:^2.0.0",
+    "@mcpfinder/core": "workspace:^2.0.1",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "zod": "^3.23.8"
   },

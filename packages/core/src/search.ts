@@ -569,6 +569,7 @@ export function getServerDetails(
     status: row.status,
     hasRemote: row.has_remote === 1,
     remoteUrl: row.remote_url,
+    listingUrl: row.listing_url ?? null,
     categories,
     environmentVariables: envVars,
     sources,

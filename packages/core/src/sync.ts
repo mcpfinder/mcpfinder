@@ -42,7 +42,8 @@ import {
   validateOfficialPage,
 } from './registry-page-validation.js';
 import { mergeServerData, mergeServerSources } from './server-merge.js';
-import { firstUsableRemoteUrl, usableRemoteUrl } from './remote-url.js';
+import { firstUsableRemoteUrl, listingUrl } from './remote-url.js';
+import { mergeSameRemoteOfficialEntries } from './official-url-merge.js';
 
 const REGISTRY_BASE = 'https://registry.modelcontextprotocol.io';
 const GLAMA_BASE = 'https://glama.ai/api/mcp/v1';
@@ -327,6 +328,7 @@ function normalizeOfficialEntry(entry: RegistryServerEntry) {
     keywords: JSON.stringify(keywords),
     remote_url: remoteUrl,
     has_remote: remoteUrl ? 1 : 0,
+    listing_url: null,
     last_synced_at: new Date().toISOString(),
     sources: JSON.stringify(['official']),
     raw_data: JSON.stringify(entry),
@@ -371,12 +373,14 @@ export async function syncOfficialRegistry(
       id, slug, name, description, version, registry_type, package_identifier,
       transport_type, repository_url, repository_source, published_at, updated_at,
       status, popularity_score, categories, keywords, remote_url, has_remote,
-      last_synced_at, sources, raw_data, env_vars, source, use_count, verified, icon_url
+      last_synced_at, sources, raw_data, env_vars, source, use_count, verified, icon_url,
+      listing_url
     ) VALUES (
       @id, @slug, @name, @description, @version, @registry_type, @package_identifier,
       @transport_type, @repository_url, @repository_source, @published_at, @updated_at,
       @status, @popularity_score, @categories, @keywords, @remote_url, @has_remote,
-      @last_synced_at, @sources, @raw_data, @env_vars, @source, @use_count, @verified, @icon_url
+      @last_synced_at, @sources, @raw_data, @env_vars, @source, @use_count, @verified, @icon_url,
+      @listing_url
     )
     ON CONFLICT(id) DO UPDATE SET
       description = CASE WHEN length(excluded.description) > length(servers.description) THEN excluded.description ELSE servers.description END,
@@ -391,6 +395,7 @@ export async function syncOfficialRegistry(
       status = excluded.status,
       remote_url = COALESCE(excluded.remote_url, servers.remote_url),
       has_remote = MAX(excluded.has_remote, servers.has_remote),
+      listing_url = COALESCE(excluded.listing_url, servers.listing_url),
       last_synced_at = excluded.last_synced_at
   `);
 
@@ -477,6 +482,14 @@ export async function syncOfficialRegistry(
         existingIds.add(row.id);
         mergeServerSources(db, row.id, 'official');
       }
+      // Fold Official pairs that publish the same endpoint (official-url-merge.ts).
+      const urlMerge = mergeSameRemoteOfficialEntries(db);
+      if (urlMerge.merged.length > 0 || urlMerge.skipped.length > 0) {
+        process.stderr.write(
+          `[mcpfinder] Official same-URL merge: ${urlMerge.merged.length} merged, ` +
+          `${urlMerge.skipped.length} skipped\n`,
+        );
+      }
       assertBeforeDeadline(deadline, runtime, 'Registry API');
       // The log row commits with the rows it describes. Written after the
       // commit instead, a crash in the gap would leave a corpus that is
@@ -537,8 +550,12 @@ function normalizeGlamaEntry(entry: GlamaServer) {
     popularity_score: 0,
     categories: JSON.stringify([]),
     keywords: JSON.stringify(keywords),
-    remote_url: usableRemoteUrl(entry.url),
-    has_remote: usableRemoteUrl(entry.url) ? 1 : 0,
+    // Glama's `url` is the server's page in Glama's directory
+    // (https://glama.ai/mcp/servers/<id>), not an MCP endpoint, and Glama's
+    // API publishes no endpoint. It is kept as a listing link only.
+    remote_url: null,
+    has_remote: 0,
+    listing_url: listingUrl(entry.url),
     last_synced_at: new Date().toISOString(),
     sources: JSON.stringify(['glama']),
     raw_data: JSON.stringify(entry),
@@ -573,12 +590,14 @@ export async function syncGlamaRegistry(
       id, slug, name, description, version, registry_type, package_identifier,
       transport_type, repository_url, repository_source, published_at, updated_at,
       status, popularity_score, categories, keywords, remote_url, has_remote,
-      last_synced_at, sources, raw_data, env_vars, source, use_count, verified, icon_url
+      last_synced_at, sources, raw_data, env_vars, source, use_count, verified, icon_url,
+      listing_url
     ) VALUES (
       @id, @slug, @name, @description, @version, @registry_type, @package_identifier,
       @transport_type, @repository_url, @repository_source, @published_at, @updated_at,
       @status, @popularity_score, @categories, @keywords, @remote_url, @has_remote,
-      @last_synced_at, @sources, @raw_data, @env_vars, @source, @use_count, @verified, @icon_url
+      @last_synced_at, @sources, @raw_data, @env_vars, @source, @use_count, @verified, @icon_url,
+      @listing_url
     )
   `);
 

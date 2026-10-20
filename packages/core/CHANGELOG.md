@@ -1,5 +1,33 @@
 # Changelog — @mcpfinder/core
 
+## 2.0.1 — 2026-10-20
+
+### Fixed
+- Glama's `url` (`https://glama.ai/mcp/servers/<id>`) is the server's page in
+  Glama's directory, not an MCP endpoint, and Glama's API publishes no
+  endpoint. It was stored as `remote_url` with `has_remote = 1` (about 75,000
+  rows). It is now kept as a listing link in the new `listing_url` column and
+  never sets `remote_url` / `has_remote`; `usableRemoteUrl` also refuses such
+  a page. Opening a catalog built by an earlier version moves these values
+  out of `remote_url` (idempotent, best effort).
+- `getInstallCommand` for a server with no package and no remote endpoint
+  returns a "no install method known" result (`config.note` =
+  `NO_INSTALL_METHOD_NOTE`, plus `repositoryUrl` / `listingUrl`) instead of a
+  config.
+
+### Added
+- `mergeSameRemoteOfficialEntries`: at the end of every Official sync, two
+  Official entries that publish the same remote endpoint are folded into one
+  row. URLs compare scheme-insensitively with a lowercase host, no default
+  port and no trailing slash; path and query stay significant. Only groups of
+  exactly two are merged, templated URLs (`{hostname}`) are skipped, and so is
+  a pair whose publishers and descriptions look unrelated. The richer row is
+  kept (more sources, package, repository, env vars, longer description), the
+  other row's sources and missing fields are folded in, and the other row is
+  removed. On the 2026-10-20 catalog this merges 31 pairs and skips 3.
+- `listing_url` column, `ServerDetail.listingUrl`, `isDirectoryListingUrl`,
+  `normalizeRemoteUrlKey`, `NO_INSTALL_METHOD_NOTE`.
+
 ## 2.0.0 — 2026-10-20
 
 Smithery is no longer a source. Its registry API, MCP proxy and hosted server

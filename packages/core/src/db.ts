@@ -5,7 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import { usableRemoteUrl } from './remote-url.js';
+import { isDirectoryListingUrl, usableRemoteUrl } from './remote-url.js';
 
 /**
  * A value bindable to a SQLite statement parameter. Mirrors node:sqlite's
@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS servers (
   source TEXT DEFAULT 'official',
   use_count INTEGER DEFAULT 0,
   verified INTEGER DEFAULT 0,
-  icon_url TEXT
+  icon_url TEXT,
+  listing_url TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_servers_slug ON servers(slug);
@@ -198,6 +199,9 @@ function migrateSchema(db: DatabaseSync): void {
     ['use_count', 'INTEGER DEFAULT 0'],
     ['verified', 'INTEGER DEFAULT 0'],
     ['icon_url', 'TEXT'],
+    // Directory listing page (e.g. https://glama.ai/mcp/servers/<id>). Not an
+    // MCP endpoint: see remote-url.ts isDirectoryListingUrl.
+    ['listing_url', 'TEXT'],
     // Deprecation signals set by enrichDeprecationFlags (build-time probe).
     // NULL = not checked yet, 0 = checked and clean, 1 = flagged.
     ['deprecated_npm', 'INTEGER DEFAULT NULL'],
@@ -225,7 +229,39 @@ function migrateSchema(db: DatabaseSync): void {
   );
 
   clearRetiredRemoteUrls(db);
+  moveListingUrlsOutOfRemote(db);
   clearRetiredSourceData(db);
+}
+
+/**
+ * Move directory listing pages out of remote_url. Catalogs built before 2.0.1
+ * stored Glama's `https://glama.ai/mcp/servers/<id>` page as remote_url with
+ * has_remote = 1. That page is not an MCP endpoint: keep it as listing_url and
+ * clear the remote. Idempotent; a no-op once clean. Best effort like
+ * clearRetiredRemoteUrls; install configs also refuse such a URL at read time.
+ */
+function moveListingUrlsOutOfRemote(db: DatabaseSync): void {
+  try {
+    const candidates = db
+      .prepare(`SELECT id, remote_url FROM servers WHERE remote_url LIKE '%glama.ai/%'`)
+      .all() as Array<{ id: string; remote_url: string }>;
+    const stale = candidates.filter((row) => isDirectoryListingUrl(row.remote_url));
+    if (stale.length === 0) return;
+    const move = db.prepare(
+      `UPDATE servers SET listing_url = COALESCE(listing_url, remote_url),
+         remote_url = NULL, has_remote = 0 WHERE id = ?`,
+    );
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      for (const row of stale) move.run(row.id);
+      db.exec('COMMIT');
+    } catch (err) {
+      db.exec('ROLLBACK');
+      throw err;
+    }
+  } catch {
+    /* busy or read-only: try again on the next open */
+  }
 }
 
 /**

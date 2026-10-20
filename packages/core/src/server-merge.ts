@@ -2,7 +2,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import type { SqlParam } from './db.js';
 import { extractKeywords } from './categories.js';
 import { normalizeRepositoryUrl, repositorySource } from './repository-url.js';
-import { firstUsableRemoteUrl, usableRemoteUrl } from './remote-url.js';
+import { firstUsableRemoteUrl } from './remote-url.js';
 import { envVarsFromJsonSchema } from './env-vars.js';
 import {
   mergeRawEnvelope,
@@ -80,6 +80,7 @@ export function mergeServerData(
       'use_count',
       'verified',
       'icon_url',
+      'listing_url',
       'last_synced_at',
     ]) {
       const incomingValue = newRow[field] ?? null;
@@ -137,6 +138,7 @@ export function mergeServerData(
     for (const field of [
       'remote_url',
       'icon_url',
+      'listing_url',
       'transport_type',
       'registry_type',
       'package_identifier',
@@ -388,7 +390,8 @@ function contributionForPayload(source: string, payload: unknown): SourceContrib
       repository_url: normalizeRepositoryUrl(
         typeof repository?.url === 'string' ? repository.url : null,
       ),
-      remote_url: usableRemoteUrl(record.url),
+      // Glama's `url` is a directory listing page, never an MCP endpoint.
+      remote_url: null,
       registry_type: null,
       package_identifier: null,
       transport_type: null,

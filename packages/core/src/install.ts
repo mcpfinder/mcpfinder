@@ -104,6 +104,13 @@ export function buildEnvPlaceholders(envVars: RegistryEnvVar[]): Record<string, 
 }
 
 /**
+ * Shown when a server has neither a known package nor a remote MCP endpoint.
+ * A directory listing page (listing_url) is never offered as an MCP URL.
+ */
+export const NO_INSTALL_METHOD_NOTE =
+  'No install method known: no package and no remote MCP endpoint is published for this server. See its listing or repository for setup instructions.';
+
+/**
  * Generate install configuration for a specific MCP server and client.
  */
 export function getInstallCommand(
@@ -147,12 +154,18 @@ export function getInstallCommand(
     serverName: serverKey,
     configFilePath: platform.configPath,
     config: {
-      note: 'Unable to generate auto-config. Check the repository for installation instructions.',
+      note: NO_INSTALL_METHOD_NOTE,
       repositoryUrl: row.repository_url,
+      listingUrl: row.listing_url ?? null,
       registryType: row.registry_type,
       packageIdentifier: row.package_identifier,
     },
-    instructions: `Could not auto-generate config. Check the repository: ${row.repository_url || 'N/A'}`,
+    instructions: [
+      NO_INSTALL_METHOD_NOTE,
+      row.repository_url ? `Repository: ${row.repository_url}` : null,
+      row.listing_url ? `Listing: ${row.listing_url}` : null,
+      !row.repository_url && !row.listing_url ? 'No repository or listing URL is known.' : null,
+    ].filter(Boolean).join('\n'),
     postInstallNote: '',
     envVarsNeeded: envVars,
   };

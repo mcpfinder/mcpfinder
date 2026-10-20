@@ -291,7 +291,6 @@ if (!flag('--no-carryover')) {
 // Build-time enrichment passes (skipped with --no-enrich).
 let deprecationStats = null;
 if (!flag('--no-enrich')) {
-  const t0 = Date.now();
   // Deprecation flags: npm (fast, no token needed) + GitHub archived
   // (requires GITHUB_TOKEN, otherwise skipped with a stderr note).
   const d0 = Date.now();

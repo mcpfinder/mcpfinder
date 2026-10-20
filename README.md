@@ -122,7 +122,9 @@ MCPfinder is intentionally optimized for agent consumption.
 
 - Human-readable text summaries
 - Structured content for chaining follow-up calls
-- Trust signals: source count, verification, popularity, recency
+- Trust signals: source count, official presence, recency (verification and
+  popularity fields remain in the output but are empty since Smithery, their
+  only source, was dropped)
 - Warning flags: stale projects, missing repository URL, unclear install path, single-source-only
 - Install metadata: config snippet, target file paths, required environment variables, restart instructions
 
@@ -142,9 +144,9 @@ Search ranking uses:
   is no way to search *by* the hosting namespace: `registrySource` filters on
   the registries an entry was found in (`official`/`glama`), which is
   a different thing.
-- community usage (`useCount`)
 - official registry presence
-- verification signals
+- community usage (`useCount`) and verification signals — currently always 0:
+  Smithery was their only source
 
 Each result is also annotated with:
 

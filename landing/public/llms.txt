@@ -39,8 +39,6 @@ Recommended flow:
 
 Selection signals surfaced by MCPfinder:
 - official registry presence
-- verification flags
-- community usage
 - source count
 - recency
 - warning flags

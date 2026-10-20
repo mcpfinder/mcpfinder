@@ -9,11 +9,12 @@ import {
   parseRawEnvelope,
   rawPayloadForSource,
   RAW_SOURCE_ORDER,
+  RETIRED_SOURCES,
 } from './raw-envelope.js';
 import type { RawEnvelope } from './raw-envelope.js';
 
 function mergeSources(existing: string[], newSource: string): string[] {
-  return [...new Set([...existing, newSource])].sort();
+  return [...new Set([...existing.filter((s) => !RETIRED_SOURCES.includes(s)), newSource])].sort();
 }
 
 export function mergeServerSources(db: DatabaseSync, serverId: string, newSource: string): void {
@@ -51,8 +52,12 @@ export function mergeServerData(
   const incomingSource = String(newRow.source || 'unknown');
   const stableSameSourceRefresh =
     options.stableIdRefresh === true && incomingSource === String(existing.source || 'unknown');
-  const sourceSet = parsedStringSet(existing.sources);
+  const storedSources = parsedStringSet(existing.sources);
+  const sourceSet = new Set([...storedSources].filter((s) => !RETIRED_SOURCES.includes(s)));
   sourceSet.add(incomingSource);
+  if ([...storedSources].some((s) => RETIRED_SOURCES.includes(s))) {
+    queueUpdate('sources', JSON.stringify([...sourceSet].sort()));
+  }
   const multiSourceRefresh = stableSameSourceRefresh && sourceSet.size > 1;
   const exactSourceRefresh = stableSameSourceRefresh && !multiSourceRefresh;
 
@@ -182,7 +187,7 @@ export function mergeServerData(
     queueUpdate('raw_data', mergedRawData);
     const currentKeywords = currentKeywordsFromEnvelope(
       mergedEnvelope,
-      existing.sources,
+      JSON.stringify([...sourceSet]),
       incomingSource,
       existing.keywords,
     );

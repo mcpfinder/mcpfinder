@@ -1,6 +1,13 @@
 export const RAW_SOURCE_ORDER = ['official', 'glama'] as const;
 export type RawSource = (typeof RAW_SOURCE_ORDER)[number];
 
+/**
+ * Sources MCPfinder no longer syncs. Older local catalogs still name them in
+ * `sources` (and keep their slice in raw_data); merges drop them so a refresh
+ * from a live source rebuilds the row instead of treating it as incomplete.
+ */
+export const RETIRED_SOURCES: readonly string[] = ['smithery'];
+
 export interface RawEnvelope {
   primarySource: string;
   primary: unknown;

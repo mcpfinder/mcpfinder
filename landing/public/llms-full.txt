@@ -102,8 +102,8 @@ Environment variables (env vars)
 Trust signals
   Lightweight, machine-readable evidence MCPfinder uses to gauge how
   trustworthy a candidate is: official registry presence, multiple
-  registry sources, verification flag, recent updates, clear repository
-  URL, healthy capability count.
+  registry sources, recent updates, clear repository URL, healthy
+  capability count.
 
 warningFlags
   Reasons to slow down before recommending. See dedicated section below.

@@ -435,7 +435,10 @@ insert(refreshDb, {
   package_identifier: null,
   source: 'glama',
   sources: ['glama', 'smithery'],
-  env_vars: glamaSchemaEnvVars,
+  // A variable and a remote only the retired Smithery slice ever supplied:
+  // the refresh must drop both instead of keeping the legacy row frozen.
+  env_vars: [...glamaSchemaEnvVars, { name: 'OLD_KEY', description: 'from smithery', isRequired: false, isSecret: true }],
+  remote_url: 'https://server.smithery.ai/example/env-schema',
   raw_data: {
     primarySource: 'glama',
     primary: glamaEntry(),
@@ -462,6 +465,11 @@ assert.deepEqual(
   envVarsOf(refreshDb, 'glama:env-schema'),
   glamaSchemaEnvVars,
   'refreshing a multi-source row must preserve the schema-derived fields',
+);
+assert.deepEqual(
+  { ...refreshDb.prepare("SELECT sources, remote_url, has_remote FROM servers WHERE id = 'glama:env-schema'").get() },
+  { sources: '["glama"]', remote_url: null, has_remote: 0 },
+  'a refresh drops the retired source and its remote',
 );
 assert.deepEqual(buildEnvPlaceholders(envVarsOf(refreshDb, 'glama:env-schema')), {
   API_URL: 'https://api.example.com',

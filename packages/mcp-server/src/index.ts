@@ -24,6 +24,7 @@ import {
   buildEnvPlaceholders,
   looksLikeCredentialName,
   possibleUnlabeledSecrets,
+  usableRemoteUrl,
 } from '@mcpfinder/core';
 import { createCatalog } from './catalog.js';
 import { reportSyncResults } from './sync-report.js';
@@ -300,7 +301,7 @@ server.registerTool(
       query: z.string().default('').describe(
         'Search query — a keyword (e.g., "filesystem"), use case ("query databases"), or technology ("postgres"). ' +
           'Common aliases work: "gh" → github, "pg" → postgres, "k8s" → kubernetes, "db" → database. ' +
-          'Leave empty to see the most popular servers.',
+          'Leave empty to browse servers: Official Registry entries first, then the most recently updated.',
       ),
       limit: z.number().min(1).max(50).default(10).describe('Maximum results to return (default: 10, max: 50)'),
       transportType: z
@@ -364,7 +365,7 @@ server.registerTool(
     return makeTextResponse(
       query
         ? `Found ${results.length} MCP server(s) for "${query}":\n\n${formatted}\n\nCall get_server_details on the best candidate before recommending or installing it.`
-        : `Top ${results.length} most popular MCP servers:\n\n${formatted}\n\nCall get_server_details on a candidate before recommending or installing it.`,
+        : `Top ${results.length} MCP servers (Official Registry first, then most recently updated):\n\n${formatted}\n\nCall get_server_details on a candidate before recommending or installing it.`,
       {
         query,
         results: results.map((r) => ({
@@ -555,13 +556,15 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
   const envVars = detail.environmentVariables || [];
   const env = buildEnvPlaceholders(envVars);
   const platformInfo = PLATFORMS[platform];
-  const isRemote = detail.hasRemote && detail.remoteUrl;
+  // Never hand out a URL on a retired host (see core remote-url.ts), even if an
+  // older catalog still has one on the row.
+  const remoteUrl = detail.hasRemote ? usableRemoteUrl(detail.remoteUrl) : null;
 
   let serverConfig: Record<string, unknown>;
   let installType: string;
 
-  if (isRemote && detail.remoteUrl) {
-    serverConfig = { url: detail.remoteUrl };
+  if (remoteUrl) {
+    serverConfig = { url: remoteUrl };
     if (Object.keys(env).length > 0) serverConfig.env = env;
     installType = 'remote';
   } else if (detail.registryType === 'npm' && detail.packageIdentifier) {

@@ -19,8 +19,6 @@ export type {
   ConfidenceBreakdown,
   GlamaServer,
   GlamaListResponse,
-  SmitheryServer,
-  SmitheryListResponse,
 } from './types.js';
 
 // Database
@@ -42,7 +40,6 @@ export {
 export {
   syncOfficialRegistry,
   syncGlamaRegistry,
-  syncSmitheryRegistry,
   isSyncNeeded,
   getServerCount,
   DEFAULT_SNAPSHOT_FRESH_MINUTES,
@@ -76,8 +73,9 @@ export {
 } from './snapshot-state.js';
 export type { SnapshotState, SweepOptions, PublishOutcome } from './snapshot-state.js';
 
-// Build-time enrichment (GitHub probe, post-sync dedup pass)
-export { enrichSmitheryRepoUrls, enrichDeprecationFlags } from './enrich.js';
+// Build-time enrichment (npm-deprecation / archived-repo probe)
+export { enrichDeprecationFlags } from './enrich.js';
+export { usableRemoteUrl, firstUsableRemoteUrl } from './remote-url.js';
 export type { EnrichResult, DeprecationEnrichResult } from './enrich.js';
 
 // Search

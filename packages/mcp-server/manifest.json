@@ -3,8 +3,8 @@
   "name": "mcpfinder",
   "display_name": "MCPfinder",
   "version": "1.5.0",
-  "description": "Discover and install MCP servers across the Official Registry, Glama, and Smithery.",
-  "long_description": "MCPfinder is an AI-first discovery layer over the MCP ecosystem. It searches 25k+ servers across the Official MCP Registry, Glama, and Smithery, inspects trust signals and required secrets, and generates client-specific install config — so your AI can find and add the tools it is missing on demand.",
+  "description": "Discover and install MCP servers across the Official MCP Registry and Glama.",
+  "long_description": "MCPfinder is an AI-first discovery layer over the MCP ecosystem. It searches servers across the Official MCP Registry and Glama, inspects trust signals and required secrets, and generates client-specific install config — so your AI can find and add the tools it is missing on demand.",
   "author": { "name": "CODER AI", "email": "hello@coderai.dev", "url": "https://coderai.dev" },
   "homepage": "https://mcpfinder.dev",
   "documentation": "https://github.com/mcpfinder/mcpfinder/blob/main/README.md",
@@ -26,11 +26,11 @@
       "inputSchema": {
         "type": "object",
         "properties": {
-          "query": { "type": "string", "description": "Keyword, use case, or technology. Empty returns the most popular servers." },
+          "query": { "type": "string", "description": "Keyword, use case, or technology. Empty browses servers: Official Registry entries first, then the most recently updated." },
           "limit": { "type": "number", "minimum": 1, "maximum": 50, "default": 10 },
           "transportType": { "type": "string", "enum": ["stdio", "streamable-http", "sse", "any"], "default": "any" },
           "registryType": { "type": "string", "enum": ["npm", "pypi", "oci", "any"], "default": "any" },
-          "registrySource": { "type": "string", "enum": ["official", "glama", "smithery", "any"], "default": "any" }
+          "registrySource": { "type": "string", "enum": ["official", "glama", "any"], "default": "any" }
         }
       }
     },

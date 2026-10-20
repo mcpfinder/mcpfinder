@@ -5,6 +5,7 @@
 import type { DatabaseSync } from 'node:sqlite';
 import type { McpServer, RegistryEnvVar } from './types.js';
 import { findServerByNameOrSlug } from './search.js';
+import { usableRemoteUrl } from './remote-url.js';
 
 export type ClientType =
   | 'claude-desktop'
@@ -135,8 +136,9 @@ export function getInstallCommand(
     return generateDockerConfig(serverKey, row.package_identifier, envVars, client);
   }
 
-  if (row.has_remote && row.remote_url) {
-    return generateRemoteConfig(serverKey, row.remote_url, envVars, client);
+  const remoteUrl = row.has_remote ? usableRemoteUrl(row.remote_url) : null;
+  if (remoteUrl) {
+    return generateRemoteConfig(serverKey, remoteUrl, envVars, client);
   }
 
   const platform = PLATFORM_INFO[client];

@@ -59,21 +59,17 @@ export async function runSnapshotFreezeChecks({ workflow, parsedWorkflow, durabl
   // below it, or the next person to raise one has no reserve left to spend.
   // Glama only replays the capture job's recording in this job, so its budget
   // is not part of the live-crawl arithmetic.
-  const budgets = [
-    'MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES',
-    'MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES',
-  ];
+  const budgets = ['MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES'];
   const budgetMinutes = budgets.map((name) =>
     Number(parsedWorkflow.jobs.build.steps.find((step) => step.env?.[name])?.env[name]),
   );
-  const [smitheryBudget, officialBudget] = budgetMinutes;
+  const [officialBudget] = budgetMinutes;
   assert.ok(budgetMinutes.every(Number.isFinite));
-  const budgetComment = /Registry budgets can consume (\d+) minutes \(Official (\d+) \+ Smithery (\d+);[^)]*\);\n\s*# keep at least (\d+) minutes/.exec(workflow);
+  const budgetComment = /Registry budgets can consume (\d+) minutes \(Official (\d+);[^)]*\);\n\s*# keep at least (\d+) minutes/.exec(workflow);
   assert.ok(budgetComment, 'the timeout comment must spell out the budget arithmetic');
-  const [, total, official, smitherySaid, reserve] = budgetComment.map(Number);
+  const [, total, official, reserve] = budgetComment.map(Number);
   assert.equal(official, officialBudget);
-  assert.equal(smitherySaid, smitheryBudget);
-  assert.equal(official + smitherySaid, total);
+  assert.equal(official, total);
   assert.ok(total + reserve <= parsedWorkflow.jobs.build['timeout-minutes'], 'reserve must fit under timeout-minutes');
 
   const freezeStep = parsedWorkflow.jobs.build.steps.find(

@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "dev.mcpfinder/server",
   "title": "MCPfinder - MCP Server Discovery",
-  "description": "Your AI discovers and installs MCP servers across Official Registry, Glama, and Smithery.",
+  "description": "Your AI discovers and installs MCP servers across the Official MCP Registry and Glama.",
   "version": "1.5.0",
   "websiteUrl": "https://mcpfinder.dev",
   "repository": {

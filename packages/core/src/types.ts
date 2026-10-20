@@ -83,7 +83,7 @@ export interface ConfidenceBreakdown {
   components: {
     base: number;        // starting point (all servers share this)
     official: number;    // lift for Official Registry presence
-    verified: number;    // lift for verified publisher flag (Smithery)
+    verified: number;    // lift for verified publisher flag
     popularity: number;  // lift for community use_count tiers
     multiSource: number; // lift for appearing in >1 registry
     penalties: number;   // sum of penalties (<=0): staleness, missing install path, etc.
@@ -131,7 +131,7 @@ export interface McpServer {
   sources: string; // JSON array
   raw_data: string; // Full JSON from source
   env_vars: string; // JSON array of env var definitions
-  source: string; // 'official' | 'glama' | 'smithery'
+  source: string; // 'official' | 'glama'
   use_count: number;
   verified: number; // 0 or 1
   icon_url: string | null;
@@ -235,27 +235,3 @@ export interface GlamaListResponse {
   servers: GlamaServer[];
 }
 
-// ─── Smithery Registry Types ────────────────────────────────────────────────
-
-export interface SmitheryServer {
-  qualifiedName: string;
-  displayName: string;
-  description: string | null;
-  useCount: number;
-  verified: boolean;
-  remote: boolean;
-  isDeployed: boolean;
-  iconUrl: string | null;
-  homepage: string | null;
-  createdAt: string;
-}
-
-export interface SmitheryListResponse {
-  servers: SmitheryServer[];
-  pagination: {
-    currentPage: number;
-    pageSize: number;
-    totalPages: number;
-    totalCount: number;
-  };
-}

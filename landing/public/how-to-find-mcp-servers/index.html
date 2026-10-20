@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>How to Find MCP Servers: MCP Server Discovery Guide | MCPfinder</title>
-  <meta name="description" content="MCP server discovery guide: find MCP servers across the Official Registry, Glama, and Smithery, check trust signals, then install with agent-ready JSON.">
+  <meta name="description" content="MCP server discovery guide: find MCP servers across the Official MCP Registry and Glama, check trust signals, then install with agent-ready JSON.">
   <meta name="keywords" content="how to find MCP servers, find MCP servers, MCP server discovery, MCP registry, MCP directory, discover MCP servers">
   <meta name="author" content="Coder AI">
   <meta name="robots" content="index, follow">
@@ -18,7 +18,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mcpfinder.dev/how-to-find-mcp-servers/">
   <meta property="og:title" content="How to Find MCP Servers: MCP Server Discovery Guide | MCPfinder">
-  <meta property="og:description" content="MCP server discovery guide: find MCP servers across the Official Registry, Glama, and Smithery, check trust signals, then install with agent-ready JSON.">
+  <meta property="og:description" content="MCP server discovery guide: find MCP servers across the Official MCP Registry and Glama, check trust signals, then install with agent-ready JSON.">
   <meta property="og:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
   <meta property="og:site_name" content="MCPfinder">
   <meta property="og:locale" content="en_US">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:site" content="@coderaidev">
   <meta name="twitter:title" content="How to Find MCP Servers: MCP Server Discovery Guide | MCPfinder">
-  <meta name="twitter:description" content="MCP server discovery guide: find MCP servers across the Official Registry, Glama, and Smithery, check trust signals, then install with agent-ready JSON.">
+  <meta name="twitter:description" content="MCP server discovery guide: find MCP servers across the Official MCP Registry and Glama, check trust signals, then install with agent-ready JSON.">
   <meta name="twitter:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
 
   <script type="application/ld+json">
@@ -59,7 +59,7 @@
       "name": "How do I find MCP servers?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Start with the Official MCP Registry for publisher identity, then search broader indexes such as Glama and Smithery. For agent-driven discovery, install MCPfinder so your AI client can search those registries, inspect trust signals, and generate install JSON."
+        "text": "Start with the Official MCP Registry for publisher identity, then search a broader index such as Glama. For agent-driven discovery, install MCPfinder so your AI client can search those registries, inspect trust signals, and generate install JSON."
       }
     },
     {
@@ -75,7 +75,7 @@
       "name": "Which MCP registries should I check?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The Official MCP Registry is the vendor-neutral metadata source. Glama and Smithery are widely used downstream directories and hosting registries. Directory sites such as mcp.so are useful for browsing. MCPfinder aggregates Official Registry, Glama, and Smithery into one agent-searchable index."
+        "text": "The Official MCP Registry is the vendor-neutral metadata source. Glama is a widely used downstream directory with a much larger index. Smithery remains a public directory (now run by Arcade.dev), but its hosted proxy and server URLs stop working on 31 October 2026. Directory sites such as mcp.so are useful for browsing. MCPfinder aggregates the Official Registry and Glama into one agent-searchable index."
       }
     },
     {
@@ -301,10 +301,10 @@
       <ul>
         <li><strong>Official MCP Registry</strong> — vendor-neutral metadata for publicly published servers; best starting point for “who published this?”</li>
         <li><strong>Glama</strong> — large searchable index with deeper per-server metadata and inspection tooling</li>
-        <li><strong>Smithery</strong> — registry plus hosted deployment and managed OAuth for many remote servers</li>
+        <li><strong>Smithery</strong> — public directory, now run by Arcade.dev; its hosted MCP proxy, API and server URLs stop working on 31 October 2026 (<a href="https://smithery.ai/future" target="_blank" rel="noopener">announcement</a>), so use each vendor&rsquo;s own MCP URL instead</li>
         <li><strong>Directory sites</strong> (for example mcp.so) — useful for browsing categories; still verify before you connect</li>
       </ul>
-      <p>MCPfinder aggregates the Official MCP Registry, Glama, and Smithery into one index your agent can query — it works <em>with</em> those sources, not as a replacement for your AI client.</p>
+      <p>MCPfinder aggregates the Official MCP Registry and Glama into one index your agent can query — it works <em>with</em> those sources, not as a replacement for your AI client.</p>
     </div>
   </div>
 </section>
@@ -317,7 +317,7 @@
       <p>MCP server discovery happens at two levels:</p>
       <ul>
         <li><strong>Human discovery</strong>: you browse registries and directory sites, compare candidates, then paste a config into your client.</li>
-        <li><strong>Agent discovery</strong>: your assistant searches for a missing capability while it works. The Official MCP Registry exposes a public REST API that tools and aggregators can query, and an MCP server such as MCPfinder can search the Official Registry, Glama, and Smithery from inside your client.</li>
+        <li><strong>Agent discovery</strong>: your assistant searches for a missing capability while it works. The Official MCP Registry exposes a public REST API that tools and aggregators can query, and an MCP server such as MCPfinder can search the Official Registry and Glama from inside your client.</li>
       </ul>
       <p>In both cases a search result is only a candidate. Check the publisher, tools, required secrets, and transport before you install, using the checklist below.</p>
     </div>
@@ -392,7 +392,7 @@
     <div class="faq-list">
     <div class="faq-item">
       <div class="faq-q">How do I find MCP servers?</div>
-      <div class="faq-a">Start with the Official MCP Registry for publisher identity, then search broader indexes such as Glama and Smithery. For agent-driven discovery, install MCPfinder so your AI client can search those registries, inspect trust signals, and generate install JSON.</div>
+      <div class="faq-a">Start with the Official MCP Registry for publisher identity, then search a broader index such as Glama. For agent-driven discovery, install MCPfinder so your AI client can search those registries, inspect trust signals, and generate install JSON.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">What is MCP server discovery?</div>
@@ -400,7 +400,7 @@
     </div>
     <div class="faq-item">
       <div class="faq-q">Which MCP registries should I check?</div>
-      <div class="faq-a">The Official MCP Registry is the vendor-neutral metadata source. Glama and Smithery are widely used downstream directories and hosting registries. Directory sites such as mcp.so are useful for browsing. MCPfinder aggregates Official Registry, Glama, and Smithery into one agent-searchable index.</div>
+      <div class="faq-a">The Official MCP Registry is the vendor-neutral metadata source. Glama is a widely used downstream directory with a much larger index. Smithery remains a public directory (now run by Arcade.dev), but its hosted proxy and server URLs stop working on 31 October 2026. Directory sites such as mcp.so are useful for browsing. MCPfinder aggregates the Official Registry and Glama into one agent-searchable index.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Is a listing the same as a safe install?</div>
@@ -432,7 +432,7 @@
 <section class="cta-section">
   <div class="container">
     <h2>Find MCP servers from your agent</h2>
-    <p>Install MCPfinder once. Search Official Registry, Glama, and Smithery, inspect warnings, and paste client-ready config.</p>
+    <p>Install MCPfinder once. Search the Official MCP Registry and Glama, inspect warnings, and paste client-ready config.</p>
     <div class="btn-group" style="justify-content:center">
       <a href="/#install" class="btn btn-primary">INSTALL NOW</a>
       <a href="/llms.txt" class="btn btn-secondary">READ LLMS.TXT</a>

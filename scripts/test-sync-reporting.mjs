@@ -23,7 +23,7 @@ assert.equal(messages.length, 2);
 assert.match(messages[0], /Official sync rejected:/);
 assert.match(messages[0], /Error: official transport exploded/);
 assert.match(messages[0], /test-sync-reporting\.mjs/);
-assert.match(messages[1], /Smithery sync rejected:/);
+assert.match(messages[1], /Registry 3 sync rejected:/);
 assert.match(messages[1], /BAD_JSON/);
 assert.match(messages[1], /page-7/);
 
@@ -38,11 +38,11 @@ const sequential = await settleSequentially([
     throw new Error('glama unavailable');
   },
   async () => {
-    order.push('smithery');
+    order.push('third');
     return 30;
   },
 ]);
-assert.deepEqual(order, ['official', 'glama', 'smithery']);
+assert.deepEqual(order, ['official', 'glama', 'third']);
 assert.deepEqual(sequential.map((result) => result.status), [
   'fulfilled',
   'rejected',
@@ -59,7 +59,7 @@ console.log('sync reporting checks passed');
 const dir = mkdtempSync(join(tmpdir(), 'mcpf-sync-atomicity-'));
 // syncGlamaRegistry short-circuits before any request without a key.
 process.env.GLAMA_API_KEY = 'test-key';
-const { initDatabase, syncOfficialRegistry, syncGlamaRegistry, syncSmitheryRegistry } =
+const { initDatabase, syncOfficialRegistry, syncGlamaRegistry } =
   await import('../packages/core/dist/index.js');
 
 const runtime = (fetchImpl, now = () => 0) => ({ fetchImpl, now, sleep: async () => {} });
@@ -158,16 +158,6 @@ const glamaEntry = (id) => ({
   environmentVariablesJsonSchema: null,
   attributes: {},
 });
-const smitheryEntry = (qualifiedName) => ({
-  qualifiedName,
-  displayName: qualifiedName,
-  description: '',
-  homepage: null,
-  useCount: 0,
-  isDeployed: true,
-  createdAt: '2026-01-01T00:00:00.000Z',
-});
-
 const registries = [
   {
     source: 'official',
@@ -186,19 +176,6 @@ const registries = [
         servers: [glamaEntry('glama-one'), glamaEntry('glama-two')],
         pageInfo: { hasNextPage: false, endCursor: null },
       }),
-  },
-  {
-    source: 'smithery',
-    sync: syncSmitheryRegistry,
-    fetchImpl: async (requestUrl) => {
-      const page = Number(new URL(requestUrl).searchParams.get('page'));
-      const servers =
-        page === 1 ? [smitheryEntry('smithery/one'), smitheryEntry('smithery/two')] : [];
-      return Response.json({
-        servers,
-        pagination: { currentPage: page, pageSize: 100, totalPages: 1, totalCount: 2 },
-      });
-    },
   },
 ];
 

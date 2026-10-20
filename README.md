@@ -2,7 +2,7 @@
 
 > The MCP server that helps AI agents discover, evaluate, and install other MCP servers.
 
-MCPfinder is an AI-first discovery layer over the Official MCP Registry, Glama, and Smithery. Install it once, and your assistant can search for missing capabilities, inspect trust signals, review required secrets, and generate client-specific MCP config snippets.
+MCPfinder is an AI-first discovery layer over the Official MCP Registry and Glama. Install it once, and your assistant can search for missing capabilities, inspect trust signals, review required secrets, and generate client-specific MCP config snippets.
 
 ## Canonical Use
 
@@ -122,7 +122,9 @@ MCPfinder is intentionally optimized for agent consumption.
 
 - Human-readable text summaries
 - Structured content for chaining follow-up calls
-- Trust signals: source count, verification, popularity, recency
+- Trust signals: source count, official presence, recency (verification and
+  popularity fields remain in the output but are empty since Smithery, their
+  only source, was dropped)
 - Warning flags: stale projects, missing repository URL, unclear install path, single-source-only
 - Install metadata: config snippet, target file paths, required environment variables, restart instructions
 
@@ -140,11 +142,11 @@ Search ranking uses:
   `io.github.%`, so scoring it turned the boost into a constant and buried every
   real match. The owner segment stays, so searching by owner still works. There
   is no way to search *by* the hosting namespace: `registrySource` filters on
-  the registries an entry was found in (`official`/`glama`/`smithery`), which is
+  the registries an entry was found in (`official`/`glama`), which is
   a different thing.
-- community usage (`useCount`)
 - official registry presence
-- verification signals
+- community usage (`useCount`) and verification signals — currently always 0:
+  Smithery was their only source
 
 Each result is also annotated with:
 
@@ -160,7 +162,12 @@ MCPfinder aggregates:
 
 - [Official MCP Registry](https://registry.modelcontextprotocol.io)
 - [Glama](https://glama.ai/mcp/servers)
-- [Smithery](https://smithery.ai)
+
+Smithery was a third source until it announced that its API, proxy and hosted
+server URLs stop working on 2026-10-31 (https://smithery.ai/future). MCPfinder no
+longer syncs it, and remote URLs on retired Smithery hosts (`server.smithery.ai`,
+`*.run.tools`, `registry.smithery.ai`) are dropped even when the Official
+Registry or Glama still advertise them (`packages/core/src/remote-url.ts`).
 
 Counts vary over time and differ depending on whether you count raw upstream records or merged/deduplicated entries. Snapshot metadata is the source of truth for the currently published local bootstrap dataset.
 
@@ -168,7 +175,7 @@ Counts vary over time and differ depending on whether you count raw upstream rec
 
 First run can bootstrap from a prebuilt SQLite snapshot instead of doing a slow live sync.
 Normal startup therefore does not wait for all live registry budgets. The
-sequential Official → Glama → Smithery cold crawl is a fallback for an empty DB
+sequential Official → Glama cold crawl is a fallback for an empty DB
 only when snapshot bootstrap is disabled or fails, preserving deterministic
 cross-registry deduplication.
 
@@ -318,8 +325,8 @@ never permits an errored or incomplete required source.
 
 ### Every registry is required
 
-Official MCP Registry, Glama, and Smithery are all *required* sources: an
-errored, missing, skipped, or degraded sync of any one of them blocks snapshot
+The Official MCP Registry and Glama are both *required* sources: an
+errored, missing, skipped, or degraded sync of either blocks snapshot
 publication. **An incomplete snapshot never replaces a complete one.**
 
 The reason this is affordable is the shape of the publication handoff.
@@ -329,7 +336,7 @@ fails the gate simply does not touch it — clients keep bootstrapping from the
 previous, complete snapshot. A failed build therefore means *staleness*, not
 *unavailability*, and a complete snapshot from yesterday beats a fresh one with
 a registry missing. Staleness is visible to everyone in the manifest's
-`publishedAt`; a silently absent third of the corpus is visible to no one.
+`publishedAt`; a silently absent half of the corpus is visible to no one.
 
 The gate is parameterised rather than hardcoded: `scripts/snapshot-quality.mjs`
 still implements best-effort (`optionalSources`) handling, and it is still
@@ -337,10 +344,10 @@ tested. Nothing is listed there today. If a registry closes permanently, moving
 its name from `requiredSources` to `optionalSources` in
 `scripts/build-snapshot.mjs` demotes it — with the aggregate-count consequences
 described below — instead of the gate having to be rebuilt under pressure.
-`--no-glama` / `--no-smithery` drop a registry from a local build entirely; they
-are for local runs, not for CI.
+`--no-glama` drops Glama from a local build entirely; it is for local runs,
+not for CI.
 
-`counts` in `manifest.json` always carries all three sources, so a per-registry
+`counts` in `manifest.json` always carries both sources, so a per-registry
 regression stays visible to monitoring even though it now also fails the build.
 
 When a source *is* demoted to best-effort, its absence legitimately shrinks the
@@ -401,11 +408,9 @@ An empty Glama page with `hasNextPage=true` is followed when it supplies a new,
 non-empty cursor. Missing or repeated cursors fail safely as structural errors,
 preventing upstream pagination loops.
 
-Smithery paginates through a fixed seed, and the seeded ordering occasionally
-returns the same `qualifiedName` on two different pages. That is a structural
-error — a corpus counted twice is not a corpus — so the crawl restarts from page
-one rather than committing what it has. Glama does the same for a cross-page
-server id duplicate, and both registries also restart the whole crawl after
+A cross-page server id duplicate in the Glama crawl is a structural error — a
+corpus counted twice is not a corpus — so the crawl restarts from page one
+rather than committing what it has. Glama also restarts the whole crawl after
 exhausted page-level transport retries (5xx, network/abort;
 `RegistryTransportError`); a 401/403 credential rejection or HTTP 429 does
 not — 429 is retried at page level, and restarting from page one would
@@ -413,14 +418,12 @@ amplify load. Restarts are capped at four attempts. Local stdio waits 500 ms
 then 1 s then 2 s so a first-run live sync stays inside the SDK's 60 s
 tool-call timeout. The snapshot job sets `MCPFINDER_CRAWL_RESTART_BASE_MS=15000`
 (15 s then 30 s then 60 s) because the fault is transient upstream: the builds
-of 2026-09-03 and 2026-09-04 still lost Smithery after three attempts at 500 ms
-then 1 s, and the 2026-09-08 Glama HTTP 502 never restarted the crawl at all.
+of 2026-09-03 and 2026-09-04 still lost a registry after three attempts at
+500 ms then 1 s, and the 2026-09-08 Glama HTTP 502 never restarted the crawl at all.
 Restarts run only while the remaining registry budget can cover the next wait;
 skipping a wait that would miss the deadline keeps the original fault rather
 than reporting a budget overrun. Custom values must be whole milliseconds from
-100 through 60000. Four full Smithery passes do not fit the 5-minute local
-budget, so the snapshot job also sets `MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES=12`;
-custom values must be whole minutes from 1 through 15.
+100 through 60000.
 
 ### A frozen publication announces itself
 
@@ -593,7 +596,7 @@ from AI agents consuming the tool surface.
   transport into `api-worker/`, re-use the same snapshot-backed database via
   R2 + Durable Objects, gate with a lightweight rate limit.
 - **Capability-count enrichment for non-Glama rows.** `capabilityCount` is
-  currently 0 for most Official/Smithery rows because those upstreams don't
+  currently 0 for most Official rows because those upstreams don't
   publish tool manifests in list responses. Plan: during the snapshot build,
   probe the downstream server's README or, for npm packages, parse the tarball's
   `package.json` for an `mcp.tools` hint; surface per-row confidence in the

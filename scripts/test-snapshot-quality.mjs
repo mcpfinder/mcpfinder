@@ -12,9 +12,7 @@ import {
 import { runSnapshotDedupChecks } from './snapshot-dedup-checks.mjs';
 import { runSnapshotDbMigrationChecks } from './snapshot-db-migration-checks.mjs';
 import { runSnapshotGlamaCrawlChecks } from './snapshot-glama-crawl-checks.mjs';
-import { runSnapshotEnrichChecks } from './snapshot-enrich-checks.mjs';
 import { runSnapshotMergeChecks } from './snapshot-merge-checks.mjs';
-import { runSnapshotSmitheryPaginationChecks } from './snapshot-smithery-pagination-checks.mjs';
 import { runSnapshotGlamaCaptureChecks } from './snapshot-glama-capture-checks.mjs';
 
 const dir = mkdtempSync(join(tmpdir(), 'mcpf-snapshot-quality-'));
@@ -24,9 +22,6 @@ const originalGlamaBudget = process.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES;
 const originalGlamaKey = process.env.GLAMA_API_KEY;
 process.env.GLAMA_API_KEY = 'test-glama-key';
 const glamaEmpty = { servers: [], pageInfo: { hasNextPage: false, endCursor: null } };
-const smitheryEmpty = { servers: [], pagination: {
-  currentPage: 1, pageSize: 100, totalPages: 0, totalCount: 0,
-} };
 
 function runtime(fetchImpl, now = () => 0) {
   return { fetchImpl, now, sleep: async () => {} };
@@ -44,7 +39,7 @@ function syncLog(db, source) {
 function healthyManifest(overrides = {}) {
   return {
     serverCount: 100,
-    counts: { official: 60, glama: 50, smithery: 20 },
+    counts: { official: 60, glama: 50 },
     ...overrides,
   };
 }
@@ -56,7 +51,6 @@ try {
     isSyncNeeded,
     syncOfficialRegistry,
     syncGlamaRegistry,
-    syncSmitheryRegistry,
     updateSyncLog,
   } = await import('../packages/core/dist/index.js');
   const { fetchJsonPageWithRetry, fetchWithRetry, RegistryTransportError } = await import(
@@ -83,7 +77,6 @@ try {
   assert.equal(persistentNetworkCalls, 4);
   await runSnapshotDedupChecks();
   await runSnapshotDbMigrationChecks(dir);
-  await runSnapshotEnrichChecks(dir);
 
   const officialEntry = (name, repo = null, description = '') => ({
     server: {
@@ -107,19 +100,6 @@ try {
     url: null,
     environmentVariablesJsonSchema: null,
     attributes: {},
-    ...overrides,
-  });
-  const smitheryEntry = (qualifiedName, homepage, overrides = {}) => ({
-    qualifiedName,
-    displayName: qualifiedName,
-    description: '',
-    useCount: 0,
-    verified: false,
-    remote: false,
-    isDeployed: false,
-    iconUrl: null,
-    homepage,
-    createdAt: '2026-01-01T00:00:00Z',
     ...overrides,
   });
 
@@ -153,29 +133,8 @@ try {
     ),
     2,
   );
-  let smitheryPage = 0;
-  assert.equal(
-    await syncSmitheryRegistry(
-      paginationDb,
-      runtime(async (requestUrl) => {
-        smitheryPage++;
-        const parsedUrl = new URL(requestUrl);
-        assert.equal(parsedUrl.searchParams.get('seed'), '20260820');
-        assert.equal(parsedUrl.searchParams.get('page'), String(smitheryPage));
-        const servers = smitheryPage === 1
-          ? Array.from({ length: 100 }, (_, index) =>
-              smitheryEntry(`smithery/item-${index}`, null))
-          : smitheryPage === 2 ? [smitheryEntry('smithery/item-100', null)] : [];
-        return Response.json({
-          servers,
-          pagination: { currentPage: smitheryPage, pageSize: 100, totalPages: 2, totalCount: 101 },
-        });
-      }),
-    ),
-    101,
-  );
-  assert.deepEqual([officialPage, glamaPage, smitheryPage], [2, 2, 3]);
-  assert.equal(paginationDb.prepare('SELECT COUNT(*) AS count FROM servers').get().count, 105);
+  assert.deepEqual([officialPage, glamaPage], [2, 2]);
+  assert.equal(paginationDb.prepare('SELECT COUNT(*) AS count FROM servers').get().count, 4);
   assert.deepEqual(
     paginationDb
       .prepare('SELECT source, COUNT(*) AS count FROM servers GROUP BY source ORDER BY source')
@@ -184,10 +143,9 @@ try {
     [
       { source: 'glama', count: 2 },
       { source: 'official', count: 2 },
-      { source: 'smithery', count: 101 },
     ],
   );
-  for (const source of ['official', 'glama', 'smithery']) {
+  for (const source of ['official', 'glama']) {
     assert.equal(syncLog(paginationDb, source).status, 'ok');
   }
   paginationDb.close();
@@ -424,8 +382,6 @@ try {
   assert.equal(incrementalCalls, 3);
   attemptThrottleDb.close();
 
-  await runSnapshotSmitheryPaginationChecks(dir);
-
   await runSnapshotMergeChecks(dir);
 
   await runSnapshotGlamaCaptureChecks(dir);
@@ -523,44 +479,6 @@ try {
   missingGlamaIdDb.close();
 
   await runSnapshotGlamaCrawlChecks(dir);
-
-  // Smithery has the same malformed-page recovery and persistent failure.
-  const smitheryRecoveredDb = initDatabase(join(dir, 'smithery-recovered.sqlite'));
-  let smitheryRecoveredCalls = 0;
-  await syncSmitheryRegistry(
-    smitheryRecoveredDb,
-    runtime(async () => {
-      smitheryRecoveredCalls++;
-      return smitheryRecoveredCalls === 1
-        ? new Response('{broken json', { status: 200 })
-        : Response.json(smitheryEmpty);
-    }),
-  );
-  assert.equal(smitheryRecoveredCalls, 2);
-  assert.equal(syncLog(smitheryRecoveredDb, 'smithery').status, 'ok');
-  smitheryRecoveredDb.close();
-
-  const smitheryMalformedDb = initDatabase(join(dir, 'smithery-malformed.sqlite'));
-  let smitheryMalformedCalls = 0;
-  await syncSmitheryRegistry(
-    smitheryMalformedDb,
-    runtime(async () => {
-      smitheryMalformedCalls++;
-      return new Response('{broken json', { status: 200 });
-    }),
-  );
-  assert.equal(smitheryMalformedCalls, 4);
-  assert.equal(syncLog(smitheryMalformedDb, 'smithery').status, 'error');
-  smitheryMalformedDb.close();
-
-  const smitheryStructureDb = initDatabase(join(dir, 'smithery-structure.sqlite'));
-  await syncSmitheryRegistry(
-    smitheryStructureDb,
-    runtime(async () => Response.json({ servers: [], pagination: { currentPage: 1 } })),
-  );
-  assert.equal(syncLog(smitheryStructureDb, 'smithery').status, 'error');
-  assert.match(syncLog(smitheryStructureDb, 'smithery').error, /pagination\.pageSize/);
-  smitheryStructureDb.close();
 
   // Valid and invalid Glama budget configuration both leave auditable state.
   process.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES = '30';
@@ -1117,7 +1035,7 @@ try {
   assert.equal(glamaShrank.errors.length, 0);
   assert.match(glamaShrank.warnings.join('\n'), /best-effort counts\.glama dropped/);
 
-  // ── Source policy: all three registries are required ─────────────────────
+  // ── Source policy: both registries are required ────────────────────────────
   //
   // An incomplete snapshot never replaces a complete one. `manifest.json` is
   // the pointer swapped as the last publication step, so a failed gate leaves
@@ -1132,7 +1050,9 @@ try {
   );
   assert.match(sourcePolicy, /const requiredSources = \['official'\];/);
   assert.match(sourcePolicy, /if \(!flag\('--no-glama'\)\) requiredSources\.push\('glama'\);/);
-  assert.match(sourcePolicy, /if \(!flag\('--no-smithery'\)\) requiredSources\.push\('smithery'\);/);
+  // Smithery's API shuts down on 2026-10-31; it must not come back as a source.
+  assert.doesNotMatch(sourcePolicy, /smithery/i);
+  assert.doesNotMatch(builderSource, /syncSmitheryRegistry|enrichSmitheryRepoUrls/);
   assert.match(sourcePolicy, /const optionalSources = \[\];/);
   assert.doesNotMatch(
     sourcePolicy,
@@ -1140,9 +1060,9 @@ try {
     'no registry may be demoted to best-effort in the shipped build policy',
   );
 
-  const allRequired = ['official', 'glama', 'smithery'];
+  const allRequired = ['official', 'glama'];
   const allHealthyLog = allRequired.map((source) => ({ source, status: 'ok', error: null }));
-  const fullCounts = { official: 60, glama: 40, smithery: 30 };
+  const fullCounts = { official: 60, glama: 40 };
   const fullCurrent = { serverCount: 100, counts: fullCounts };
   const fullPrevious = healthyManifest({ serverCount: 100, counts: fullCounts });
 
@@ -1156,12 +1076,13 @@ try {
   assert.equal(allHealthy.ok, true);
   assert.equal(allHealthy.warnings.length, 0);
 
-  // A failure of any one of the three blocks publication, and the count
+  // A failure of either registry blocks publication, and the count
   // override never buys a way past it.
   for (const [source, status, error] of [
     ['official', 'error', 'upstream failed'],
+    ['official', 'degraded', 'sync budget exceeded'],
     ['glama', 'skipped', 'Glama API requires GLAMA_API_KEY; skipping Glama sync'],
-    ['smithery', 'degraded', 'sync budget exceeded'],
+    ['glama', 'degraded', 'sync budget exceeded'],
   ]) {
     const degradedLog = allHealthyLog.map((entry) =>
       entry.source === source ? { source, status, error } : entry,
@@ -1179,7 +1100,7 @@ try {
     assert.doesNotMatch(result.warnings.join('\n'), /best-effort/);
   }
 
-  // A registry that never reported at all blocks too — same for all three.
+  // A registry that never reported at all blocks too — same for both.
   for (const source of allRequired) {
     const result = evaluateCurrentSnapshotQuality({
       syncLog: allHealthyLog.filter((entry) => entry.source !== source),

@@ -44,7 +44,6 @@ export class DedupIndex {
   private readonly repos = new Map<string, string[]>();
   private readonly packages = new Map<string, string[]>();
   private readonly slugs = new Map<string, string[]>();
-  private readonly officialNames = new Map<string, string[]>();
 
   constructor(rows: DedupRow[]) {
     for (const row of rows) this.replace(row);
@@ -61,13 +60,10 @@ export class DedupIndex {
       ? previous.slug
       : null;
     const nextSlug = row.source !== null && row.source !== 'unknown' ? row.slug : null;
-    const previousOfficialName = previous?.source === 'official' ? previous.name.toLowerCase() : null;
-    const nextOfficialName = row.source === 'official' ? row.name.toLowerCase() : null;
     for (const [index, before, after] of [
       [this.repos, previousRepo, nextRepo],
       [this.packages, previousPackage, nextPackage],
       [this.slugs, previousSlug, nextSlug],
-      [this.officialNames, previousOfficialName, nextOfficialName],
     ] as Array<[Map<string, string[]>, string | null, string | null]>) {
       if (before === after) continue;
       remove(index, before, row.id);
@@ -129,13 +125,6 @@ export class DedupIndex {
       if (ids.length === 1) return ids[0];
     }
     return null;
-  }
-
-  findOfficialFromSmithery(qualifiedName: string | null | undefined): string | null {
-    if (!qualifiedName) return null;
-    const tail = qualifiedName.toLowerCase().replace(/\//g, '-').replace(/[^a-z0-9-]/g, '');
-    if (!tail) return null;
-    return this.officialNames.get(`ai.smithery/${tail}`)?.[0] ?? null;
   }
 
   /** Apply the match-relevant subset of mergeServerData without another query. */

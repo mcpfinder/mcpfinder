@@ -1,6 +1,7 @@
 name: build-snapshot
 
-# Builds a fresh SQLite snapshot from all three registries and uploads it to
+# Builds a fresh SQLite snapshot from both registries (Official MCP Registry and
+# Glama; Smithery was dropped because its API shuts down on 2026-10-31) and uploads it to
 # the R2 bucket mcp-finder-db-snapshots. Clients download this instead of
 # running the ~11 min live sync on first start.
 #
@@ -9,7 +10,7 @@ name: build-snapshot
 #   CLOUDFLARE_ACCOUNT_ID   — Cloudflare account ID
 #   GLAMA_API_KEY           — https://glama.ai/settings/api-keys. Glama closed
 #                             its public API on 2026-08-26. Without the key the
-#                             Glama sync is skipped, and since all three
+#                             Glama sync is skipped, and since both
 #                             registries are required the quality gate fails and
 #                             nothing is published: an incomplete snapshot never
 #                             replaces the complete one already being served.
@@ -50,8 +51,8 @@ jobs:
       actions: read
       contents: read
       issues: write
-    # Registry budgets can consume 37 minutes (Official 25 + Smithery 12; Glama
-    # only replays the R2 capture here and never crawls live);
+    # Registry budgets can consume 25 minutes (Official 25; Glama only replays
+    # the R2 capture here and never crawls live);
     # keep at least 50 minutes for install, focused tests, enrichment,
     # vacuum/gzip, preflight, and upload. Raising any budget below
     # eats into that reserve — re-add them here before touching this ceiling.
@@ -134,10 +135,6 @@ jobs:
           # Cold deep pages have taken 26 s at the origin; the shared 20 s
           # abort would burn every retry on one page.
           MCPFINDER_OFFICIAL_REQUEST_TIMEOUT_SECONDS: '60'
-          # Smithery now restarts a stalled crawl across four attempts, and
-          # four full passes do not fit the default 5-minute budget.
-          # Twelve minutes covers them inside the 90-minute ceiling.
-          MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES: '12'
           # Local stdio keeps the 500 ms restart ladder because first-run live
           # sync is gated on the SDK's 60 s tool-call timeout. CI waits
           # 15 s / 30 s / 60 s so a registry mid-reindex can recover.
@@ -148,7 +145,7 @@ jobs:
           # that Glama's API Data License requires visible Glama attribution
           # wherever this data is displayed.
           GLAMA_API_KEY: ${{ secrets.GLAMA_API_KEY }}
-          # Powers the Smithery repo-probe and archived-repo enrichment. The
+          # Powers the archived-repo enrichment. The
           # Actions-provided GITHUB_TOKEN is capped at ~1000 REST req/hr, so the
           # archived-repo pass is incremental: capped per run, with flags
           # carried across builds (see scripts/build-snapshot.mjs).

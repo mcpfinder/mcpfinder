@@ -65,7 +65,6 @@ export async function runSnapshotDedupChecks() {
   const mutable = new DedupIndex([
     row('merge-target', { slug: 'merge-target' }),
     row('upsert-target', { repository_url: 'https://github.com/acme/old' }),
-    row('smithery-mirror', { name: 'ai.smithery/acme-tool', source: 'official' }),
   ]);
   mutable.merge('merge-target', row('incoming', {
     repository_url: 'https://gitlab.com/acme/merged.git',
@@ -93,7 +92,6 @@ export async function runSnapshotDedupChecks() {
     'upsert-target',
   );
   assert.equal(mutable.find(null, null, null, 'refreshed-slug'), 'upsert-target');
-  assert.equal(mutable.findOfficialFromSmithery('acme/tool'), 'smithery-mirror');
 
   assert.equal(
     normalizeRepositoryUrl('git@gitlab.com:Acme/Project.git'),

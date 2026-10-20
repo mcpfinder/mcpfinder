@@ -1,7 +1,6 @@
 import type {
   GlamaListResponse,
   RegistryListResponse,
-  SmitheryListResponse,
 } from './types.js';
 
 export function validateOfficialPage(data: unknown): asserts data is RegistryListResponse {
@@ -44,31 +43,3 @@ export function validateGlamaPage(data: unknown): asserts data is GlamaListRespo
   }
 }
 
-export function validateSmitheryPage(
-  data: unknown,
-  requestedPage: number,
-  pageLimit: number,
-): asserts data is SmitheryListResponse {
-  if (!data || typeof data !== 'object') {
-    throw new Error('Smithery API: response must be an object');
-  }
-  const result = data as Partial<SmitheryListResponse>;
-  if (!Array.isArray(result.servers)) throw new Error('Smithery API: servers must be an array');
-  const pagination = result.pagination;
-  if (!pagination || typeof pagination !== 'object') {
-    throw new Error('Smithery API: pagination must be an object');
-  }
-  for (const field of ['currentPage', 'pageSize', 'totalPages', 'totalCount'] as const) {
-    if (!Number.isInteger(pagination[field]) || pagination[field] < 0) {
-      throw new Error(`Smithery API: pagination.${field} must be a non-negative integer`);
-    }
-  }
-  if (pagination.currentPage !== requestedPage) {
-    throw new Error(
-      `Smithery API: pagination.currentPage ${pagination.currentPage} does not match ${requestedPage}`,
-    );
-  }
-  if (result.servers.length > pageLimit) {
-    throw new Error('Smithery API: servers length exceeds requested page limit');
-  }
-}

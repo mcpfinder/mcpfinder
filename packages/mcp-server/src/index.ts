@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * MCPfinder MCP Server
- * Your AI's app store for MCP tools — discover and install 25K+ MCP servers on demand.
- * Aggregates Official MCP Registry, Glama, and Smithery into a fast, searchable index.
+ * Your AI's app store for MCP tools — discover and install MCP servers on demand.
+ * Aggregates the Official MCP Registry and Glama into a fast, searchable index.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -15,7 +15,6 @@ import {
   getCatalogDbPath,
   syncOfficialRegistry,
   syncGlamaRegistry,
-  syncSmitheryRegistry,
   isSyncNeeded,
   getServerCount,
   searchServers,
@@ -25,6 +24,7 @@ import {
   buildEnvPlaceholders,
   looksLikeCredentialName,
   possibleUnlabeledSecrets,
+  usableRemoteUrl,
 } from '@mcpfinder/core';
 import { createCatalog } from './catalog.js';
 import { reportSyncResults } from './sync-report.js';
@@ -139,15 +139,9 @@ function formatUseCount(count: number): string {
   return String(count);
 }
 
-function sourceBadges(sources: string[], useCount: number, verified: boolean): string {
+function sourceBadges(sources: string[]): string {
   const badges: string[] = [];
   if (sources.includes('official')) badges.push('📦 Official');
-  if (sources.includes('smithery')) {
-    let badge = '🌟 Smithery';
-    if (useCount > 0) badge += ` (${formatUseCount(useCount)} uses)`;
-    if (verified) badge += ' ✓';
-    badges.push(badge);
-  }
   if (sources.includes('glama')) badges.push('🔍 Glama');
   return badges.length > 0 ? badges.join(' | ') : '';
 }
@@ -189,11 +183,10 @@ function runSync(): Promise<void> {
     const results = await settleSequentially([
       () => syncOfficialRegistry(db),
       () => syncGlamaRegistry(db),
-      () => syncSmitheryRegistry(db),
     ]);
     const counts = reportSyncResults(results);
     process.stderr.write(
-      `[mcpfinder] Synced: Official=${counts[0]}, Glama=${counts[1]}, Smithery=${counts[2]} (${getServerCount(db)} total)\n`,
+      `[mcpfinder] Synced: Official=${counts[0]}, Glama=${counts[1]} (${getServerCount(db)} total)\n`,
     );
   })().finally(() => {
     inFlightSync = null;
@@ -308,7 +301,7 @@ server.registerTool(
       query: z.string().default('').describe(
         'Search query — a keyword (e.g., "filesystem"), use case ("query databases"), or technology ("postgres"). ' +
           'Common aliases work: "gh" → github, "pg" → postgres, "k8s" → kubernetes, "db" → database. ' +
-          'Leave empty to see the most popular servers.',
+          'Leave empty to browse servers: Official Registry entries first, then the most recently updated.',
       ),
       limit: z.number().min(1).max(50).default(10).describe('Maximum results to return (default: 10, max: 50)'),
       transportType: z
@@ -320,7 +313,7 @@ server.registerTool(
         .default('any')
         .describe('Filter by package registry type'),
       registrySource: z
-        .enum(['official', 'glama', 'smithery', 'any'])
+        .enum(['official', 'glama', 'any'])
         .default('any')
         .describe('Filter by registry source'),
     },
@@ -358,7 +351,7 @@ server.registerTool(
 
     const formatted = results
       .map((r) => {
-        const badges = sourceBadges(r.sources, r.useCount, r.verified);
+        const badges = sourceBadges(r.sources);
         return (
           `${r.rank}. **${r.name}** (v${r.version || 'n/a'})\n` +
           `   ${r.description}\n` +
@@ -372,7 +365,7 @@ server.registerTool(
     return makeTextResponse(
       query
         ? `Found ${results.length} MCP server(s) for "${query}":\n\n${formatted}\n\nCall get_server_details on the best candidate before recommending or installing it.`
-        : `Top ${results.length} most popular MCP servers:\n\n${formatted}\n\nCall get_server_details on a candidate before recommending or installing it.`,
+        : `Top ${results.length} MCP servers (Official Registry first, then most recently updated):\n\n${formatted}\n\nCall get_server_details on a candidate before recommending or installing it.`,
       {
         query,
         results: results.map((r) => ({
@@ -440,7 +433,7 @@ server.registerTool(
             .join('\n')
         : '';
 
-    const badges = sourceBadges(detail.sources, detail.useCount, detail.verified);
+    const badges = sourceBadges(detail.sources);
     const toolSection =
       detail.toolsExposed.length > 0
         ? '\n\n**Tools Exposed:**\n' +
@@ -563,13 +556,15 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
   const envVars = detail.environmentVariables || [];
   const env = buildEnvPlaceholders(envVars);
   const platformInfo = PLATFORMS[platform];
-  const isRemote = detail.hasRemote && detail.remoteUrl;
+  // Never hand out a URL on a retired host (see core remote-url.ts), even if an
+  // older catalog still has one on the row.
+  const remoteUrl = detail.hasRemote ? usableRemoteUrl(detail.remoteUrl) : null;
 
   let serverConfig: Record<string, unknown>;
   let installType: string;
 
-  if (isRemote && detail.remoteUrl) {
-    serverConfig = { url: detail.remoteUrl };
+  if (remoteUrl) {
+    serverConfig = { url: remoteUrl };
     if (Object.keys(env).length > 0) serverConfig.env = env;
     installType = 'remote';
   } else if (detail.registryType === 'npm' && detail.packageIdentifier) {

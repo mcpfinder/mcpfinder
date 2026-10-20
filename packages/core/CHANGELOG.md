@@ -26,7 +26,7 @@ Glama remain.
   else Glama, as its primary `source`), `use_count` / `verified` /
   Smithery-hosted icons are reset, and remote URLs on retired hosts are
   cleared. Other fields Smithery supplied to merged rows (e.g. a longer
-  description) stay until that row's next refresh or a new snapshot. Merges
+  description) may persist until a new snapshot replaces the catalog. Merges
   ignore a retired source left in `sources`.
 
 ## 1.5.0 and earlier

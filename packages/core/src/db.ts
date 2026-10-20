@@ -272,8 +272,11 @@ function clearRetiredRemoteUrls(db: DatabaseSync): void {
 function clearRetiredSourceData(db: DatabaseSync): void {
   try {
     const legacy = db
-      .prepare(`SELECT id, sources FROM servers WHERE sources LIKE '%"smithery"%'`)
-      .all() as Array<{ id: string; sources: string }>;
+      .prepare(
+        `SELECT id, source, sources FROM servers
+         WHERE sources LIKE '%"smithery"%' OR source = 'smithery'`,
+      )
+      .all() as Array<{ id: string; source: string | null; sources: string }>;
     const needsSignalReset = db
       .prepare(
         `SELECT 1 FROM servers
@@ -282,7 +285,9 @@ function clearRetiredSourceData(db: DatabaseSync): void {
       .get();
     if (legacy.length === 0 && !needsSignalReset) return;
     const remove = db.prepare('DELETE FROM servers WHERE id = ?');
-    const setSources = db.prepare('UPDATE servers SET sources = ? WHERE id = ?');
+    // A row Smithery inserted first keeps `source = 'smithery'`; hand it to a
+    // live source so that source's sync refreshes the row exactly.
+    const setSources = db.prepare('UPDATE servers SET sources = ?, source = ? WHERE id = ?');
     db.exec('BEGIN IMMEDIATE');
     try {
       for (const row of legacy) {
@@ -295,7 +300,12 @@ function clearRetiredSourceData(db: DatabaseSync): void {
         if (!Array.isArray(sources)) continue;
         const kept = sources.filter((s) => typeof s === 'string' && s !== 'smithery');
         if (kept.length === 0) remove.run(row.id);
-        else setSources.run(JSON.stringify(kept.sort()), row.id);
+        else {
+          const primary = row.source && row.source !== 'smithery'
+            ? row.source
+            : kept.includes('official') ? 'official' : kept.sort()[0];
+          setSources.run(JSON.stringify(kept.sort()), primary, row.id);
+        }
       }
       db.exec(`UPDATE servers SET use_count = 0 WHERE use_count <> 0`);
       db.exec(`UPDATE servers SET verified = 0 WHERE verified <> 0`);

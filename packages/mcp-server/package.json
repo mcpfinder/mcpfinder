@@ -19,6 +19,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "prepack": "tsc",
     "dev": "tsc --watch",
     "start": "node dist/cli.js",
     "clean": "rm -rf dist"

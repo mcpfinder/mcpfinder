@@ -10,11 +10,13 @@
   with no package and no remote endpoint says "No install method known" and
   points to the repository and listing (`installType: "none"`,
   `repositoryUrl`, `listingUrl`). A local catalog from an earlier version is
-  cleaned on first open.
+  cleaned on first open. 2.0.0 clients pick up the fixed snapshot, but their
+  own Glama sync writes the listing page back as a remote: please upgrade.
 - The published catalog snapshot drops one of two Official Registry entries
   that publish the same remote endpoint (conservative rule, see
   `@mcpfinder/core` 2.0.1); a client gets this by adopting the snapshot. The
-  dropped entry's name no longer resolves.
+  dropped entry's name no longer resolves in the snapshot; a later local
+  Official sync re-adds it if its publisher updates it.
 - Requires `@mcpfinder/core` ^2.0.1.
 
 ## 2.0.0 — 2026-10-20

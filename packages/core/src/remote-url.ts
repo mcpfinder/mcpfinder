@@ -68,7 +68,8 @@ export function listingUrl(url: unknown): string | null {
 /**
  * Comparison key for a remote URL: scheme-insensitive, lowercase host, no
  * default port, no trailing slash. Path and query stay significant (and
- * case-sensitive). Null for anything that is not an http(s) URL.
+ * case-sensitive). Null for anything that is not an http(s) URL or that
+ * carries credentials.
  */
 export function normalizeRemoteUrlKey(url: unknown): string | null {
   if (typeof url !== 'string' || url.length === 0) return null;
@@ -79,6 +80,8 @@ export function normalizeRemoteUrlKey(url: unknown): string | null {
     return null;
   }
   if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+  // Credentials in the URL identify different accounts on one host: no key.
+  if (parsed.username || parsed.password) return null;
   const host = parsed.hostname.toLowerCase().replace(/\.$/, '');
   if (!host) return null;
   // URL already drops the scheme's own default port (https:443, http:80); any

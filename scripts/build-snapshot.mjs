@@ -328,6 +328,11 @@ await rejectBadSnapshot(previousResult.manifest, { serverCount, counts });
 // Collapse WAL so the file is self-contained
 db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
 db.exec('VACUUM');
+// servers has a TEXT primary key, so VACUUM may renumber its rowids, which the
+// external-content FTS index is keyed on. Rows are deleted during the build
+// (same-endpoint merge), so rebuild the index from the final table.
+db.exec("INSERT INTO servers_fts(servers_fts) VALUES('rebuild')");
+db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
 db.close();
 
 const rawSize = await stat(dbPath).then((s) => s.size);

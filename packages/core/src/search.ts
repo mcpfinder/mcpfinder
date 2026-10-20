@@ -24,6 +24,16 @@ import type {
 import { categorizeServer } from './categories.js';
 import { looksLikeCredentialName } from './credential-hint.js';
 import { parseRawEnvelope, rawPayloads } from './raw-envelope.js';
+import { usableRemoteUrl } from './remote-url.js';
+
+/**
+ * Whether a row has a remote MCP endpoint a client can use. Also refuses a
+ * retired host or directory listing page an older catalog may still hold when
+ * its open-time cleanup could not run (busy or read-only database).
+ */
+function hasUsableRemote(row: Pick<McpServer, 'has_remote' | 'remote_url'>): boolean {
+  return row.has_remote === 1 && usableRemoteUrl(row.remote_url) !== null;
+}
 
 /**
  * Alias dictionary: common abbreviations → full terms.
@@ -490,7 +500,7 @@ function formatSearchResult(row: McpServer, idx: number): SearchResult {
     packageIdentifier: row.package_identifier,
     transportType: row.transport_type,
     repositoryUrl: row.repository_url,
-    hasRemote: row.has_remote === 1,
+    hasRemote: hasUsableRemote(row),
     rank: idx + 1,
     sources,
     useCount: row.use_count || 0,
@@ -567,8 +577,8 @@ export function getServerDetails(
     publishedAt: row.published_at,
     updatedAt: row.updated_at,
     status: row.status,
-    hasRemote: row.has_remote === 1,
-    remoteUrl: row.remote_url,
+    hasRemote: hasUsableRemote(row),
+    remoteUrl: hasUsableRemote(row) ? row.remote_url : null,
     listingUrl: row.listing_url ?? null,
     categories,
     environmentVariables: envVars,
@@ -736,7 +746,7 @@ function getWarningFlags(row: McpServer, sources: string[]): string[] {
   if (sources.length <= 1) warnings.push('single-source-only');
   if (!row.updated_at) warnings.push('missing-update-date');
   if (!row.repository_url) warnings.push('missing-repository-url');
-  if (!row.package_identifier && row.has_remote !== 1) warnings.push('install-method-unclear');
+  if (!row.package_identifier && !hasUsableRemote(row)) warnings.push('install-method-unclear');
   if (row.status && row.status !== 'active') warnings.push(`status:${row.status}`);
 
   // Build-time enrichment flags (null = never probed, 1 = flagged, 0 = clean).
@@ -813,7 +823,7 @@ function getTrustSignals(
     hasOfficialSource: sources.includes('official'),
     isVerified: row.verified === 1,
     hasRepository: Boolean(row.repository_url),
-    hasRemote: row.has_remote === 1,
+    hasRemote: hasUsableRemote(row),
     multiSource: sources.length > 1,
     hasRecentUpdate: freshnessDays !== null && freshnessDays <= 180,
     requiresSecrets: envVars.some((envVar) => envVar.isSecret),
@@ -845,9 +855,9 @@ function getInstallComplexity(
   toolsExposed: ToolSummary[] = [],
 ): 'low' | 'medium' | 'high' {
   const secretCount = envVars.filter((envVar) => envVar.isSecret).length;
-  if (row.has_remote === 1 && secretCount === 0) return 'low';
+  if (hasUsableRemote(row) && secretCount === 0) return 'low';
   if (secretCount >= 2) return 'high';
-  if (!row.package_identifier && row.has_remote !== 1) return 'high';
+  if (!row.package_identifier && !hasUsableRemote(row)) return 'high';
   if (row.registry_type === 'oci') return 'medium';
   if (toolsExposed.length > 15 || secretCount === 1) return 'medium';
   return 'low';

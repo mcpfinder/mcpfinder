@@ -445,6 +445,12 @@ export async function runSnapshotMergeChecks(dir) {
       // Two-letter suffix shared by unrelated publishers is not a publisher match.
       remoteEntry('uk.co.alpha/a', 'https://shared.example.com/mcp', 'Weather forecasts for farms'),
       remoteEntry('uk.co.beta/b', 'https://shared.example.com/mcp', 'Invoice parsing for accountants'),
+      // Shared TLD label is not a publisher match either.
+      remoteEntry('tools.acme/weather', 'https://tld.example.com/mcp', 'Weather forecasts for farms'),
+      remoteEntry('tools.beta/invoices', 'https://tld.example.com/mcp', 'Invoice parsing for accountants'),
+      // Different credentials: different accounts, no key, not compared.
+      remoteEntry('io.github.ivan/one', 'https://alice:one@cred.example.com/mcp', 'Same text here please'),
+      remoteEntry('io.github.ivan/two', 'https://bob:two@cred.example.com/mcp', 'Same text here please'),
       // Templated host: skipped and reported.
       remoteEntry('io.github.henry/tpl', 'https://{hostname}:8080/mcp', 'Self hosted'),
       remoteEntry('io.github.henry/tpl2', 'https://{hostname}:8080/mcp', 'Self hosted'),
@@ -453,7 +459,7 @@ export async function runSnapshotMergeChecks(dir) {
       remoteEntry('io.github.gina/two', 'https://three.example.net/mcp', 'Gina server'),
       remoteEntry('io.github.gina/three', 'https://three.example.net/mcp', 'Gina server'),
     ],
-    metadata: { nextCursor: null, count: 17 },
+    metadata: { nextCursor: null, count: 21 },
   };
   const { mergeSameRemoteOfficialEntries, normalizeRemoteUrlKey } =
     await import('../packages/core/dist/index.js');
@@ -461,27 +467,30 @@ export async function runSnapshotMergeChecks(dir) {
   assert.equal(normalizeRemoteUrlKey('http://api.acme.com:80/mcp'), 'api.acme.com/mcp');
   assert.equal(normalizeRemoteUrlKey('http://api.acme.com:443/mcp'), 'api.acme.com:443/mcp');
   assert.equal(normalizeRemoteUrlKey('https://a.example/mcp?tools=X'), 'a.example/mcp?tools=X');
+  assert.equal(normalizeRemoteUrlKey('https://u:p@a.example/mcp'), null);
   const urlMergeDb = initDatabase(join(dir, 'official-url-merge.sqlite'));
   // The pass is not part of the sync: a sync alone keeps every entry.
   await syncOfficialRegistry(urlMergeDb, runtime(async () => Response.json(urlMergeFeed)));
-  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 17);
+  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 21);
   // Make the acme pair Official+Glama on one side to check the
   // would-drop-other-source guard, and mark one reviews row deprecated.
   urlMergeDb.exec(`UPDATE servers SET sources = '["glama","official"]' WHERE id = 'io.github.acme/tool-mcp'`);
   urlMergeDb.exec(`UPDATE servers SET status = 'deprecated', description = description || ' and much more text here' WHERE id = 'io.github.alice/reviews'`);
   const result = mergeSameRemoteOfficialEntries(urlMergeDb);
   assert.deepEqual(result.merged, [
-    { url: 'api.acme.com/mcp', kept: 'io.github.acme/tool-mcp', removed: 'com.acme/tool' },
     { url: 'mcp.apify.com?tools=x/reviews', kept: 'io.github.bob/reviews-fork', removed: 'io.github.alice/reviews' },
   ]);
   assert.deepEqual(result.skipped.map((k) => [k.reason, k.ids]), [
+    // The Glama-merged row ranks richer but lacks the other row's repository.
+    ['would-lose-fields', ['com.acme/tool', 'io.github.acme/tool-mcp']],
     ['unrelated', ['io.github.carol/marketnow', 'io.github.dave/marketnow-mcp']],
     ['unrelated', ['uk.co.alpha/a', 'uk.co.beta/b']],
     ['group-larger-than-2', ['io.github.gina/one', 'io.github.gina/three', 'io.github.gina/two']],
+    ['unrelated', ['tools.acme/weather', 'tools.beta/invoices']],
     ['templated-url', ['io.github.erin/tpl', 'io.github.erin/tpl2']],
     ['templated-url', ['io.github.henry/tpl', 'io.github.henry/tpl2']],
   ]);
-  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 15);
+  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 20);
   // Idempotent.
   assert.deepEqual(mergeSameRemoteOfficialEntries(urlMergeDb).merged, []);
   urlMergeDb.close();

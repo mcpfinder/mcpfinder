@@ -15,8 +15,8 @@
  *   or GitHub owner), near-identical descriptions, or the same server name
  *   with somewhat similar descriptions. Otherwise it is skipped and reported.
  * - The dropped row must be Official-only (`sources = ["official"]`), so no
- *   other source's payload is lost, and must not be the only active row of
- *   the pair.
+ *   other source's payload is lost, and must not have a package, repository
+ *   or env vars the kept row lacks. An active row ranks above an inactive one.
  *
  * The kept row is left as it is (its `sources` already include `official`); no
  * fields are copied over, so every field keeps its raw_data provenance. The
@@ -25,7 +25,8 @@
  * It runs once, at snapshot build time (scripts/build-snapshot.mjs), on a
  * catalog built from scratch. It is not part of a client's incremental sync:
  * a merge cannot be undone, and an incremental crawl only sees entries that
- * changed. A client gets the merged catalog by adopting the snapshot.
+ * changed. A client gets the merged catalog by adopting the snapshot; its own
+ * later Official syncs re-add a dropped entry when the publisher updates it.
  */
 import type { DatabaseSync } from 'node:sqlite';
 import { normalizeRemoteUrlKey } from './remote-url.js';
@@ -45,7 +46,7 @@ interface CandidateRow {
 
 export interface OfficialUrlMergeResult {
   merged: Array<{ url: string; kept: string; removed: string }>;
-  skipped: Array<{ url: string; ids: string[]; reason: 'templated-url' | 'group-larger-than-2' | 'unrelated' | 'would-drop-other-source' }>;
+  skipped: Array<{ url: string; ids: string[]; reason: 'templated-url' | 'group-larger-than-2' | 'unrelated' | 'would-drop-other-source' | 'would-lose-fields' }>;
 }
 
 const GENERIC_TOKENS = new Set([
@@ -70,11 +71,14 @@ function githubOwner(url: string | null): string | null {
 }
 
 function publisherTokens(row: CandidateRow): Set<string> {
-  const namespace = row.name.split('/')[0].toLowerCase();
-  // Tokens of 3+ characters only: two-letter labels are TLDs and country
-  // suffixes (`io`, `ai`, `uk`, `co`) that unrelated publishers share.
+  // Namespace labels minus the TLD: `io.github.<owner>` -> owner,
+  // `com.acme.api` -> acme, api. A TLD (`tools`, `ai`, `uk`) is shared by
+  // unrelated publishers and is not identity. Tokens of 3+ characters only,
+  // which also drops second-level suffixes like `co` in `uk.co.<name>`.
+  const labels = row.name.split('/')[0].toLowerCase().split('.');
+  const own = labels[0] === 'io' && labels[1] === 'github' ? labels.slice(2) : labels.slice(1);
   const tokens = new Set(
-    namespace.split(/[.\-_]/).filter((t) => t.length >= 3 && !GENERIC_TOKENS.has(t)),
+    own.flatMap((l) => l.split(/[-_]/)).filter((t) => t.length >= 3 && !GENERIC_TOKENS.has(t)),
   );
   const owner = githubOwner(row.repository_url);
   if (owner) tokens.add(owner);
@@ -190,6 +194,12 @@ export function mergeSameRemoteOfficialEntries(db: DatabaseSync): OfficialUrlMer
     const [keep, drop] = compareRichness(a, b) <= 0 ? [a, b] : [b, a];
     if (!isOfficialOnly(drop)) {
       result.skipped.push({ url, ids, reason: 'would-drop-other-source' });
+      continue;
+    }
+    if ((drop.package_identifier && !keep.package_identifier) ||
+      (drop.repository_url && !keep.repository_url) ||
+      (hasEnvVars(drop.env_vars) && !hasEnvVars(keep.env_vars))) {
+      result.skipped.push({ url, ids, reason: 'would-lose-fields' });
       continue;
     }
     remove.run(drop.id);

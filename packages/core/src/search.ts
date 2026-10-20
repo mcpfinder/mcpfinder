@@ -80,7 +80,7 @@ const SEARCH_ALIASES: Record<string, string> = {
  * The owner segment deliberately stays: `com.cloudflare/...` really is
  * Cloudflare's, and a query for an owner (`cyanheads`) has to keep working.
  * There is, after this change, no way to search *by* the hosting namespace:
- * `registrySource` is an official|glama|smithery enum matched against the
+ * `registrySource` is an official|glama enum matched against the
  * `sources` column and no value of it selects `io.github.*`.
  *
  * Why this matters, measured on the published snapshot of 2026-08-27 (89,840

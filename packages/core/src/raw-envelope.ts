@@ -1,4 +1,4 @@
-export const RAW_SOURCE_ORDER = ['official', 'glama', 'smithery'] as const;
+export const RAW_SOURCE_ORDER = ['official', 'glama'] as const;
 export type RawSource = (typeof RAW_SOURCE_ORDER)[number];
 
 export interface RawEnvelope {

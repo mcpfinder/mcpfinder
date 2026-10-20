@@ -6,8 +6,8 @@
 [![license](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.en.html)
 [![MCP Registry](https://img.shields.io/badge/MCP%20Registry-dev.mcpfinder%2Fserver-D4FF00)](https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder)
 
-MCPfinder is a local MCP server that exposes a searchable index of 25,000+ MCP
-servers across the **Official MCP Registry**, **Glama**, and **Smithery**.
+MCPfinder is a local MCP server that exposes a searchable index of MCP
+servers across the **Official MCP Registry** and **Glama**.
 Install it once as a capability on your AI client and from then on your
 assistant can discover, inspect, and install any MCP server on demand — no
 manual browsing required.
@@ -96,7 +96,7 @@ process back to the nominal `data.db` name — safely: if that name has been swe
 and only a peer's journal is left at it, `resolveCurrentDbPath` opens a variant
 name rather than adopting the stranded journal.
 When a live refresh is needed, registries run sequentially as Official → Glama
-→ Smithery so each later dedup index sees earlier inserts. A failed source is
+so the later dedup index sees earlier inserts. A failed source is
 reported but does not prevent attempts for the remaining sources.
 Normal cold start uses the snapshot and does not pay the sum of live registry
 budgets. The sequential worst case applies only when snapshot bootstrap is
@@ -207,7 +207,7 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
 | `MCPFINDER_SNAPSHOT_MANIFEST_TIMEOUT_MS` | `10000` | Timeout for the small manifest request. |
 | `MCPFINDER_SNAPSHOT_STALL_TIMEOUT_MS` | `60000` | Inactivity budget for the DB download — aborted only after this long with no bytes received, so a slow-but-healthy link is never cut off. |
 | `MCPFINDER_SNAPSHOT_FRESH_MINUTES` | `360` | How long a freshly installed snapshot counts as a fresh sync before live registry refreshes resume. |
-| `GLAMA_API_KEY` | unset | API key for Glama's registry ([create one](https://glama.ai/settings/api-keys)). Without it a live refresh skips Glama entirely — the sync is Official → Smithery, logged as `skipped`. Published snapshots always carry Glama data: every registry is required for publication, so a build that could not sync Glama publishes nothing and clients keep the previous, complete snapshot (check `publishedAt` and `counts` in the manifest). |
+| `GLAMA_API_KEY` | unset | API key for Glama's registry ([create one](https://glama.ai/settings/api-keys)). Without it a live refresh skips Glama entirely — the sync is Official only, with Glama logged as `skipped`. Published snapshots always carry Glama data: every registry is required for publication, so a build that could not sync Glama publishes nothing and clients keep the previous, complete snapshot (check `publishedAt` and `counts` in the manifest). |
 
 Glama's API Data License requires visible Glama attribution on every page
 displaying data obtained through its API

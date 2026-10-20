@@ -2,6 +2,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import type { SqlParam } from './db.js';
 import { extractKeywords } from './categories.js';
 import { normalizeRepositoryUrl, repositorySource } from './repository-url.js';
+import { firstUsableRemoteUrl, usableRemoteUrl } from './remote-url.js';
 import { envVarsFromJsonSchema } from './env-vars.js';
 import {
   mergeRawEnvelope,
@@ -83,17 +84,6 @@ export function mergeServerData(
     }
   }
 
-  // Smithery is the only current source of these trust/popularity fields. On
-  // a multi-source canonical row it may still authoritatively decrease or
-  // remove its own values without touching metadata contributed elsewhere.
-  if (multiSourceRefresh && incomingSource === 'smithery') {
-    for (const field of ['use_count', 'verified', 'icon_url']) {
-      const incomingValue = newRow[field] ?? null;
-      const existingValue = existing[field] ?? null;
-      if (incomingValue === existingValue) continue;
-      queueUpdate(field, incomingValue);
-    }
-  }
   if (multiSourceRefresh) {
     for (const field of ['slug', 'name']) {
       if (newRow[field] !== existing[field]) queueUpdate(field, newRow[field] ?? null);
@@ -162,9 +152,7 @@ export function mergeServerData(
     if (mergedHasRemote !== (Number(existing.has_remote) || 0)) {
       queueUpdate('has_remote', mergedHasRemote);
     }
-    for (const field of multiSourceRefresh && incomingSource === 'smithery'
-      ? []
-      : ['use_count', 'verified']) {
+    for (const field of ['use_count', 'verified']) {
       const merged = Math.max(Number(existing[field]) || 0, Number(newRow[field]) || 0);
       if (merged !== (Number(existing[field]) || 0)) {
         queueUpdate(field, merged);
@@ -287,7 +275,6 @@ function envVarsForPayload(
 ): Array<Record<string, unknown>> | null {
   if (!payload || typeof payload !== 'object') return null;
   const record = payload as Record<string, unknown>;
-  if (source === 'smithery') return [];
   if (source === 'official') {
     if (!record.server || typeof record.server !== 'object') return null;
     const packages = (record.server as Record<string, unknown>).packages;
@@ -373,16 +360,12 @@ function contributionForPayload(source: string, payload: unknown): SourceContrib
     const transport = pkg?.transport && typeof pkg.transport === 'object'
       ? pkg.transport as Record<string, unknown>
       : null;
-    const remotes = Array.isArray(server.remotes) ? server.remotes : [];
-    const remote = remotes[0] && typeof remotes[0] === 'object'
-      ? remotes[0] as Record<string, unknown>
-      : null;
     return {
       description: typeof server.description === 'string' ? server.description : '',
       repository_url: normalizeRepositoryUrl(
         typeof repository?.url === 'string' ? repository.url : null,
       ),
-      remote_url: typeof remote?.url === 'string' ? remote.url : null,
+      remote_url: firstUsableRemoteUrl(server.remotes),
       registry_type: typeof pkg?.registryType === 'string' ? pkg.registryType : null,
       package_identifier: typeof pkg?.identifier === 'string' ? pkg.identifier : null,
       transport_type: typeof transport?.type === 'string' ? transport.type : null,
@@ -400,29 +383,13 @@ function contributionForPayload(source: string, payload: unknown): SourceContrib
       repository_url: normalizeRepositoryUrl(
         typeof repository?.url === 'string' ? repository.url : null,
       ),
-      remote_url: typeof record.url === 'string' ? record.url : null,
+      remote_url: usableRemoteUrl(record.url),
       registry_type: null,
       package_identifier: null,
       transport_type: null,
     };
   }
-  if (source !== 'smithery' || typeof record.qualifiedName !== 'string') return null;
-  if (record.homepage !== undefined && record.homepage !== null &&
-    typeof record.homepage !== 'string') return null;
-  const homepage = typeof record.homepage === 'string' && repositorySource(record.homepage)
-    ? normalizeRepositoryUrl(record.homepage)
-    : null;
-  const remoteUrl = record.remote === true && record.isDeployed === true
-    ? `https://registry.smithery.ai/servers/${record.qualifiedName}`
-    : null;
-  return {
-    description: typeof record.description === 'string' ? record.description : '',
-    repository_url: homepage,
-    remote_url: remoteUrl,
-    registry_type: null,
-    package_identifier: null,
-    transport_type: null,
-  };
+  return null;
 }
 
 function mergeObjectArrayJson(
@@ -516,9 +483,5 @@ function keywordsForSourcePayload(
       : record.name;
     return extractKeywords(name, typeof record.description === 'string' ? record.description : '');
   }
-  if (typeof record.qualifiedName !== 'string') return null;
-  const name = typeof record.displayName === 'string' && record.displayName
-    ? record.displayName
-    : record.qualifiedName;
-  return extractKeywords(name, typeof record.description === 'string' ? record.description : '');
+  return null;
 }

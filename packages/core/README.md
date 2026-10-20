@@ -7,7 +7,7 @@
 
 This is the internal library that powers [`@mcpfinder/server`](https://www.npmjs.com/package/@mcpfinder/server)
 — the MCP server that discovers and installs other MCP servers from the
-Official MCP Registry, Glama, and Smithery.
+Official MCP Registry and Glama.
 
 Most users should install `@mcpfinder/server`, not this package directly.
 Use `@mcpfinder/core` only when you want to embed the search/enrichment engine
@@ -30,7 +30,6 @@ import {
   initDatabase,
   syncOfficialRegistry,
   syncGlamaRegistry,
-  syncSmitheryRegistry,
   searchServers,
   getServerDetails,
 } from '@mcpfinder/core';
@@ -42,7 +41,6 @@ const db = initDatabase(); // stores in ~/.mcpfinder/data.db by default
 for (const [source, sync] of [
   ['Official', syncOfficialRegistry],
   ['Glama', syncGlamaRegistry],
-  ['Smithery', syncSmitheryRegistry],
 ] as const) {
   try {
     await sync(db);
@@ -565,14 +563,14 @@ once it lapses, normal staleness detection resumes.
 | `MCPFINDER_SNAPSHOT_NO_BROTLI` | unset | Set to `1` to ignore the manifest's brotli artifact and always download gzip. |
 
 Published snapshots use last-known-good semantics. The scheduled builder
-requires every registry — Official, Glama, and Smithery — to have an `ok` row in
+requires both registries — Official and Glama — to have an `ok` row in
 `sync_log`, and rejects total or per-source count drops above 5% relative to the
 published manifest. An incomplete snapshot never replaces a complete one: an
 errored, skipped, or budget-exceeded registry fails the gate, `manifest.json` is
 left untouched, and clients keep bootstrapping from the previous, complete
 snapshot. A failed build therefore costs freshness, not availability — and
 staleness is visible in the manifest's `publishedAt`, whereas a missing registry
-would not be. `counts` still carries all three sources so a per-registry shortfall
+would not be. `counts` still carries both sources so a per-registry shortfall
 stays visible to monitoring.
 
 The gate itself keeps a parameterised best-effort mode
@@ -583,7 +581,7 @@ row count, its absence cannot be subtracted from the baseline — the aggregate
 `serverCount` regression check is **skipped** for that run with an explicit
 warning while the per-source raw-vs-raw checks on the required sources keep the
 gate honest.
-Official, Glama, and Smithery stage each complete crawl (spilled to a TEMP
+Official and Glama stage each complete crawl (spilled to a TEMP
 SQLite table, so staging memory stays bounded regardless of corpus size) and
 atomically apply only a fully validated terminal result. Upstream, structural, budget, or apply
 failures discard/roll back staging, leave the existing last-known-good database
@@ -622,43 +620,22 @@ sets `MCPFINDER_CRAWL_RESTART_BASE_MS=15000` (15 s then 30 s then 60 s).
 Restarts run only while the remaining registry budget can cover the next wait;
 intra-page or persistent duplicates fail closed. 401/403 remain credential
 errors and are never retried, and HTTP 429 is not a crawl restart (page-level
-retries already spent the 429 budget). Like Smithery,
-Glama applies only the completed retry in one SQLite transaction.
+retries already spent the 429 budget). Glama applies only the completed
+retry in one SQLite transaction.
 Official requires the upstream `metadata` object and per-page `count`, validates
 that count against returned records, and follows `nextCursor` until it is empty,
 null, or omitted by the terminal response. Repeated cursors or any failure
 overwrite prior health with `status=error`; the entire cursor result is committed
-in one transaction. Smithery always supplies a fixed
-integer `seed` to select deep pagination (the unseeded reranker stops at 500).
-Its `totalCount`/`totalPages` telemetry may drift while the catalogue changes,
-so completion follows actual pages rather than one sampled aggregate. Every
-non-empty final page, including a short candidate, is confirmed by an empty
-next-page probe; a non-empty page after a short candidate is a truncation/gap
-error. A cross-page `qualifiedName` duplicate or a `RegistryTransportError`
-after exhausted page-level transport retries (5xx, network/abort)
-restarts the entire seeded crawl, up to four attempts. Local stdio waits
-500 ms then 1 s then 2 s; the snapshot job sets
-`MCPFINDER_CRAWL_RESTART_BASE_MS=15000` (15 s then 30 s then 60 s) — the fault
-is intermittent upstream, and three attempts at 500 ms then 1 s still lost the
-2026-09-03 and 2026-09-04 builds. Restarts run only while the remaining
-registry budget can cover the next wait; HTTP 429 is not a crawl restart.
-Persistent cross-page or any intra-page duplicate fails closed.
-`MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES` can raise Smithery's default 5-minute
-wall-clock budget, which four full crawl attempts no longer fit into. It
-accepts integer values from 1 through 15; invalid or unbounded values fail
-explicitly. The snapshot workflow uses 12 minutes.
-`currentPage` identity, non-negative typed
-pagination metadata, and the requested maximum result size remain structural;
-echoed `pageSize`, `totalCount`, and `totalPages` are advisory and may drift,
-including on the empty terminal probe. Each attempt is staged in a TEMP SQLite
+in one transaction.
+Each attempt is staged in a TEMP SQLite
 table rather than on the JS heap — a ~78k-entry Glama crawl would otherwise
 hold hundreds of MB of parsed objects next to the dedup index — and only the
 fully validated final attempt is applied in one SQLite transaction, so
 abandoned retries,
 network errors, structural failures, and deadline crossings cannot leak partial
-Smithery records or provenance into the database.
+records or provenance into the database.
 Cross-registry matching builds one in-memory index per
-Glama/Smithery sync, preserving repo/package/slug dedup semantics without a
+Glama sync, preserving repo/package/slug dedup semantics without a
 full SQLite scan for every upstream record. Merges retain the combined
 `sources`, richer canonical fields, deterministic keyword/environment unions,
 repository host provenance (including `www.*` and protocol-less known-host
@@ -668,22 +645,19 @@ stores one payload under `primary` with an explicit `primarySource`; only other
 sources live in `bySource`, avoiding a duplicated primary payload. Readers also
 accept and canonicalize legacy duplicated envelopes, preferring the historically
 refreshed `bySource[primarySource]` copy when the copies disagree.
-Keyword unions are rebuilt in fixed Official → Glama → Smithery order from the
+Keyword unions are rebuilt in fixed Official → Glama order from the
 current payload retained for each source, so complete envelopes remove obsolete
 source-only terms without dropping terms still provided elsewhere. For invalid
 or historically incomplete envelopes, valid incoming payloads are retained and
 their current terms are combined fail-safe with legacy keywords until every
-listed source has a replaceable payload. Smithery repository enrichment uses
-the same metadata merge before deleting a duplicate row, preserving raw
-payloads, env vars, keywords, sources, and repository provenance; shared-repo
-monorepos merge only on a unique secondary name/slug match.
-When Glama or Smithery refreshes a single-source stable ID, source-owned fields
+listed source has a replaceable payload.
+When Glama refreshes a single-source stable ID, source-owned fields
 (including repository URL/provenance, environment variables, counts, and sync
 timestamp) exactly follow the current payload, including explicit removal. For
 a multi-source row, canonical description, repository/provenance, remote, and
 package fields are deterministically rebuilt from current payloads: the primary
-source is preferred for non-empty structured fields, then Official → Glama →
-Smithery, while the longest current description wins. Official-package and
+source is preferred for non-empty structured fields, then Official → Glama,
+while the longest current description wins. Official-package and
 Glama-schema environment contributions are replaced per source and re-unioned
 through the same schema mapping the insert path uses, so a merged row keeps
 `default`, `format`, `writeOnly`-derived `isSecret`, and schema `required`
@@ -692,9 +666,7 @@ entries are retained fail-safe. Note that `isSecret` is only ever `true` or
 absent: an absent flag means *unlabelled*, not *non-secret* (most catalogue
 env vars carry no flag). `looksLikeCredentialName` is a conservative,
 advisory-only name heuristic for those (`trustSignals.possibleUnlabeledSecrets`
-uses it); it never changes generated config values. Smithery
-remains authoritative for its usage count, verification, and icon, so those
-may decrease without clearing other-source metadata. Invalid or missing source
+uses it); it never changes generated config values. Invalid or missing source
 payloads retain existing aggregates rather than risking data loss.
 
 `sync_log.last_synced_at` records every attempt and throttles local background
@@ -728,7 +700,7 @@ fallback upload from presenting stale bytes as current.
 | --- | --- |
 | `initDatabase(path?)` | Open (or create) the local SQLite DB with FTS5 schema. |
 | `getLastSyncTimestamp / getLastSuccessfulSyncTimestamp` | Read the latest attempt or latest incrementally safe successful sync timestamp. |
-| `syncOfficialRegistry / syncGlamaRegistry / syncSmitheryRegistry` | Live sync from upstream registries. |
+| `syncOfficialRegistry / syncGlamaRegistry` | Live sync from upstream registries. |
 | `bootstrapFromSnapshot` | Fast cold-start via prebuilt SQLite snapshot (brotli when offered, gzip otherwise or on any brotli failure); also refreshes an installed one. |
 | `readSnapshotState / writeSnapshotState / snapshotStatePath` | Pointer + provenance of the installed snapshot (`dbFile`, `sha256`, `publishedAt`, `etag`). |
 | `resolveCurrentDbPath / versionedDbPath` | Map the nominal `data.db` path to the file actually in use, and to a digest's file name. |
@@ -745,7 +717,8 @@ fallback upload from presenting stale bytes as current.
 | `getInstallCommand` | Generate client-specific JSON install config. |
 | `buildEnvPlaceholders / envPlaceholderValue` | Fill an `env` block from registry env var definitions: `<YOUR_VALUE>` for secrets, otherwise `default`, then `placeholder`, then `<VALUE>`. |
 | `looksLikeCredentialName / possibleUnlabeledSecrets` | Advisory name heuristic (`GITHUB_TOKEN`, `OPENAI_API_KEY` yes; `TOKEN_URL`, `*_KEY_FILE`, `SITE_KEY` no) for env vars the registry left unlabelled — absent `isSecret` means unlabelled, not non-secret. Never affects masking. |
-| `enrichSmitheryRepoUrls / enrichDeprecationFlags` | Build-time enrichment passes (GitHub probe, npm/GitHub deprecation flags). |
+| `enrichDeprecationFlags` | Build-time enrichment pass (npm/GitHub deprecation flags). |
+| `usableRemoteUrl / firstUsableRemoteUrl` | Drop remote endpoints on retired hosts (Smithery's `server.smithery.ai`, `*.run.tools`, `registry.smithery.ai`, which stop working on 2026-10-31). |
 
 Full TypeScript types are exported — see the `.d.ts` files in `dist/`.
 

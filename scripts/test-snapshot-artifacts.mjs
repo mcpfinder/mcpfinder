@@ -215,9 +215,8 @@ assert.match(markerCommand, /mcp-finder-db-snapshots\/data\.sqlite\.gz\.sha256/)
 const buildStep = parsedWorkflow.jobs.build.steps.find((step) => step.name === 'Build snapshot');
 assert.equal(buildStep?.env?.GLAMA_API_KEY, '${{ secrets.GLAMA_API_KEY }}');
 assert.equal(buildStep.env.MCPFINDER_GLAMA_SYNC_BUDGET_MINUTES, '30');
-// Smithery restarts a stalled crawl across four attempts; four full passes do
-// not fit the default 5-minute budget.
-assert.equal(buildStep.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES, '12');
+// Smithery is no longer synced (its API shuts down on 2026-10-31); no budget.
+assert.equal(buildStep.env.MCPFINDER_SMITHERY_SYNC_BUDGET_MINUTES, undefined);
 // The Official registry's deep cursor pages are slow (run 38237994053 hit the
 // 8-minute default on GitHub-hosted); the build job gives it 25 minutes.
 assert.equal(buildStep.env.MCPFINDER_OFFICIAL_SYNC_BUDGET_MINUTES, '25');

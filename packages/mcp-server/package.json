@@ -10,7 +10,7 @@
   "homepage": "https://mcpfinder.dev",
   "bugs": { "url": "https://github.com/mcpfinder/mcpfinder/issues" },
   "engines": { "node": ">=22.15.0" },
-  "description": "MCP server discovery tool for AI agents. Searches MCP servers across Official Registry, Glama, and Smithery so your AI can find, evaluate, and install tools on demand.",
+  "description": "MCP server discovery tool for AI agents. Searches MCP servers across the Official MCP Registry and Glama so your AI can find, evaluate, and install tools on demand.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -1,6 +1,6 @@
 import { inspect } from 'node:util';
 
-const SOURCE_LABELS = ['Official', 'Glama', 'Smithery'] as const;
+const SOURCE_LABELS = ['Official', 'Glama'] as const;
 
 function fullReason(reason: unknown): string {
   if (reason instanceof Error) return reason.stack ?? `${reason.name}: ${reason.message}`;

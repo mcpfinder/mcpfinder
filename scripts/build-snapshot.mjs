@@ -11,7 +11,7 @@
  *   dist/snapshot/manifest.json       (metadata + a sha256 per artifact)
  *
  * Usage (from repo root):
- *   node scripts/build-snapshot.mjs [--out=<dir>] [--no-glama] [--no-smithery]
+ *   node scripts/build-snapshot.mjs [--out=<dir>] [--no-glama]
  *     [--allow-quality-regression]
  *
  * The script uses the built core package (packages/core/dist). Run
@@ -65,14 +65,13 @@ const argVal = (name) => {
 const outDir = resolve(repoRoot, argVal('--out') ?? 'dist/snapshot');
 const allowQualityRegression =
   flag('--allow-quality-regression') || process.env.MCPFINDER_SNAPSHOT_QUALITY_OVERRIDE === '1';
-// All three registries are required: an incomplete snapshot never replaces a
+// Both registries are required: an incomplete snapshot never replaces a
 // complete one. A failed build simply leaves `manifest.json` untouched, so
 // clients keep bootstrapping from the previous, complete snapshot — stale by a
 // day at worst, and the staleness is visible in `publishedAt`. Missing servers
 // would not be.
 const requiredSources = ['official'];
 if (!flag('--no-glama')) requiredSources.push('glama');
-if (!flag('--no-smithery')) requiredSources.push('smithery');
 // No source is best-effort today. The mechanism stays wired up (and tested, see
 // scripts/snapshot-quality.mjs) so a registry that closes permanently can be
 // demoted by moving one name here, rather than by rebuilding the gate under
@@ -99,10 +98,8 @@ const {
   initDatabase,
   syncOfficialRegistry,
   syncGlamaRegistry,
-  syncSmitheryRegistry,
   updateSyncLog,
   getServerCount,
-  enrichSmitheryRepoUrls,
   enrichDeprecationFlags,
 } = await import(corePath);
 
@@ -216,7 +213,8 @@ if (!flag('--no-glama')) {
     counts.glama = await run('glama   ', syncGlamaRegistry);
   }
 }
-if (!flag('--no-smithery')) counts.smithery = await run('smithery', syncSmitheryRegistry);
+// Smithery is no longer a source: its API shuts down on 2026-10-31
+// (https://smithery.ai/future). Official + Glama are the whole corpus.
 
 function syncLogEntries() {
   return db
@@ -291,17 +289,9 @@ if (!flag('--no-carryover')) {
 }
 
 // Build-time enrichment passes (skipped with --no-enrich).
-let enrichStats = null;
 let deprecationStats = null;
 if (!flag('--no-enrich')) {
   const t0 = Date.now();
-  enrichStats = await enrichSmitheryRepoUrls(db);
-  const dt = ((Date.now() - t0) / 1000).toFixed(1);
-  console.log(
-    `[build-snapshot] enrich : probed=${enrichStats.probed} found=${enrichStats.repoFound} ` +
-      `merged=${enrichStats.merged} rate-limited=${enrichStats.rateLimited} errors=${enrichStats.errors} (${dt}s)`,
-  );
-
   // Deprecation flags: npm (fast, no token needed) + GitHub archived
   // (requires GITHUB_TOKEN, otherwise skipped with a stderr note).
   const d0 = Date.now();
@@ -405,7 +395,6 @@ const manifest = {
   builder: process.env.GITHUB_SHA || 'local',
   counts,
   carriedOver,
-  enrich: enrichStats,
   deprecation: deprecationStats,
 };
 

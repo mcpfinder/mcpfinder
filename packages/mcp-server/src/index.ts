@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * MCPfinder MCP Server
- * Your AI's app store for MCP tools — discover and install 25K+ MCP servers on demand.
- * Aggregates Official MCP Registry, Glama, and Smithery into a fast, searchable index.
+ * Your AI's app store for MCP tools — discover and install MCP servers on demand.
+ * Aggregates the Official MCP Registry and Glama into a fast, searchable index.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -15,7 +15,6 @@ import {
   getCatalogDbPath,
   syncOfficialRegistry,
   syncGlamaRegistry,
-  syncSmitheryRegistry,
   isSyncNeeded,
   getServerCount,
   searchServers,
@@ -139,15 +138,9 @@ function formatUseCount(count: number): string {
   return String(count);
 }
 
-function sourceBadges(sources: string[], useCount: number, verified: boolean): string {
+function sourceBadges(sources: string[]): string {
   const badges: string[] = [];
   if (sources.includes('official')) badges.push('📦 Official');
-  if (sources.includes('smithery')) {
-    let badge = '🌟 Smithery';
-    if (useCount > 0) badge += ` (${formatUseCount(useCount)} uses)`;
-    if (verified) badge += ' ✓';
-    badges.push(badge);
-  }
   if (sources.includes('glama')) badges.push('🔍 Glama');
   return badges.length > 0 ? badges.join(' | ') : '';
 }
@@ -189,11 +182,10 @@ function runSync(): Promise<void> {
     const results = await settleSequentially([
       () => syncOfficialRegistry(db),
       () => syncGlamaRegistry(db),
-      () => syncSmitheryRegistry(db),
     ]);
     const counts = reportSyncResults(results);
     process.stderr.write(
-      `[mcpfinder] Synced: Official=${counts[0]}, Glama=${counts[1]}, Smithery=${counts[2]} (${getServerCount(db)} total)\n`,
+      `[mcpfinder] Synced: Official=${counts[0]}, Glama=${counts[1]} (${getServerCount(db)} total)\n`,
     );
   })().finally(() => {
     inFlightSync = null;
@@ -320,7 +312,7 @@ server.registerTool(
         .default('any')
         .describe('Filter by package registry type'),
       registrySource: z
-        .enum(['official', 'glama', 'smithery', 'any'])
+        .enum(['official', 'glama', 'any'])
         .default('any')
         .describe('Filter by registry source'),
     },
@@ -358,7 +350,7 @@ server.registerTool(
 
     const formatted = results
       .map((r) => {
-        const badges = sourceBadges(r.sources, r.useCount, r.verified);
+        const badges = sourceBadges(r.sources);
         return (
           `${r.rank}. **${r.name}** (v${r.version || 'n/a'})\n` +
           `   ${r.description}\n` +
@@ -440,7 +432,7 @@ server.registerTool(
             .join('\n')
         : '';
 
-    const badges = sourceBadges(detail.sources, detail.useCount, detail.verified);
+    const badges = sourceBadges(detail.sources);
     const toolSection =
       detail.toolsExposed.length > 0
         ? '\n\n**Tools Exposed:**\n' +

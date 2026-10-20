@@ -4,7 +4,7 @@
  * - Glama (glama.ai)
  *
  * Smithery (registry.smithery.ai) is no longer synced: its API, proxy and
- * server URLs shut down on 2026-10-31 (https://smithery.ai/future).
+ * server URLs stop working on 2026-10-31 (https://smithery.ai/future).
  */
 import type { DatabaseSync } from 'node:sqlite';
 import type {

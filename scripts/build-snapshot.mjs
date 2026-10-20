@@ -101,6 +101,7 @@ const {
   updateSyncLog,
   getServerCount,
   enrichDeprecationFlags,
+  mergeSameRemoteOfficialEntries,
 } = await import(corePath);
 
 const dbPath = join(outDir, 'data.sqlite');
@@ -213,6 +214,20 @@ if (!flag('--no-glama')) {
     counts.glama = await run('glama   ', syncGlamaRegistry);
   }
 }
+// Fold pairs of Official entries that publish the same remote endpoint
+// (core official-url-merge.ts). Runs here, on a catalog built from scratch,
+// after Glama has merged in, and never in a client's incremental sync.
+const urlMerge = mergeSameRemoteOfficialEntries(db);
+console.log(
+  `[build-snapshot] url-merge: ${urlMerge.merged.length} merged, ${urlMerge.skipped.length} skipped`,
+);
+for (const m of urlMerge.merged) {
+  console.log(`[build-snapshot]   merged ${m.removed} -> ${m.kept} (${m.url})`);
+}
+for (const k of urlMerge.skipped) {
+  console.log(`[build-snapshot]   skipped ${k.reason}: ${k.ids.join(', ')} (${k.url})`);
+}
+
 // Smithery is no longer a source: its API shuts down on 2026-10-31
 // (https://smithery.ai/future). Official + Glama are the whole corpus.
 
@@ -313,6 +328,11 @@ await rejectBadSnapshot(previousResult.manifest, { serverCount, counts });
 // Collapse WAL so the file is self-contained
 db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
 db.exec('VACUUM');
+// servers has a TEXT primary key, so VACUUM may renumber its rowids, which the
+// external-content FTS index is keyed on. Rows are deleted during the build
+// (same-endpoint merge), so rebuild the index from the final table.
+db.exec("INSERT INTO servers_fts(servers_fts) VALUES('rebuild')");
+db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
 db.close();
 
 const rawSize = await stat(dbPath).then((s) => s.size);

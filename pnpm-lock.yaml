@@ -68,7 +68,7 @@ importers:
   packages/mcp-server:
     dependencies:
       '@mcpfinder/core':
-        specifier: workspace:^2.0.0
+        specifier: workspace:^2.0.1
         version: link:../core
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0

@@ -25,6 +25,7 @@ import {
   looksLikeCredentialName,
   possibleUnlabeledSecrets,
   usableRemoteUrl,
+  NO_INSTALL_METHOD_NOTE,
 } from '@mcpfinder/core';
 import { createCatalog } from './catalog.js';
 import { reportSyncResults } from './sync-report.js';
@@ -269,6 +270,9 @@ const installOutputSchema = {
   server: z.string().optional(),
   platform: z.string().optional(),
   installType: z.string().optional(),
+  // Set when no auto-config exists (installType 'none' or 'unsupported').
+  repositoryUrl: z.string().nullable().optional(),
+  listingUrl: z.string().nullable().optional(),
   configFilePath: z.record(z.string(), z.string()).optional(),
   config: z.record(z.string(), z.unknown()).optional(),
   envVarsNeeded: z.array(z.record(z.string(), z.unknown())).optional(),
@@ -474,6 +478,7 @@ server.registerTool(
       `**Transport:** ${detail.transportType || 'N/A'}`,
       `**Repository:** ${detail.repositoryUrl || 'N/A'}`,
       detail.hasRemote ? `**Remote URL:** ${detail.remoteUrl}` : '',
+      detail.listingUrl ? `**Listing:** ${detail.listingUrl}` : '',
       `**Published:** ${detail.publishedAt || 'N/A'}`,
       `**Updated:** ${detail.updatedAt || 'N/A'}`,
       detail.categories.length > 0 ? `**Categories:** ${detail.categories.join(', ')}` : '',
@@ -506,6 +511,7 @@ server.registerTool(
         transportType: detail.transportType,
         repositoryUrl: detail.repositoryUrl,
         remoteUrl: detail.remoteUrl,
+        listingUrl: detail.listingUrl,
         categories: detail.categories,
         sources: detail.sources,
         sourceCount: detail.sourceCount,
@@ -587,15 +593,19 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
     };
     installType = 'docker';
   } else {
+    const noPackage = !detail.packageIdentifier;
     const fallbackLines = [
       `# Install ${detail.name} on ${platformInfo.name}`,
       '',
-      `Auto-config is not available for this server (registry type: ${detail.registryType || 'unknown'}).`,
+      noPackage
+        ? NO_INSTALL_METHOD_NOTE
+        : `Auto-config is not available for this server (registry type: ${detail.registryType || 'unknown'}).`,
       '',
       detail.repositoryUrl
         ? `Check the repository for manual install instructions: ${detail.repositoryUrl}`
         : 'No repository URL available.',
     ];
+    if (detail.listingUrl) fallbackLines.push(`Directory listing: ${detail.listingUrl}`);
     if (envVars.length > 0) {
       fallbackLines.push('', '**Required environment variables:**');
       for (const v of envVars) {
@@ -607,6 +617,9 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
     return makeTextResponse(fallbackLines.join('\n'), {
       found: true,
       autoInstallable: false,
+      installType: noPackage ? 'none' : 'unsupported',
+      repositoryUrl: detail.repositoryUrl,
+      listingUrl: detail.listingUrl,
       possible_unlabeled_secrets: possibleUnlabeledSecrets(envVars),
       warningFlags: detail.warningFlags,
       next_actions: [],

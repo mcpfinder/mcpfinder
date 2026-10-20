@@ -75,7 +75,15 @@ export type { SnapshotState, SweepOptions, PublishOutcome } from './snapshot-sta
 
 // Build-time enrichment (npm-deprecation / archived-repo probe)
 export { enrichDeprecationFlags } from './enrich.js';
-export { usableRemoteUrl, firstUsableRemoteUrl } from './remote-url.js';
+export {
+  usableRemoteUrl,
+  firstUsableRemoteUrl,
+  isDirectoryListingUrl,
+  normalizeRemoteUrlKey,
+} from './remote-url.js';
+export { mergeSameRemoteOfficialEntries } from './official-url-merge.js';
+export type { OfficialUrlMergeResult } from './official-url-merge.js';
+export { NO_INSTALL_METHOD_NOTE } from './install.js';
 export type { EnrichResult, DeprecationEnrichResult } from './enrich.js';
 
 // Search

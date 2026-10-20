@@ -135,6 +135,8 @@ export interface McpServer {
   use_count: number;
   verified: number; // 0 or 1
   icon_url: string | null;
+  /** Directory listing page (e.g. Glama's server page). Never an MCP endpoint. */
+  listing_url?: string | null;
   deprecated_npm: number | null; // null = not checked, 0 = clean, 1 = deprecated on npm
   archived_repo: number | null;  // null = not checked, 0 = clean, 1 = archived on GitHub
 }
@@ -184,6 +186,8 @@ export interface ServerDetail {
   status: string;
   hasRemote: boolean;
   remoteUrl: string | null;
+  /** Directory listing page (e.g. https://glama.ai/mcp/servers/<id>). Not an MCP endpoint. */
+  listingUrl: string | null;
   categories: string[];
   environmentVariables: RegistryEnvVar[];
   sources: string[];

@@ -694,6 +694,17 @@ it then publishes a `.sha256` commit marker. The Worker may use the durable key
 only when requested, manifest, and marker SHA all match, preventing a failed
 fallback upload from presenting stale bytes as current.
 
+## Listing links and same-endpoint merges (2.0.1)
+
+`remote_url` / `has_remote` mean an MCP endpoint a client can connect to.
+Glama's `url` is its directory page, so it is stored as `listing_url` and never
+as a remote (`isDirectoryListingUrl`); older catalogs are cleaned on open.
+`mergeSameRemoteOfficialEntries` runs when the snapshot is built (not in a
+client's sync) and drops one of a pair of Official entries with the same
+normalized remote URL (exact groups of two; templated URLs, unrelated-looking
+pairs and pairs where the dropped row carries another source are skipped). See
+the CHANGELOG.
+
 ## Breaking changes in 2.0.0
 
 Smithery is no longer a source (its API, proxy and hosted server URLs stop
@@ -727,7 +738,10 @@ now (Smithery was their only source). See [CHANGELOG](./CHANGELOG.md).
 | `buildEnvPlaceholders / envPlaceholderValue` | Fill an `env` block from registry env var definitions: `<YOUR_VALUE>` for secrets, otherwise `default`, then `placeholder`, then `<VALUE>`. |
 | `looksLikeCredentialName / possibleUnlabeledSecrets` | Advisory name heuristic (`GITHUB_TOKEN`, `OPENAI_API_KEY` yes; `TOKEN_URL`, `*_KEY_FILE`, `SITE_KEY` no) for env vars the registry left unlabelled — absent `isSecret` means unlabelled, not non-secret. Never affects masking. |
 | `enrichDeprecationFlags` | Build-time enrichment pass (npm/GitHub deprecation flags). |
-| `usableRemoteUrl / firstUsableRemoteUrl` | Drop remote endpoints on retired hosts (Smithery's `server.smithery.ai`, `*.run.tools`, `registry.smithery.ai`, which stop working on 2026-10-31). |
+| `usableRemoteUrl / firstUsableRemoteUrl` | Drop remote endpoints on retired hosts (Smithery's `server.smithery.ai`, `*.run.tools`, `registry.smithery.ai`, which stop working on 2026-10-31) and directory listing pages (`isDirectoryListingUrl`). |
+| `normalizeRemoteUrlKey` | Comparison key for a remote URL (scheme-insensitive, lowercase host, no default port or trailing slash). |
+| `mergeSameRemoteOfficialEntries` | Drop one of a pair of Official entries with the same remote endpoint (run by the snapshot build, not by sync). |
+| `NO_INSTALL_METHOD_NOTE` | The note `getInstallCommand` returns when a server has no package and no remote endpoint. |
 
 Full TypeScript types are exported — see the `.d.ts` files in `dist/`.
 

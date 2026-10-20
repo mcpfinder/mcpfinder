@@ -1,5 +1,24 @@
 # Changelog — @mcpfinder/server
 
+## 2.0.1 — 2026-10-20
+
+### Fixed
+- Glama servers are no longer reported as remote. Their only URL is the page in
+  Glama's directory, not an MCP endpoint, so `get_install_config` used to hand
+  out a web page as an MCP `url`. It is now shown as **Listing** in
+  `get_server_details` (`listingUrl`), and `get_install_config` for a server
+  with no package and no remote endpoint says "No install method known" and
+  points to the repository and listing (`installType: "none"`,
+  `repositoryUrl`, `listingUrl`). A local catalog from an earlier version is
+  cleaned on first open. 2.0.0 clients pick up the fixed snapshot, but their
+  own Glama sync writes the listing page back as a remote: please upgrade.
+- The published catalog snapshot drops one of two Official Registry entries
+  that publish the same remote endpoint (conservative rule, see
+  `@mcpfinder/core` 2.0.1); a client gets this by adopting the snapshot. The
+  dropped entry's name no longer resolves in the snapshot; a later local
+  Official sync re-adds it if its publisher updates it.
+- Requires `@mcpfinder/core` ^2.0.1.
+
 ## 2.0.0 — 2026-10-20
 
 Smithery is no longer a source. Its registry API, MCP proxy and hosted server

@@ -195,6 +195,16 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
   still chosen exactly as for any unmarked variable (registry `default`, then
   `placeholder`, then `<VALUE>`); the heuristic never changes it, and `requires_user_secrets` keeps its registry-only meaning.
 
+## 2.0.1: listing links are not remotes
+
+Glama publishes a directory page per server (`https://glama.ai/mcp/servers/<id>`),
+not an MCP endpoint. Since 2.0.1 that page is shown as the server's **Listing**,
+servers known only from Glama are no longer marked remote, and
+`get_install_config` answers "No install method known" (with the repository and
+listing links) when a server has neither a package nor a remote endpoint. The
+published catalog keeps one entry where two Official Registry entries list the
+same endpoint.
+
 ## Upgrading to 2.0.0
 
 2.0.0 removes Smithery as a source: its registry API, proxy and hosted server

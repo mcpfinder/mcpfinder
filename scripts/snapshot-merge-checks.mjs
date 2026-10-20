@@ -142,8 +142,10 @@ export async function runSnapshotMergeChecks(dir) {
   assert.match(merged.description, /substantially richer Glama/);
   assert.equal(merged.repository_url, sharedRepo);
   assert.equal(merged.repository_source, 'gitlab');
-  assert.equal(merged.remote_url, 'https://glama.ai/mcp/servers/shared');
-  assert.equal(merged.has_remote, 1);
+  // Glama's url is its directory page, not an MCP endpoint (2.0.1).
+  assert.equal(merged.remote_url, null);
+  assert.equal(merged.has_remote, 0);
+  assert.equal(merged.listing_url, 'https://glama.ai/mcp/servers/shared');
   assert.equal(JSON.parse(merged.env_vars)[0].name, 'GLAMA_TOKEN');
   assert.deepEqual(JSON.parse(merged.keywords), [
     'shared',
@@ -336,8 +338,17 @@ export async function runSnapshotMergeChecks(dir) {
     { remote_url: 'https://mcp.example.com/mcp', has_remote: 1 });
   assert.deepEqual({ ...remoteOf('io.example/retired-only') }, { remote_url: null, has_remote: 0 });
   assert.deepEqual({ ...remoteOf('glama:glama-retired') }, { remote_url: null, has_remote: 0 });
-  assert.deepEqual({ ...remoteOf('io.example/shared-remote') },
-    { remote_url: 'https://glama.example.com/mcp', has_remote: 1 });
+  // Glama's url is a listing link, never a remote; the Official remote here
+  // is retired, so the merged row has no remote at all.
+  assert.deepEqual({ ...remoteOf('io.example/shared-remote') }, { remote_url: null, has_remote: 0 });
+  assert.equal(
+    retiredDb.prepare("SELECT listing_url FROM servers WHERE id = 'io.example/shared-remote'").get().listing_url,
+    'https://glama.example.com/mcp',
+  );
+  assert.equal(
+    retiredDb.prepare("SELECT listing_url FROM servers WHERE id = 'glama:glama-retired'").get().listing_url,
+    null,
+  );
   assert.equal(
     retiredDb.prepare("SELECT COUNT(*) AS count FROM servers WHERE remote_url LIKE '%smithery%' OR remote_url LIKE '%run.tools%'").get().count,
     0,
@@ -404,4 +415,119 @@ export async function runSnapshotMergeChecks(dir) {
   assert.equal(canonicalLegacy.bySource.glama.description, 'glama payload');
   assert.doesNotMatch(JSON.stringify(canonicalLegacy), /stale primary/);
   legacyDb.close();
+  // ── 2.0.1: Official↔Official same-URL merge ─────────────────────────────
+  const remoteEntry = (name, url, description = '', repo = null) => ({
+    server: {
+      name,
+      version: '1.0.0',
+      description,
+      ...(repo ? { repository: { url: repo, source: 'github' } } : {}),
+      remotes: [{ type: 'streamable-http', url }],
+    },
+  });
+  const urlMergeFeed = {
+    servers: [
+      // Same publisher token, scheme/case/trailing-slash/default-port variants.
+      remoteEntry('com.acme/tool', 'https://API.Acme.com/mcp/', 'Acme tool', 'https://github.com/acme/tool'),
+      remoteEntry('io.github.acme/tool-mcp', 'http://api.acme.com/mcp', ''),
+      // Different publishers, identical descriptions (fork listing).
+      remoteEntry('io.github.alice/reviews', 'https://mcp.apify.com?tools=x/reviews', 'Scrape app reviews from stores'),
+      remoteEntry('io.github.bob/reviews-fork', 'https://mcp.apify.com/?tools=x/reviews', 'Scrape app reviews from stores'),
+      // Same name, unrelated publishers and descriptions: skipped.
+      remoteEntry('io.github.carol/marketnow', 'https://marketnow.site/api/mcp', 'Verify credentials through a twelve step check'),
+      remoteEntry('io.github.dave/marketnow-mcp', 'https://marketnow.site/api/mcp', 'Agent skill marketplace with payments'),
+      // Templated URL: skipped.
+      remoteEntry('io.github.erin/tpl', 'https://{hostname}/mcp', 'Self hosted thing'),
+      remoteEntry('io.github.erin/tpl2', 'https://{hostname}/mcp', 'Self hosted thing'),
+      // Query is significant: different tools, not merged.
+      remoteEntry('io.github.frank/a', 'https://mcp.example.org/mcp?tools=a', 'Same text here please'),
+      remoteEntry('io.github.frank/b', 'https://mcp.example.org/mcp?tools=b', 'Same text here please'),
+      // Two-letter suffix shared by unrelated publishers is not a publisher match.
+      remoteEntry('uk.co.alpha/a', 'https://shared.example.com/mcp', 'Weather forecasts for farms'),
+      remoteEntry('uk.co.beta/b', 'https://shared.example.com/mcp', 'Invoice parsing for accountants'),
+      // Same package, but the dropped row declares an env var the kept one lacks.
+      { server: { name: 'io.github.jack/env-a', version: '1.0.0', description: 'Jack env server with a longer description',
+        packages: [{ registryType: 'npm', identifier: '@jack/env', environmentVariables: [{ name: 'API_KEY' }] }],
+        remotes: [{ type: 'streamable-http', url: 'https://env.example.com/mcp' }] } },
+      { server: { name: 'io.github.jack/env-b', version: '1.0.0', description: 'Jack env server',
+        packages: [{ registryType: 'npm', identifier: '@jack/env', environmentVariables: [{ name: 'API_KEY' }, { name: 'TENANT_ID' }] }],
+        remotes: [{ type: 'streamable-http', url: 'https://env.example.com/mcp' }] } },
+      // Shared TLD label is not a publisher match either.
+      remoteEntry('tools.acme/weather', 'https://tld.example.com/mcp', 'Weather forecasts for farms'),
+      remoteEntry('tools.beta/invoices', 'https://tld.example.com/mcp', 'Invoice parsing for accountants'),
+      // Different credentials: different accounts, no key, not compared.
+      remoteEntry('io.github.ivan/one', 'https://alice:one@cred.example.com/mcp', 'Same text here please'),
+      remoteEntry('io.github.ivan/two', 'https://bob:two@cred.example.com/mcp', 'Same text here please'),
+      // Templated host: skipped and reported.
+      remoteEntry('io.github.henry/tpl', 'https://{hostname}:8080/mcp', 'Self hosted'),
+      remoteEntry('io.github.henry/tpl2', 'https://{hostname}:8080/mcp', 'Self hosted'),
+      // Group of three: skipped.
+      remoteEntry('io.github.gina/one', 'https://three.example.net/mcp', 'Gina server'),
+      remoteEntry('io.github.gina/two', 'https://three.example.net/mcp', 'Gina server'),
+      remoteEntry('io.github.gina/three', 'https://three.example.net/mcp', 'Gina server'),
+    ],
+    metadata: { nextCursor: null, count: 23 },
+  };
+  const { mergeSameRemoteOfficialEntries, normalizeRemoteUrlKey } =
+    await import('../packages/core/dist/index.js');
+  assert.equal(normalizeRemoteUrlKey('HTTPS://Api.Acme.com:443/mcp/'), 'api.acme.com/mcp');
+  assert.equal(normalizeRemoteUrlKey('http://api.acme.com:80/mcp'), 'api.acme.com/mcp');
+  assert.equal(normalizeRemoteUrlKey('http://api.acme.com:443/mcp'), 'api.acme.com:443/mcp');
+  assert.equal(normalizeRemoteUrlKey('https://a.example/mcp?tools=X'), 'a.example/mcp?tools=X');
+  assert.equal(normalizeRemoteUrlKey('https://u:p@a.example/mcp'), null);
+  const urlMergeDb = initDatabase(join(dir, 'official-url-merge.sqlite'));
+  // The pass is not part of the sync: a sync alone keeps every entry.
+  await syncOfficialRegistry(urlMergeDb, runtime(async () => Response.json(urlMergeFeed)));
+  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 23);
+  // Make the acme pair Official+Glama on one side to check the
+  // would-drop-other-source guard, and mark one reviews row deprecated.
+  urlMergeDb.exec(`UPDATE servers SET sources = '["glama","official"]' WHERE id = 'io.github.acme/tool-mcp'`);
+  urlMergeDb.exec(`UPDATE servers SET status = 'deprecated', description = description || ' and much more text here' WHERE id = 'io.github.alice/reviews'`);
+  const result = mergeSameRemoteOfficialEntries(urlMergeDb);
+  assert.deepEqual(result.merged, [
+    { url: 'mcp.apify.com?tools=x/reviews', kept: 'io.github.bob/reviews-fork', removed: 'io.github.alice/reviews' },
+  ]);
+  assert.deepEqual(result.skipped.map((k) => [k.reason, k.ids]), [
+    // The Glama-merged row ranks richer but lacks the other row's repository.
+    ['would-lose-fields', ['com.acme/tool', 'io.github.acme/tool-mcp']],
+    ['would-lose-fields', ['io.github.jack/env-a', 'io.github.jack/env-b']],
+    ['unrelated', ['io.github.carol/marketnow', 'io.github.dave/marketnow-mcp']],
+    ['unrelated', ['uk.co.alpha/a', 'uk.co.beta/b']],
+    ['group-larger-than-2', ['io.github.gina/one', 'io.github.gina/three', 'io.github.gina/two']],
+    ['unrelated', ['tools.acme/weather', 'tools.beta/invoices']],
+    ['templated-url', ['io.github.erin/tpl', 'io.github.erin/tpl2']],
+    ['templated-url', ['io.github.henry/tpl', 'io.github.henry/tpl2']],
+  ]);
+  assert.equal(urlMergeDb.prepare('SELECT COUNT(*) AS c FROM servers').get().c, 22);
+  // Idempotent.
+  assert.deepEqual(mergeSameRemoteOfficialEntries(urlMergeDb).merged, []);
+  urlMergeDb.close();
+
+  // ── 2.0.1: Glama directory URLs move out of remote_url on open ──────────
+  const listingPath = join(dir, 'legacy-glama-remote.sqlite');
+  const legacyGlama = initDatabase(listingPath);
+  await syncGlamaRegistry(
+    legacyGlama,
+    runtime(async () => Response.json({
+      servers: [glamaEntry('listing-only', 'https://github.com/acme/listing-only', {
+        url: 'https://glama.ai/mcp/servers/listing-only',
+      })],
+      pageInfo: { hasNextPage: false, endCursor: null },
+    })),
+  );
+  // Recreate the pre-2.0.1 state: Glama's page stored as the remote.
+  legacyGlama.exec(`UPDATE servers SET remote_url = listing_url, has_remote = 1, listing_url = NULL`);
+  legacyGlama.close();
+  const reopenedGlama = initDatabase(listingPath);
+  assert.deepEqual(
+    { ...reopenedGlama.prepare('SELECT remote_url, has_remote, listing_url FROM servers').get() },
+    { remote_url: null, has_remote: 0, listing_url: 'https://glama.ai/mcp/servers/listing-only' },
+  );
+  const { getInstallCommand, NO_INSTALL_METHOD_NOTE } = await import('../packages/core/dist/index.js');
+  const listingInstall = getInstallCommand(reopenedGlama, 'listing-only');
+  assert.equal(listingInstall.config.note, NO_INSTALL_METHOD_NOTE);
+  assert.equal(listingInstall.config.listingUrl, 'https://glama.ai/mcp/servers/listing-only');
+  assert.equal(listingInstall.config.url, undefined);
+  assert.doesNotMatch(JSON.stringify(listingInstall.config.mcpServers ?? {}), /glama\.ai/);
+  reopenedGlama.close();
 }

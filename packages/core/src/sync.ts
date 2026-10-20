@@ -54,8 +54,8 @@ const PAGE_LIMIT = 100;
  * snapshot build into its 90-minute CI ceiling. Official overrun fails the
  * build (a snapshot missing Official servers is worse than no new snapshot);
  * Glama overrun discards the current staged crawl, leaves the local
- * last-known-good data unchanged, and records a degraded sync_log status. All
- * both are required sources, so any degradation blocks snapshot publication
+ * last-known-good data unchanged, and records a degraded sync_log status. Both
+ * are required sources, so any degradation blocks snapshot publication
  * (see scripts/snapshot-quality.mjs).
  */
 const DEFAULT_OFFICIAL_SYNC_BUDGET_MINUTES = 8;

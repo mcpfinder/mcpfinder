@@ -1080,6 +1080,7 @@ try {
   // override never buys a way past it.
   for (const [source, status, error] of [
     ['official', 'error', 'upstream failed'],
+    ['official', 'degraded', 'sync budget exceeded'],
     ['glama', 'skipped', 'Glama API requires GLAMA_API_KEY; skipping Glama sync'],
     ['glama', 'degraded', 'sync budget exceeded'],
   ]) {

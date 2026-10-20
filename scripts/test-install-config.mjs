@@ -119,8 +119,8 @@ const insert = (db, overrides) => {
     popularity_score: 0,
     categories: '[]',
     keywords: '[]',
-    remote_url: null,
-    has_remote: 0,
+    remote_url: overrides.remote_url ?? null,
+    has_remote: overrides.remote_url ? 1 : 0,
     last_synced_at: new Date().toISOString(),
     sources: JSON.stringify(overrides.sources ?? ['official']),
     raw_data: JSON.stringify(overrides.raw_data ?? {}),
@@ -423,8 +423,9 @@ assert.deepEqual(
 );
 mergeDb.close();
 
-// (b) Refreshing an already multi-source row (Glama primary, Smithery merged
-// in earlier) takes the same rebuild path and must not degrade the fields.
+// (b) Refreshing a legacy multi-source row (Glama primary, Smithery merged in
+// before Smithery stopped being a source) takes the same rebuild path and must
+// not degrade the fields: the retired source's slice is ignored, not trusted.
 const refreshDb = initDatabase(join(dir, 'glama-refresh.sqlite'));
 insert(refreshDb, {
   id: 'glama:env-schema',
@@ -468,6 +469,37 @@ assert.deepEqual(buildEnvPlaceholders(envVarsOf(refreshDb, 'glama:env-schema')),
   PROFILE: '<VALUE>',
 });
 refreshDb.close();
+
+// Remote URLs on retired hosts (Smithery's proxy / registry / run.tools stop
+// working on 2026-10-31). A catalog built before Smithery was dropped still
+// holds them: reopening it clears them, and the install path refuses one even
+// if it is still on a row.
+const retiredPath = join(dir, 'retired-remotes.sqlite');
+const retiredDb = initDatabase(retiredPath);
+insert(retiredDb, { name: 'io.example/smithery-only', slug: 'smithery-only', registry_type: null, package_identifier: null, env_vars: [], sources: ['smithery'], source: 'smithery', remote_url: 'https://registry.smithery.ai/servers/example/smithery-only' });
+insert(retiredDb, { name: 'io.example/proxied', slug: 'proxied', registry_type: null, package_identifier: null, env_vars: [], remote_url: 'https://server.smithery.ai/example/mcp' });
+insert(retiredDb, { name: 'io.example/runtools', slug: 'runtools', registry_type: null, package_identifier: null, env_vars: [], remote_url: 'https://linear.run.tools' });
+insert(retiredDb, { name: 'io.example/vendor', slug: 'vendor', registry_type: null, package_identifier: null, env_vars: [], remote_url: 'https://mcp.example.com/mcp?via=smithery.ai' });
+
+// Read-time guard, before any reopen.
+const guarded = getInstallCommand(retiredDb, 'proxied', 'claude-desktop');
+assert.ok(!JSON.stringify(guarded).includes('smithery.ai'), 'install config must not offer a retired remote');
+assert.equal(
+  getInstallCommand(retiredDb, 'vendor', 'claude-desktop').config.mcpServers.vendor.url,
+  'https://mcp.example.com/mcp?via=smithery.ai',
+  'only the host decides, not a substring elsewhere in the URL',
+);
+retiredDb.close();
+
+const reopened = initDatabase(retiredPath);
+const remotes = Object.fromEntries(
+  reopened.prepare('SELECT slug, remote_url, has_remote FROM servers').all().map((r) => [r.slug, [r.remote_url, r.has_remote]]),
+);
+assert.deepEqual(remotes['smithery-only'], [null, 0]);
+assert.deepEqual(remotes.proxied, [null, 0]);
+assert.deepEqual(remotes.runtools, [null, 0]);
+assert.deepEqual(remotes.vendor, ['https://mcp.example.com/mcp?via=smithery.ai', 1]);
+reopened.close();
 
 if (originalGlamaKey === undefined) delete process.env.GLAMA_API_KEY;
 else process.env.GLAMA_API_KEY = originalGlamaKey;

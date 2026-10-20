@@ -73,7 +73,7 @@ export {
 } from './snapshot-state.js';
 export type { SnapshotState, SweepOptions, PublishOutcome } from './snapshot-state.js';
 
-// Build-time enrichment (GitHub probe, post-sync dedup pass)
+// Build-time enrichment (npm-deprecation / archived-repo probe)
 export { enrichDeprecationFlags } from './enrich.js';
 export { usableRemoteUrl, firstUsableRemoteUrl } from './remote-url.js';
 export type { EnrichResult, DeprecationEnrichResult } from './enrich.js';

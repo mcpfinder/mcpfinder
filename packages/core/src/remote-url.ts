@@ -1,7 +1,7 @@
 /**
  * Remote MCP endpoints on hosts that are known to be retired.
  *
- * Smithery shut down its MCP proxy, API and hosted server URLs on 2026-10-31
+ * Smithery's MCP proxy, API and hosted server URLs stop working on 2026-10-31
  * (https://smithery.ai/future): `server.smithery.ai/*`, `*.run.tools` and the
  * `registry.smithery.ai/servers/*` pages MCPfinder used to link stop working.
  * Official Registry and Glama entries can still advertise those URLs until

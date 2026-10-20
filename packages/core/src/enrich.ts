@@ -4,8 +4,6 @@
  * latency-sensitive client sync path.
  */
 import type { DatabaseSync } from 'node:sqlite';
-import { mergeServerData } from './server-merge.js';
-import { parseRawEnvelope, rawPayloadForSource } from './raw-envelope.js';
 
 export interface EnrichResult {
   probed: number;
@@ -294,29 +292,4 @@ async function probeGitHubArchived(
 
   stats.durationMs = Date.now() - t0;
   return stats;
-}
-
-/**
- * Merge the `from` row into the `to` row: union sources, pick longer description,
- * fill in null fields, carry over use_count/verified/icon_url where present.
- */
-function mergeInto(db: DatabaseSync, toId: string, fromId: string): void {
-  const to = db.prepare('SELECT * FROM servers WHERE id = ?').get(toId) as Record<string, unknown>;
-  const from = db.prepare('SELECT * FROM servers WHERE id = ?').get(fromId) as Record<string, unknown>;
-  if (!to || !from) return;
-
-  let toSources: string[] = [];
-  let fromSources: string[] = [];
-  try {
-    toSources = JSON.parse((to.sources as string) || '[]');
-    fromSources = JSON.parse((from.sources as string) || '[]');
-  } catch {
-    /* noop */
-  }
-  const mergedSources = [...new Set([...toSources, ...fromSources])].sort();
-  db.prepare('UPDATE servers SET sources = ? WHERE id = ?').run(
-    JSON.stringify(mergedSources),
-    toId,
-  );
-  mergeServerData(db, toId, from);
 }

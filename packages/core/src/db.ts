@@ -5,6 +5,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { usableRemoteUrl } from './remote-url.js';
 
 /**
  * A value bindable to a SQLite statement parameter. Mirrors node:sqlite's
@@ -222,6 +223,41 @@ function migrateSchema(db: DatabaseSync): void {
     `UPDATE sync_log SET last_successful_at = last_synced_at
      WHERE status = 'ok' AND last_successful_at IS NULL`,
   );
+
+  clearRetiredRemoteUrls(db);
+}
+
+/**
+ * Clear remote URLs on retired hosts (see remote-url.ts) that an older sync or
+ * snapshot left behind. New data is already filtered at ingest, but a local
+ * catalog built before Smithery was dropped still holds registry.smithery.ai /
+ * server.smithery.ai / *.run.tools endpoints, and the upsert keeps an existing
+ * remote_url when a refresh has none. Idempotent; a no-op once clean. Best
+ * effort: a busy or read-only database is left as it is, and install configs
+ * still refuse a retired URL at read time (install.ts).
+ */
+function clearRetiredRemoteUrls(db: DatabaseSync): void {
+  try {
+    const candidates = db
+      .prepare(
+        `SELECT id, remote_url FROM servers
+         WHERE remote_url LIKE '%smithery.ai%' OR remote_url LIKE '%run.tools%'`,
+      )
+      .all() as Array<{ id: string; remote_url: string }>;
+    const stale = candidates.filter((row) => usableRemoteUrl(row.remote_url) === null);
+    if (stale.length === 0) return;
+    const clear = db.prepare('UPDATE servers SET remote_url = NULL, has_remote = 0 WHERE id = ?');
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      for (const row of stale) clear.run(row.id);
+      db.exec('COMMIT');
+    } catch (err) {
+      db.exec('ROLLBACK');
+      throw err;
+    }
+  } catch {
+    /* busy or read-only: try again on the next open */
+  }
 }
 
 /**

@@ -245,6 +245,10 @@
     .prose p { margin-bottom: 16px; }
     .prose ul { margin: 0 0 16px 1.2em; }
     .prose li { margin-bottom: 8px; }
+    .prose a { text-decoration: underline; }
+    .card code, .step code {
+      background: rgba(212, 255, 0, 0.1); padding: 2px 4px; color: var(--accent); font-size: 0.8rem;
+    }
     @media (max-width: 768px) {
       .card-grid, .steps { grid-template-columns: 1fr; }
       .nav-links a:not(.nav-cta) { display: none; }
@@ -278,7 +282,7 @@
   <div class="container">
     <div class="hero-badge">GUIDE · SMITHERY SHUTDOWN</div>
     <h1>A <span class="highlight">Smithery alternative</span> for finding MCP servers</h1>
-    <p class="hero-lead">Smithery is shutting down its MCP proxy, API, CLI and server URLs on 31 October 2026. If you used Smithery to <em>find</em> and install MCP servers, MCPfinder gives your agent the same search across the Official MCP Registry and Glama, and returns each server&rsquo;s own package or URL instead of a proxy.</p>
+    <p class="hero-lead">Smithery is shutting down its MCP proxy, API, CLI and server URLs on 31 October 2026. If you used Smithery to <em>find</em> and install MCP servers, MCPfinder gives your agent a search across the Official MCP Registry and Glama, and returns each server&rsquo;s own package or URL instead of a proxy.</p>
     <div class="btn-group">
       <a href="/#install" class="btn btn-primary">INSTALL MCPFINDER</a>
       <a href="https://github.com/mcpfinder/mcpfinder" class="btn btn-secondary" target="_blank" rel="noopener">VIEW ON GITHUB</a>
@@ -316,7 +320,7 @@
       </div>
       <div class="card">
         <h3>Not covered: hosted proxy</h3>
-        <p>MCPfinder does not run servers for you. Local servers run on your machine; remote servers are reached at the vendor&rsquo;s own URL.</p>
+        <p>MCPfinder does not run servers for you. Local servers run on your machine; remote servers are reached at the URL published in their registry entry.</p>
       </div>
       <div class="card">
         <h3>Not covered: managed OAuth</h3>

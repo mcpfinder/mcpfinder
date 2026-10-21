@@ -2,7 +2,7 @@
 
 Static one-pager served at `https://mcpfinder.dev`.
 
-Sourced from the currently-deployed Cloudflare Pages project
+Originally sourced from the Cloudflare Pages project
 `mcpfinder-landing` (commit `864013f`, Feb 2026) and copied into this repo
 on 2026-04-20 so the site lives alongside the code.
 
@@ -22,30 +22,22 @@ landing/
 └── wrangler.toml
 ```
 
-## Deploy (preview on workers.dev)
+## Deploy
 
 ```bash
 cd landing
 npx wrangler deploy
 ```
 
-Deploys to `https://mcpfinder-landing-www.<account>.workers.dev`. Does
-**not** take over `mcpfinder.dev` — the existing Pages project still owns
-that domain. Use the preview URL to verify the site before cutover.
+The Worker has the `mcpfinder.dev` Custom Domain. Wrangler disables its
+`workers.dev` and preview URLs. Check the production domain after deploy;
+do not use an alternate public Worker URL for verification.
 
-## Cutover from Pages to Workers
+## Earlier Pages cutover
 
-Current state: `mcpfinder.dev` is served by the Cloudflare Pages project
-`mcpfinder-landing`. To switch to a Worker deploy:
-
-1. Verify the preview URL looks right.
-2. In the Cloudflare dashboard, detach the `mcpfinder.dev` custom domain
-   from the `mcpfinder-landing` Pages project.
-3. Uncomment the `routes` block in `wrangler.toml`.
-4. `npx wrangler deploy` — the Worker now owns `mcpfinder.dev/*`.
-
-Keep the old Pages project around for a rollback window. When you're
-confident, delete it in the dashboard.
+The landing page started on the `mcpfinder-landing` Pages project. The
+current Worker Custom Domain was attached after that cutover; do not add
+the same hostname as a Worker Route in `wrangler.toml`.
 
 ## Analytics
 

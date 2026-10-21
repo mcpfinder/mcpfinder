@@ -111,3 +111,9 @@
 
 /how-to-find-mcp-servers/index.html
   Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/smithery-alternative/
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/smithery-alternative/index.html
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smithery alternative after the Oct 31 shutdown | MCPfinder</title>
+  <meta name="description" content="Smithery’s MCP proxy, API, CLI and server URLs stop on 31 October 2026. Find MCP servers and their official URLs with MCPfinder, an open-source MCP server.">
+  <meta name="author" content="Coder AI">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://mcpfinder.dev/smithery-alternative/">
+  <link rel="icon" type="image/png" href="/mcpfinder-icon.png">
+  <link rel="apple-touch-icon" href="/mcpfinder-icon.png">
+  <meta name="theme-color" content="#0A0A0A">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="me" href="https://github.com/mcpfinder/mcpfinder">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mcpfinder.dev/smithery-alternative/">
+  <meta property="og:title" content="Smithery alternative for MCP server discovery | MCPfinder">
+  <meta property="og:description" content="Smithery’s MCP proxy, API, CLI and server URLs stop on 31 October 2026. Find MCP servers and their official URLs with MCPfinder, an open-source MCP server.">
+  <meta property="og:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
+  <meta property="og:site_name" content="MCPfinder">
+  <meta property="og:locale" content="en_US">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@coderaidev">
+  <meta name="twitter:title" content="Smithery alternative for MCP server discovery | MCPfinder">
+  <meta name="twitter:description" content="Smithery’s MCP proxy, API, CLI and server URLs stop on 31 October 2026. Find MCP servers and their official URLs with MCPfinder, an open-source MCP server.">
+  <meta name="twitter:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "MCPfinder",
+      "item": "https://mcpfinder.dev/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Smithery alternative",
+      "item": "https://mcpfinder.dev/smithery-alternative/"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is changing at Smithery on 31 October 2026?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "According to Smithery’s announcement (smithery.ai/future, checked 2026-10-21), server URLs on run.tools and server.smithery.ai, the Smithery API, Connect, Toolbox, accounts, API keys, the CLI and the SDKs stop working on 31 October 2026. smithery.ai stays online as a public, non-proxied directory, now powered by Arcade.dev."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is MCPfinder a drop-in replacement for Smithery?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. MCPfinder does not host or proxy MCP servers and does not manage OAuth connections, so it does not replace Smithery Connect or the hosted proxy. It replaces the discovery part: an agent searches the Official MCP Registry and Glama through MCPfinder and gets an install config for the server itself."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I replace a server.smithery.ai or run.tools URL?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Switch to the vendor’s own MCP URL or package, as Smithery recommends. Ask MCPfinder to search for the server and call get_install_config: it returns the package command (for example npx or uvx) or the remote endpoint published in the server’s registry entry. If no install method is known, it says so and links the listing and repository."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does MCPfinder still use Smithery data?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Since MCPfinder 2.0 (October 2026) the index is built from the Official MCP Registry and Glama only, and registry.smithery.ai, server.smithery.ai and run.tools endpoints are filtered out of install configs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is MCPfinder free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. It is open source under AGPL-3.0 and runs locally with npx -y @mcpfinder/server. There is no account or API key."
+      }
+    }
+  ]
+}
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #0A0A0A;
+      --text-primary: #F5F5F5;
+      --text-secondary: #999;
+      --text-muted: #666;
+      --accent: #D4FF00;
+      --border: #333;
+      --font-mono: 'JetBrains Mono', monospace;
+      --max-width: 1100px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-mono);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      font-weight: 400;
+    }
+    a { color: var(--text-primary); text-decoration: none; transition: color 0.15s; }
+    a:hover { color: var(--accent); }
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 32px; }
+    .section-label {
+      font-size: 0.75rem; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--accent); margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; margin-bottom: 16px;
+    }
+    .section-desc {
+      color: var(--text-secondary); font-size: 1rem; max-width: 680px; margin-bottom: 40px;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--bg-primary); border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: var(--max-width); margin: 0 auto; padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between; height: 64px;
+    }
+    .nav-logo {
+      font-size: 1.1rem; font-weight: 700; color: var(--text-primary);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-links { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+    .nav-links a { color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-cta {
+      background: var(--accent); color: #000 !important; padding: 8px 16px;
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .nav-cta:hover { background: var(--text-primary); color: #000 !important; }
+    .hero { padding: 140px 0 64px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); padding: 8px 16px; font-size: 0.75rem;
+      color: var(--text-secondary); margin-bottom: 28px; text-transform: uppercase;
+      letter-spacing: 0.05em; font-weight: 500;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.15;
+      margin-bottom: 20px; max-width: 900px;
+    }
+    .hero h1 .highlight { color: var(--accent); }
+    .hero-lead {
+      font-size: 1rem; color: var(--text-secondary); max-width: 720px; margin-bottom: 36px;
+    }
+    .btn-group { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+      font-size: 0.85rem; font-weight: 700; font-family: var(--font-mono);
+      border: 1px solid var(--border); cursor: pointer; transition: all 0.15s;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--text-primary); border-color: var(--text-primary); color: #000; }
+    .btn-secondary { background: transparent; color: var(--text-primary); }
+    .btn-secondary:hover { background: var(--text-primary); color: #000; border-color: var(--text-primary); }
+    section { padding: 64px 0; }
+    .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .card {
+      border: 1px solid var(--border); padding: 28px; transition: border-color 0.15s;
+    }
+    .card:hover { border-color: var(--text-muted); }
+    .card h3 {
+      font-size: 0.95rem; margin-bottom: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .card p { color: var(--text-secondary); font-size: 0.85rem; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .step { border: 1px solid var(--border); padding: 28px; }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border: 1px solid var(--accent); color: var(--accent);
+      font-size: 0.8rem; font-weight: 700; margin-bottom: 20px;
+    }
+    .step h3 { font-size: 1rem; margin-bottom: 10px; font-weight: 700; }
+    .step p { color: var(--text-secondary); font-size: 0.85rem; }
+    .code-block { border: 1px solid var(--border); overflow: hidden; margin-top: 24px; max-width: 720px; }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .code-body { padding: 20px 24px; font-size: 0.8rem; line-height: 1.8; overflow-x: auto; }
+    .code-body .prompt { color: var(--accent); }
+    .code-body .comment { color: var(--text-muted); }
+    .faq-list { max-width: 800px; }
+    .faq-item { border-bottom: 1px solid var(--border); padding: 28px 0; }
+    .faq-item:first-child { border-top: 1px solid var(--border); }
+    .faq-q {
+      font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      margin-bottom: 12px;
+    }
+    .faq-a { color: var(--text-secondary); font-size: 0.85rem; }
+    .faq-a code {
+      background: rgba(212, 255, 0, 0.1); padding: 2px 4px; color: var(--accent); font-size: 0.8rem;
+    }
+    .related {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px;
+    }
+    .related a {
+      border: 1px solid var(--border); padding: 10px 14px; font-size: 0.75rem;
+      color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .related a:hover { border-color: var(--accent); color: var(--accent); }
+    .cta-section { text-align: center; padding: 80px 0; border-top: 1px solid var(--border); }
+    .cta-section h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; margin-bottom: 16px; }
+    .cta-section p { color: var(--text-secondary); margin-bottom: 32px; }
+    footer { border-top: 1px solid var(--border); padding: 48px 0; text-align: center; }
+    .footer-links { display: flex; gap: 28px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .footer-links a {
+      color: var(--text-muted); font-size: 0.8rem; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-credit { color: var(--text-muted); font-size: 0.75rem; }
+    .footer-credit a { color: var(--text-secondary); }
+    .footer-credit a:hover { color: var(--accent); }
+    .prose { color: var(--text-secondary); font-size: 0.9rem; max-width: 760px; }
+    .prose p { margin-bottom: 16px; }
+    .prose ul { margin: 0 0 16px 1.2em; }
+    .prose li { margin-bottom: 8px; }
+    .prose a { text-decoration: underline; }
+    .card code, .step code {
+      background: rgba(212, 255, 0, 0.1); padding: 2px 4px; color: var(--accent); font-size: 0.8rem;
+    }
+    @media (max-width: 768px) {
+      .card-grid, .steps { grid-template-columns: 1fr; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .container { padding: 0 20px; }
+    }
+
+  </style>
+  <!-- Google Analytics 4 (G-LPLFNBLWG4); gtag.js only loads on mcpfinder.dev -->
+  <script src="/analytics.js" defer></script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+      MCPFINDER.DEV
+    </a>
+    <div class="nav-links">
+      <a href="/#how-it-works">HOW IT WORKS</a>
+      <a href="/#install">INSTALL</a>
+      <a href="/best-mcp-servers/">BEST MCP</a>
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
+      <a href="/#install" class="nav-cta">GET STARTED</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">GUIDE · SMITHERY SHUTDOWN</div>
+    <h1>A <span class="highlight">Smithery alternative</span> for finding MCP servers</h1>
+    <p class="hero-lead">Smithery is shutting down its MCP proxy, API, CLI and server URLs on 31 October 2026. If you used Smithery to <em>find</em> and install MCP servers, MCPfinder gives your agent a search across the Official MCP Registry and Glama, and returns each server&rsquo;s own package or URL instead of a proxy.</p>
+    <div class="btn-group">
+      <a href="/#install" class="btn btn-primary">INSTALL MCPFINDER</a>
+      <a href="https://github.com/mcpfinder/mcpfinder" class="btn btn-secondary" target="_blank" rel="noopener">VIEW ON GITHUB</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">WHAT CHANGES</div>
+    <h2 class="section-title">What Smithery keeps and what stops on 31 October</h2>
+    <div class="prose">
+      <p>From Smithery&rsquo;s own announcement (<a href="https://smithery.ai/future" target="_blank" rel="noopener">smithery.ai/future</a>, checked 21 October 2026):</p>
+      <ul>
+        <li><strong>Stops working:</strong> server URLs on run.tools and server.smithery.ai; the Smithery API, Connect and Toolbox; Smithery accounts and API keys; the Smithery CLI and SDKs (current versions will be marked deprecated).</li>
+        <li><strong>Stays:</strong> smithery.ai as a public, non-proxied directory of MCP servers, now powered by Arcade.dev, with a curated set of verified servers whose pages show direct MCP URLs.</li>
+        <li><strong>Smithery&rsquo;s advice:</strong> switch to the vendor&rsquo;s official MCP URL before 31 October.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">WHAT MCPFINDER COVERS</div>
+    <h2 class="section-title">Discovery and install configs, not hosting</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Covered: search</h3>
+        <p>Your agent calls <code>search_mcp_servers</code> over one index built from the Official MCP Registry and Glama (over 100,000 servers in the October 2026 snapshot).</p>
+      </div>
+      <div class="card">
+        <h3>Covered: direct install config</h3>
+        <p><code>get_install_config</code> returns the server&rsquo;s own package command or the remote endpoint from its registry entry, shaped for Claude, Cursor, Claude Code, Cline or Windsurf. No Smithery or run.tools URLs.</p>
+      </div>
+      <div class="card">
+        <h3>Not covered: hosted proxy</h3>
+        <p>MCPfinder does not run servers for you. Local servers run on your machine; remote servers are reached at the URL published in their registry entry.</p>
+      </div>
+      <div class="card">
+        <h3>Not covered: managed OAuth</h3>
+        <p>There is no Connect-style identity layer. If you manage MCP connections for your own users, you need a separate service for that.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">MIGRATE</div>
+    <h2 class="section-title">Replace a Smithery URL in three steps</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Install MCPfinder</h3>
+        <p>Add <code>npx -y @mcpfinder/server</code> to your client&rsquo;s MCP config. No account or API key.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Find the server again</h3>
+        <p>Ask your agent for the server by name, e.g. &ldquo;find the Linear MCP server&rdquo;. Then inspect its trust signals, tools and env vars.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Swap the config</h3>
+        <p>Replace the server.smithery.ai or run.tools entry with the snippet from <code>get_install_config</code>. If no install method is known, MCPfinder says so and links the listing and repository.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">FAQ</div>
+    <h2 class="section-title">Common questions</h2>
+    <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">What is changing at Smithery on 31 October 2026?</div>
+      <div class="faq-a">According to Smithery’s announcement (smithery.ai/future, checked 2026-10-21), server URLs on run.tools and server.smithery.ai, the Smithery API, Connect, Toolbox, accounts, API keys, the CLI and the SDKs stop working on 31 October 2026. smithery.ai stays online as a public, non-proxied directory, now powered by Arcade.dev.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is MCPfinder a drop-in replacement for Smithery?</div>
+      <div class="faq-a">No. MCPfinder does not host or proxy MCP servers and does not manage OAuth connections, so it does not replace Smithery Connect or the hosted proxy. It replaces the discovery part: an agent searches the Official MCP Registry and Glama through MCPfinder and gets an install config for the server itself.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How do I replace a server.smithery.ai or run.tools URL?</div>
+      <div class="faq-a">Switch to the vendor’s own MCP URL or package, as Smithery recommends. Ask MCPfinder to search for the server and call <code>get_install_config</code>: it returns the package command (for example npx or uvx) or the remote endpoint published in the server’s registry entry. If no install method is known, it says so and links the listing and repository.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Does MCPfinder still use Smithery data?</div>
+      <div class="faq-a">No. Since MCPfinder 2.0 (October 2026) the index is built from the Official MCP Registry and Glama only, and registry.smithery.ai, server.smithery.ai and run.tools endpoints are filtered out of install configs.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is MCPfinder free?</div>
+      <div class="faq-a">Yes. It is open source under AGPL-3.0 and runs locally with <code>npx -y @mcpfinder/server</code>. There is no account or API key.</div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">MORE GUIDES</div>
+    <h2 class="section-title">Related MCP finder pages</h2>
+    <div class="related">
+      <a href="/how-to-find-mcp-servers/">How to find MCP</a>
+      <a href="/best-mcp-servers-2026/">Best MCP 2026</a>
+      <a href="/mcp-servers-for-claude/">MCP for Claude</a>
+      <a href="/mcp-servers-for-cursor/">MCP for Cursor</a>
+      <a href="/mcp-servers-for-vscode/">MCP for VS Code</a>
+      <a href="/">Home</a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="container">
+    <h2>Let your agent find the right MCP</h2>
+    <p>Install MCPfinder once. Search registries, inspect trust signals, and paste client-ready config.</p>
+    <div class="btn-group" style="justify-content:center">
+      <a href="/#install" class="btn btn-primary">INSTALL NOW</a>
+      <a href="/llms.txt" class="btn btn-secondary">READ LLMS.TXT</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-links">
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
+      <a href="https://www.npmjs.com/package/@mcpfinder/server" target="_blank" rel="noopener">NPM</a>
+      <a href="/llms.txt">LLMS.TXT</a>
+      <a href="/sitemap.xml">SITEMAP</a>
+      <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP SPEC</a>
+      <a href="https://coderai.dev" target="_blank" rel="noopener">CODER AI</a>
+    </div>
+    <p class="footer-credit">
+      BUILT BY <a href="https://coderai.dev" target="_blank" rel="noopener">CODER AI</a> · AGPL-3.0 LICENSE
+    </p>
+  </div>
+</footer>
+</body>
+</html>

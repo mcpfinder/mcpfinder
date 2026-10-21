@@ -1,8 +1,8 @@
 MCPfinder — Full Agent Reference
 ================================
 
-Version:      1.0.6
-Last-Updated: 2026-05-25
+Version:      2.0.1
+Last-Updated: 2026-10-21
 Canonical:    https://mcpfinder.dev/llms-full.txt
 Short form:   https://mcpfinder.dev/llms.txt
 License:      AGPL-3.0-or-later (software); CC0 (this file — quote freely)

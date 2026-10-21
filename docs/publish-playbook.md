@@ -17,8 +17,13 @@ The version lives in these places. Bump them together:
 - `packages/mcp-server/manifest.json` (MCPB)
 - `landing/public/.well-known/agents.json`
 - `landing/public/index.html`: the hero badge (`v<version> — FREE AND OPEN-SOURCE`),
-  `softwareVersion` (SoftwareApplication JSON-LD) and `version` (SoftwareSourceCode
-  JSON-LD), plus their `dateModified`. Redeploy the landing worker after the npm publish.
+  the footer line (`MCPfinder v<version> · last updated …`), `softwareVersion`
+  (SoftwareApplication JSON-LD) and `version` (SoftwareSourceCode JSON-LD), plus their
+  `dateModified`
+- `landing/public/llms.txt` and `landing/public/llms-full.txt` (`Version:` and
+  `Last-Updated:` headers)
+
+Redeploy the landing worker after the npm publish so the site shows the published version.
 
 Run `pnpm test`, commit as `chore(release): v<version>`, tag with
 `git tag -a v<version> -m "v<version>"`, and push `main` and the tag.

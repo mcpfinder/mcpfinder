@@ -9,13 +9,16 @@ one go. npm and the official MCP Registry must always carry the same version.
 
 ## 1. Bump the version
 
-The version lives in six places. Bump them together:
+The version lives in these places. Bump them together:
 
 - `packages/core/package.json`
 - `packages/mcp-server/package.json`
 - `packages/mcp-server/server.json` (twice: top-level `version` and `packages[0].version`)
 - `packages/mcp-server/manifest.json` (MCPB)
 - `landing/public/.well-known/agents.json`
+- `landing/public/index.html`: the hero badge (`v<version> — FREE AND OPEN-SOURCE`),
+  `softwareVersion` (SoftwareApplication JSON-LD) and `version` (SoftwareSourceCode
+  JSON-LD), plus their `dateModified`. Redeploy the landing worker after the npm publish.
 
 Run `pnpm test`, commit as `chore(release): v<version>`, tag with
 `git tag -a v<version> -m "v<version>"`, and push `main` and the tag.

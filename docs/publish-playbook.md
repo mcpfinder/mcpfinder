@@ -22,6 +22,8 @@ The version lives in these places. Bump them together:
   `dateModified`
 - `landing/public/llms.txt` and `landing/public/llms-full.txt` (`Version:` and
   `Last-Updated:` headers)
+- `landing/public/sitemap.xml`: `<lastmod>` of every page or file you changed above
+  (`/`, `/llms.txt`, `/llms-full.txt`)
 
 Redeploy the landing worker after the npm publish so the site shows the published version.
 

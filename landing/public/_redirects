@@ -1,0 +1,11 @@
+# Slash-less landing URLs: permanent 301 to the trailing-slash canonical.
+# Without these, Workers static assets (auto-trailing-slash) answer with a
+# temporary 307. Keep in sync with landing pages (folder/index.html).
+/best-mcp-servers /best-mcp-servers/ 301
+/best-mcp-servers-2026 /best-mcp-servers-2026/ 301
+/how-to-find-mcp-servers /how-to-find-mcp-servers/ 301
+/mcp-servers-for-claude /mcp-servers-for-claude/ 301
+/mcp-servers-for-cursor /mcp-servers-for-cursor/ 301
+/mcp-servers-for-vscode /mcp-servers-for-vscode/ 301
+/smithery-alternative /smithery-alternative/ 301
+/index.html / 301

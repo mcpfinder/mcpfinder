@@ -16,6 +16,7 @@ landing/
 │   ├── llms.txt                            # short AI-facing discovery guide
 │   ├── llms-full.txt                       # expanded AI-facing manual
 │   ├── robots.txt
+│   ├── _redirects                          # 301 slash-less landing URLs → trailing slash, /index.html → /
 │   ├── sitemap.xml
 │   └── .well-known/
 │       └── mcp-registry-auth              # ed25519 pubkey for the MCP Registry proof

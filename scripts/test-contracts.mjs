@@ -82,5 +82,14 @@ for (const page of landingPages) {
   }
 }
 assert.ok(redirectRules.has('/index.html / 301'), 'landing/public/_redirects should 301 /index.html to /');
+// Reverse direction: a page-shaped rule must not outlive its folder (it would 301 to a 404).
+for (const rule of redirectRules) {
+  const match = rule.match(/^\/([^/\s]+)(?:\/index\.html)? \/([^/\s]+)\/ 301$/);
+  if (!match) continue;
+  assert.ok(
+    landingPages.includes(match[2]),
+    `landing/public/_redirects rule "${rule}" points at /${match[2]}/ but landing/public/${match[2]}/index.html is missing`,
+  );
+}
 
 console.log('contract checks passed');

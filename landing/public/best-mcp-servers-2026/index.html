@@ -91,7 +91,7 @@
       "name": "How do I tell a vendor's own MCP server from a lookalike?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Check the server name in the Official MCP Registry. A reverse-DNS name such as com.notion/mcp can only be published by someone who proved control of that domain, and io.github.getsentry/... requires being an owner of that GitHub organization. Similarly named servers under other namespaces come from other publishers."
+        "text": "Check the server name in the Official MCP Registry. A reverse-DNS name such as com.notion/mcp can only be published by someone who proved control of that domain, and io.github.getsentry/… requires being an owner of that GitHub organization. A similar name under a different namespace is not proof that the vendor published it; check the namespace and the linked repository."
       }
     },
     {
@@ -99,7 +99,7 @@
       "name": "Do Smithery-hosted MCP URLs still work?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Smithery announced that server URLs on run.tools and server.smithery.ai, its API, CLI and SDKs stop working on 31 October 2026. Switch to the vendor's own MCP URL; MCPfinder does not use Smithery as a source."
+        "text": "Smithery announced that server URLs on run.tools and server.smithery.ai, its API, CLI and SDKs stop working on 31 October 2026. Switch to the vendor's own MCP URL; see the MCPfinder Smithery alternative guide. MCPfinder does not use Smithery as a source."
       }
     }
   ]
@@ -386,11 +386,11 @@
       <table class="vendor-table">
         <thead><tr><th scope="col">Use case</th><th scope="col">Server</th><th scope="col">Registry name</th><th scope="col">How to connect</th></tr></thead>
         <tbody>
-        <tr><td>Code &amp; repos</td><td><a href="https://github.com/github/github-mcp-server" target="_blank" rel="noopener">GitHub MCP Server</a><br><span class="muted">by GitHub</span></td><td><code>io.github.github/github-mcp-server</code></td><td>Remote HTTP <code>api.githubcopilot.com/mcp/</code> · Docker image (ghcr.io)</td></tr>
+        <tr><td>Code &amp; repos</td><td><a href="https://github.com/github/github-mcp-server" target="_blank" rel="noopener">GitHub MCP Server</a><br><span class="muted">by GitHub</span></td><td><code>io.github.github/github-mcp-server</code></td><td>Remote HTTP <code>api.githubcopilot.com/mcp/</code> · Docker image <code>ghcr.io/github/github-mcp-server</code></td></tr>
         <tr><td>Browser automation</td><td><a href="https://github.com/microsoft/playwright-mcp" target="_blank" rel="noopener">Playwright MCP</a><br><span class="muted">by Microsoft</span></td><td><code>io.github.microsoft/playwright-mcp</code></td><td>npm <code>@playwright/mcp</code></td></tr>
         <tr><td>Library docs for coding</td><td><a href="https://github.com/upstash/context7" target="_blank" rel="noopener">Context7</a><br><span class="muted">by Upstash</span></td><td><code>io.github.upstash/context7</code></td><td>Remote HTTP <code>mcp.context7.com/mcp</code> · npm <code>@upstash/context7-mcp</code></td></tr>
         <tr><td>Error monitoring</td><td><a href="https://github.com/getsentry/toolkit" target="_blank" rel="noopener">Sentry MCP</a><br><span class="muted">by Sentry</span></td><td><code>io.github.getsentry/sentry-mcp</code></td><td>Remote HTTP <code>mcp.sentry.dev/mcp</code> · npm <code>@sentry/mcp-server</code></td></tr>
-        <tr><td>Observability</td><td><a href="https://github.com/grafana/mcp-grafana" target="_blank" rel="noopener">Grafana MCP</a><br><span class="muted">by Grafana Labs</span></td><td><code>io.github.grafana/mcp-grafana</code></td><td>Remote HTTP · Docker image <code>grafana/mcp-grafana</code></td></tr>
+        <tr><td>Observability</td><td><a href="https://github.com/grafana/mcp-grafana" target="_blank" rel="noopener">Grafana MCP</a><br><span class="muted">by Grafana Labs</span></td><td><code>io.github.grafana/mcp-grafana</code></td><td>Remote HTTP <code>mcp.grafana.com/mcp</code> · Docker image <code>grafana/mcp-grafana</code></td></tr>
         <tr><td>Issues &amp; projects</td><td><a href="https://linear.app/docs/mcp" target="_blank" rel="noopener">Linear MCP</a><br><span class="muted">by Linear</span></td><td><code>app.linear/linear</code></td><td>Remote HTTP <code>mcp.linear.app/mcp</code></td></tr>
         <tr><td>Docs &amp; wiki</td><td><a href="https://developers.notion.com/docs/mcp" target="_blank" rel="noopener">Notion MCP</a><br><span class="muted">by Notion</span></td><td><code>com.notion/mcp</code></td><td>Remote HTTP <code>mcp.notion.com/mcp</code></td></tr>
         <tr><td>Design</td><td><a href="https://github.com/figma/mcp-server-guide" target="_blank" rel="noopener">Figma MCP server</a><br><span class="muted">by Figma</span></td><td><code>com.figma.mcp/mcp</code></td><td>Remote HTTP <code>mcp.figma.com/mcp</code></td></tr>
@@ -413,7 +413,7 @@
     <div class="section-label">TRUST CHECK</div>
     <h2 class="section-title">Vendor server or lookalike? Read the registry name</h2>
     <div class="prose">
-      <p>Popular names get reused. In the same 23 October 2026 snapshot, besides the vendor's own entry, the Official MCP Registry held 27 other servers with "figma" in the server name, 16 with "stripe", 12 with "notion" and 12 with "sentry". Some are useful community tools; none is the vendor's server.</p>
+      <p>Popular names get reused. In the same 23 October 2026 snapshot, besides the vendor's own entry, the Official MCP Registry held 27 other servers with "figma" in the server name, 16 with "stripe", 12 with "notion" and 12 with "sentry". Some are unrelated names that merely contain the word, some are useful community tools built on the vendor's API. The display name tells you nothing about who published a server; the registry namespace does.</p>
       <ul>
         <li><strong>Reverse-DNS names</strong> such as <code>com.notion/mcp</code> or <code>com.stripe/mcp</code> can only be published after proving control of that domain (DNS or HTTP check), per the <a href="https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/authentication.mdx" target="_blank" rel="noopener">registry's authentication docs</a>.</li>
         <li><strong>GitHub names</strong> such as <code>io.github.getsentry/…</code> require GitHub login, and an organization namespace requires being an owner of that organization.</li>
@@ -447,11 +447,11 @@
     </div>
     <div class="faq-item">
       <div class="faq-q">How do I tell a vendor's own MCP server from a lookalike?</div>
-      <div class="faq-a">Check the server name in the Official MCP Registry. A reverse-DNS name such as <code>com.notion/mcp</code> can only be published by someone who proved control of that domain, and <code>io.github.getsentry/…</code> requires being an owner of that GitHub organization. Similarly named servers under other namespaces come from other publishers.</div>
+      <div class="faq-a">Check the server name in the Official MCP Registry. A reverse-DNS name such as <code>com.notion/mcp</code> can only be published by someone who proved control of that domain, and <code>io.github.getsentry/…</code> requires being an owner of that GitHub organization. A similar name under a different namespace is not proof that the vendor published it; check the namespace and the linked repository.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Do Smithery-hosted MCP URLs still work?</div>
-      <div class="faq-a">Smithery <a href="https://smithery.ai/future" target="_blank" rel="noopener">announced</a> that server URLs on run.tools and server.smithery.ai, its API, CLI and SDKs stop working on 31 October 2026. Switch to the vendor's own MCP URL; see <a href="/smithery-alternative/">Smithery alternative</a>. MCPfinder does not use Smithery as a source.</div>
+      <div class="faq-a">Smithery <a href="https://smithery.ai/future" target="_blank" rel="noopener">announced</a> that server URLs on run.tools and server.smithery.ai, its API, CLI and SDKs stop working on 31 October 2026. Switch to the vendor's own MCP URL; see the MCPfinder <a href="/smithery-alternative/">Smithery alternative guide</a>. MCPfinder does not use Smithery as a source.</div>
     </div>
     </div>
   </div>

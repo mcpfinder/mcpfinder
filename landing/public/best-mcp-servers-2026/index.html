@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Best MCP Servers 2026: Find, Compare & Install | MCPfinder</title>
-  <meta name="description" content="Best MCP servers in 2026: how to discover, compare, and install Model Context Protocol servers with MCPfinder across the Official MCP Registry and Glama.">
+  <title>Best MCP Servers 2026: Vendor-Published Picks | MCPfinder</title>
+  <meta name="description" content="Best MCP servers in 2026, updated 23 Oct: 15 vendor-published servers from the Official MCP Registry, how to spot lookalikes, and how to install them.">
   <meta name="keywords" content="best MCP servers 2026, top MCP servers 2026, best Model Context Protocol servers, MCP server directory 2026, MCP comparison">
   <meta name="author" content="Coder AI">
   <meta name="robots" content="index, follow">
@@ -17,16 +17,16 @@
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mcpfinder.dev/best-mcp-servers-2026/">
-  <meta property="og:title" content="Best MCP Servers 2026 | MCPfinder">
-  <meta property="og:description" content="Best MCP servers in 2026: how to discover, compare, and install Model Context Protocol servers with MCPfinder across the Official MCP Registry and Glama.">
+  <meta property="og:title" content="Best MCP Servers 2026: Vendor-Published Picks | MCPfinder">
+  <meta property="og:description" content="Best MCP servers in 2026, updated 23 Oct: 15 vendor-published servers from the Official MCP Registry, how to spot lookalikes, and how to install them.">
   <meta property="og:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
   <meta property="og:site_name" content="MCPfinder">
   <meta property="og:locale" content="en_US">
 
   <meta name="twitter:card" content="summary">
   <meta name="twitter:site" content="@coderaidev">
-  <meta name="twitter:title" content="Best MCP Servers 2026 | MCPfinder">
-  <meta name="twitter:description" content="Best MCP servers in 2026: how to discover, compare, and install Model Context Protocol servers with MCPfinder across the Official MCP Registry and Glama.">
+  <meta name="twitter:title" content="Best MCP Servers 2026: Vendor-Published Picks | MCPfinder">
+  <meta name="twitter:description" content="Best MCP servers in 2026, updated 23 Oct: 15 vendor-published servers from the Official MCP Registry, how to spot lookalikes, and how to install them.">
   <meta name="twitter:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
 
   <script type="application/ld+json">
@@ -59,7 +59,7 @@
       "name": "What are the best MCP servers in 2026?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "In 2026 the MCP ecosystem moves too fast for a fixed top-10. Use MCPfinder to search by use case, compare confidence scores and warnings, and install the server that fits your client and security needs."
+        "text": "There is no fixed top-10, but a safe starting point is the server the vendor publishes itself. As of 23 October 2026 the Official MCP Registry lists vendor-published servers for GitHub, Playwright, Context7, Sentry, Grafana, Linear, Notion, Figma, Stripe, Supabase, Neon, MongoDB, Postman, Brave Search and Cloudflare. For anything else, search by use case with MCPfinder and compare warnings and install requirements."
       }
     },
     {
@@ -84,6 +84,22 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Use the browse_categories tool to list categories with counts or top servers in areas like database, filesystem, communication, or security."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I tell a vendor's own MCP server from a lookalike?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Check the server name in the Official MCP Registry. A reverse-DNS name such as com.notion/mcp can only be published by someone who proved control of that domain, and io.github.getsentry/... requires being an owner of that GitHub organization. Similarly named servers under other namespaces come from other publishers."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do Smithery-hosted MCP URLs still work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Smithery announced that server URLs on run.tools and server.smithery.ai, its API, CLI and SDKs stop working on 31 October 2026. Switch to the vendor's own MCP URL; MCPfinder does not use Smithery as a source."
       }
     }
   ]
@@ -238,6 +254,14 @@
     .prose p { margin-bottom: 16px; }
     .prose ul { margin: 0 0 16px 1.2em; }
     .prose li { margin-bottom: 8px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); }
+    .vendor-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .vendor-table th, .vendor-table td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text-secondary); }
+    .vendor-table th { color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7rem; }
+    .vendor-table td a { color: var(--text-primary); text-decoration: underline; text-decoration-color: var(--border); }
+    .vendor-table code, .prose code { background: rgba(212, 255, 0, 0.1); padding: 2px 4px; color: var(--accent); font-size: 0.75rem; word-break: break-all; }
+    .prose a { text-decoration: underline; text-decoration-color: var(--border); }
+    .muted { color: var(--text-muted); font-size: 0.75rem; }
     @media (max-width: 768px) {
       .card-grid, .steps { grid-template-columns: 1fr; }
       .nav-links a:not(.nav-cta) { display: none; }
@@ -269,7 +293,7 @@
 
 <section class="hero">
   <div class="container">
-    <div class="hero-badge">2026 GUIDE · DISCOVERY & COMPARISON</div>
+    <div class="hero-badge">2026 GUIDE · UPDATED 23 OCTOBER 2026</div>
     <h1>Best <span class="highlight">MCP servers in 2026</span> — find what fits</h1>
     <p class="hero-lead">In 2026, “best” still depends on your client, threat model, and the job to be done. MCPfinder ranks and explains live candidates across registries so agents — and humans — can compare trust signals, tools, and install complexity instead of chasing a static top-10 list.</p>
     <div class="btn-group">
@@ -285,7 +309,7 @@
     <div class="section-label">2026 REALITY CHECK</div>
     <h2 class="section-title">Best MCP servers in 2026 are contextual. Search wins.</h2>
     <div class="prose">
-      <p>By 2026 the MCP catalog spans tens of thousands of servers. Lists go stale overnight; registries still disagree. A great filesystem MCP for Claude Desktop may be wrong for a locked-down Cursor workspace. MCPfinder treats discovery as a live query: keyword + use case in, scored candidates with reasons out.</p>
+      <p>On 23 October 2026 the MCPfinder catalog snapshot held 114,340 servers, 48,634 of them listed in the Official MCP Registry; the rest come from Glama. Lists go stale overnight and many names are reused by unrelated publishers. A great filesystem MCP for Claude Desktop may be wrong for a locked-down Cursor workspace. MCPfinder treats discovery as a live query: keyword + use case in, scored candidates with reasons out.</p>
       <ul>
         <li>Aggregate Official MCP Registry and Glama</li>
         <li>Surface confidence scores and warning flags</li>
@@ -353,38 +377,50 @@
 </section>
 
 
-<section>
+<section id="vendor-servers">
   <div class="container">
-    <div class="section-label">EXAMPLES BY CATEGORY</div>
-    <h2 class="section-title">Vendor-published servers to start from</h2>
-    <p class="section-desc">These are listed in the Official MCP Registry (checked 16 October 2026) and published by the vendor named in each card. They are starting points, not a ranking: check each server's warnings, required secrets and client compatibility before installing.</p>
-    <div class="card-grid">
-      <div class="card">
-        <h3>Code &amp; repos: GitHub MCP Server</h3>
-        <p>Published by GitHub; manage repos, issues, PRs and workflows.<br><a href="https://github.com/github/github-mcp-server" target="_blank" rel="noopener">Source repository</a> · Docker image (ghcr.io) and remote HTTP</p>
-      </div>
-      <div class="card">
-        <h3>Browser automation: Playwright MCP</h3>
-        <p>Published by Microsoft; Playwright tools for MCP.<br><a href="https://github.com/microsoft/playwright-mcp" target="_blank" rel="noopener">Source repository</a> · npm: <code>@playwright/mcp</code></p>
-      </div>
-      <div class="card">
-        <h3>Error monitoring: Sentry MCP</h3>
-        <p>Published by Sentry; error monitoring, issue tracking and debugging.<br><a href="https://github.com/getsentry/sentry-mcp" target="_blank" rel="noopener">Source repository</a> · npm: <code>@sentry/mcp-server</code> and remote HTTP</p>
-      </div>
-      <div class="card">
-        <h3>Payments: Stripe MCP</h3>
-        <p>Published by Stripe; tools for customers, products, payments and more.<br><a href="https://github.com/stripe/agent-toolkit" target="_blank" rel="noopener">Source repository</a> · Remote HTTP</p>
-      </div>
-      <div class="card">
-        <h3>Database: Supabase MCP</h3>
-        <p>Published by Supabase; interact with the Supabase platform.<br><a href="https://github.com/supabase/mcp" target="_blank" rel="noopener">Source repository</a> · npm: <code>@supabase/mcp-server-supabase</code> and remote HTTP</p>
-      </div>
-      <div class="card">
-        <h3>Database: MongoDB MCP Server</h3>
-        <p>Published by MongoDB; the registry describes it as the MongoDB Model Context Protocol Server.<br><a href="https://github.com/mongodb-js/mongodb-mcp-server" target="_blank" rel="noopener">Source repository</a> · npm: <code>mongodb-mcp-server</code> and Docker image</p>
-      </div>
+    <div class="section-label">VENDOR-PUBLISHED SERVERS · CHECKED 23 OCTOBER 2026</div>
+    <h2 class="section-title">15 MCP servers published by the vendor itself</h2>
+    <p class="section-desc">Each row is listed in the Official MCP Registry under the vendor's own namespace (checked 23 October 2026 in the MCPfinder catalog snapshot built from the registry that morning). Links go to the vendor's source repository or MCP docs. This is a starting list, not a ranking: check each server's warnings, required secrets and client compatibility before installing.</p>
+    <div class="table-wrap">
+      <table class="vendor-table">
+        <thead><tr><th scope="col">Use case</th><th scope="col">Server</th><th scope="col">Registry name</th><th scope="col">How to connect</th></tr></thead>
+        <tbody>
+        <tr><td>Code &amp; repos</td><td><a href="https://github.com/github/github-mcp-server" target="_blank" rel="noopener">GitHub MCP Server</a><br><span class="muted">by GitHub</span></td><td><code>io.github.github/github-mcp-server</code></td><td>Remote HTTP <code>api.githubcopilot.com/mcp/</code> · Docker image (ghcr.io)</td></tr>
+        <tr><td>Browser automation</td><td><a href="https://github.com/microsoft/playwright-mcp" target="_blank" rel="noopener">Playwright MCP</a><br><span class="muted">by Microsoft</span></td><td><code>io.github.microsoft/playwright-mcp</code></td><td>npm <code>@playwright/mcp</code></td></tr>
+        <tr><td>Library docs for coding</td><td><a href="https://github.com/upstash/context7" target="_blank" rel="noopener">Context7</a><br><span class="muted">by Upstash</span></td><td><code>io.github.upstash/context7</code></td><td>Remote HTTP <code>mcp.context7.com/mcp</code> · npm <code>@upstash/context7-mcp</code></td></tr>
+        <tr><td>Error monitoring</td><td><a href="https://github.com/getsentry/toolkit" target="_blank" rel="noopener">Sentry MCP</a><br><span class="muted">by Sentry</span></td><td><code>io.github.getsentry/sentry-mcp</code></td><td>Remote HTTP <code>mcp.sentry.dev/mcp</code> · npm <code>@sentry/mcp-server</code></td></tr>
+        <tr><td>Observability</td><td><a href="https://github.com/grafana/mcp-grafana" target="_blank" rel="noopener">Grafana MCP</a><br><span class="muted">by Grafana Labs</span></td><td><code>io.github.grafana/mcp-grafana</code></td><td>Remote HTTP · Docker image <code>grafana/mcp-grafana</code></td></tr>
+        <tr><td>Issues &amp; projects</td><td><a href="https://linear.app/docs/mcp" target="_blank" rel="noopener">Linear MCP</a><br><span class="muted">by Linear</span></td><td><code>app.linear/linear</code></td><td>Remote HTTP <code>mcp.linear.app/mcp</code></td></tr>
+        <tr><td>Docs &amp; wiki</td><td><a href="https://developers.notion.com/docs/mcp" target="_blank" rel="noopener">Notion MCP</a><br><span class="muted">by Notion</span></td><td><code>com.notion/mcp</code></td><td>Remote HTTP <code>mcp.notion.com/mcp</code></td></tr>
+        <tr><td>Design</td><td><a href="https://github.com/figma/mcp-server-guide" target="_blank" rel="noopener">Figma MCP server</a><br><span class="muted">by Figma</span></td><td><code>com.figma.mcp/mcp</code></td><td>Remote HTTP <code>mcp.figma.com/mcp</code></td></tr>
+        <tr><td>Payments</td><td><a href="https://github.com/stripe/ai" target="_blank" rel="noopener">Stripe MCP</a><br><span class="muted">by Stripe</span></td><td><code>com.stripe/mcp</code></td><td>Remote HTTP <code>mcp.stripe.com</code></td></tr>
+        <tr><td>Database (Postgres)</td><td><a href="https://github.com/supabase/mcp" target="_blank" rel="noopener">Supabase MCP</a><br><span class="muted">by Supabase</span></td><td><code>com.supabase/mcp</code></td><td>Remote HTTP <code>mcp.supabase.com/mcp</code> · npm <code>@supabase/mcp-server-supabase</code></td></tr>
+        <tr><td>Database (Postgres)</td><td><a href="https://github.com/neondatabase/mcp-server-neon" target="_blank" rel="noopener">Neon MCP</a><br><span class="muted">by Neon</span></td><td><code>com.neon/mcp</code></td><td>Remote HTTP <code>mcp.neon.tech/mcp</code></td></tr>
+        <tr><td>Database (document)</td><td><a href="https://github.com/mongodb-js/mongodb-mcp-server" target="_blank" rel="noopener">MongoDB MCP Server</a><br><span class="muted">by MongoDB</span></td><td><code>io.github.mongodb-js/mongodb-mcp-server</code></td><td>npm <code>mongodb-mcp-server</code></td></tr>
+        <tr><td>API testing</td><td><a href="https://github.com/postmanlabs/postman-mcp-server" target="_blank" rel="noopener">Postman MCP Server</a><br><span class="muted">by Postman</span></td><td><code>com.postman/postman-mcp-server</code></td><td>Remote HTTP <code>mcp.postman.com/mcp</code> · npm <code>@postman/postman-mcp-server</code></td></tr>
+        <tr><td>Web search</td><td><a href="https://github.com/brave/brave-search-mcp-server" target="_blank" rel="noopener">Brave Search MCP</a><br><span class="muted">by Brave</span></td><td><code>io.github.brave/brave-search-mcp-server</code></td><td>npm <code>@brave/brave-search-mcp-server</code></td></tr>
+        <tr><td>Cloudflare docs</td><td><a href="https://github.com/cloudflare/mcp-server-cloudflare" target="_blank" rel="noopener">Cloudflare Docs MCP</a><br><span class="muted">by Cloudflare</span></td><td><code>com.cloudflare.mcp/mcp</code></td><td>Remote HTTP <code>docs.mcp.cloudflare.com/mcp</code></td></tr>
+        </tbody>
+      </table>
     </div>
     <div class="prose" style="margin-top:24px"><p>Want alternatives in any category? Ask your agent to call <code>search_mcp_servers</code> with the capability, or <code>browse_categories</code> to list servers per category.</p></div>
+  </div>
+</section>
+
+<section id="lookalikes">
+  <div class="container">
+    <div class="section-label">TRUST CHECK</div>
+    <h2 class="section-title">Vendor server or lookalike? Read the registry name</h2>
+    <div class="prose">
+      <p>Popular names get reused. In the same 23 October 2026 snapshot, besides the vendor's own entry, the Official MCP Registry held 27 other servers with "figma" in the server name, 16 with "stripe", 12 with "notion" and 12 with "sentry". Some are useful community tools; none is the vendor's server.</p>
+      <ul>
+        <li><strong>Reverse-DNS names</strong> such as <code>com.notion/mcp</code> or <code>com.stripe/mcp</code> can only be published after proving control of that domain (DNS or HTTP check), per the <a href="https://github.com/modelcontextprotocol/registry/blob/main/docs/modelcontextprotocol-io/authentication.mdx" target="_blank" rel="noopener">registry's authentication docs</a>.</li>
+        <li><strong>GitHub names</strong> such as <code>io.github.getsentry/…</code> require GitHub login, and an organization namespace requires being an owner of that organization.</li>
+        <li><strong>Anything else</strong> (a gateway, a fork, a personal namespace) is a different publisher. Read its repository and required secrets before you hand it an API key.</li>
+      </ul>
+      <p>MCPfinder shows the registry name, source and warnings for every result, so your agent can apply this check before generating an install config.</p>
+    </div>
   </div>
 </section>
 
@@ -395,7 +431,7 @@
     <div class="faq-list">
     <div class="faq-item">
       <div class="faq-q">What are the best MCP servers in 2026?</div>
-      <div class="faq-a">In 2026 the MCP ecosystem moves too fast for a fixed top-10. Use MCPfinder to search by use case, compare confidence scores and warnings, and install the server that fits your client and security needs.</div>
+      <div class="faq-a">There is no fixed top-10, but a safe starting point is the server the vendor publishes itself. As of 23 October 2026 the Official MCP Registry lists vendor-published servers for GitHub, Playwright, Context7, Sentry, Grafana, Linear, Notion, Figma, Stripe, Supabase, Neon, MongoDB, Postman, Brave Search and Cloudflare. For anything else, search by use case with MCPfinder and compare warnings and install requirements.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Which registries does MCPfinder cover?</div>
@@ -408,6 +444,14 @@
     <div class="faq-item">
       <div class="faq-q">How do I browse categories?</div>
       <div class="faq-a">Use the <code>browse_categories</code> tool to list categories with counts or top servers in areas like database, filesystem, communication, or security.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How do I tell a vendor's own MCP server from a lookalike?</div>
+      <div class="faq-a">Check the server name in the Official MCP Registry. A reverse-DNS name such as <code>com.notion/mcp</code> can only be published by someone who proved control of that domain, and <code>io.github.getsentry/…</code> requires being an owner of that GitHub organization. Similarly named servers under other namespaces come from other publishers.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Do Smithery-hosted MCP URLs still work?</div>
+      <div class="faq-a">Smithery <a href="https://smithery.ai/future" target="_blank" rel="noopener">announced</a> that server URLs on run.tools and server.smithery.ai, its API, CLI and SDKs stop working on 31 October 2026. Switch to the vendor's own MCP URL; see <a href="/smithery-alternative/">Smithery alternative</a>. MCPfinder does not use Smithery as a source.</div>
     </div>
     </div>
   </div>
@@ -423,6 +467,7 @@
       <a href="/mcp-servers-for-vscode/">MCP for VS Code</a>
       <a href="/best-mcp-servers/">Best MCP (evergreen)</a>
       <a href="/how-to-find-mcp-servers/">How to find MCP</a>
+      <a href="/smithery-alternative/">Smithery alternative</a>
       <a href="/">Home</a>
     </div>
   </div>

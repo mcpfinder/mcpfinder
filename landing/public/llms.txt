@@ -51,7 +51,7 @@ Agent Skill (install via one-liner, agent handles the config merge):
 Guides (human-readable pages):
 - https://mcpfinder.dev/how-to-find-mcp-servers/ — where to look for MCP servers and what to check before installing
 - https://mcpfinder.dev/best-mcp-servers/
-- https://mcpfinder.dev/best-mcp-servers-2026/
+- https://mcpfinder.dev/best-mcp-servers-2026/ — vendor-published servers from the Official MCP Registry, how to spot lookalike servers, and how to install them
 - https://mcpfinder.dev/mcp-servers-for-claude/
 - https://mcpfinder.dev/mcp-servers-for-cursor/
 - https://mcpfinder.dev/mcp-servers-for-vscode/

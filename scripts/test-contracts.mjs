@@ -53,6 +53,7 @@ assert.match(readme, /get_install_config/);
 assert.match(readme, /browse_categories/);
 assert.match(llms, /Canonical transport:/);
 assert.match(llms, /get_install_config/);
+assert.match(llms, /^- https:\/\/mcpfinder\.dev\/best-mcp-servers-2026\/ — \S/m, 'llms.txt should describe the best-mcp-servers-2026 guide');
 
 // Landing redirects: every landing page folder (landing/public/<page>/index.html)
 // needs explicit 301s in _redirects, otherwise Workers static assets answer the

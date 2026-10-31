@@ -164,7 +164,7 @@ MCPfinder aggregates:
 - [Glama](https://glama.ai/mcp/servers)
 
 Smithery was a third source until it announced that its API, proxy and hosted
-server URLs stop working on 2026-10-31 (https://smithery.ai/future). MCPfinder no
+server URLs would stop working on 2026-10-31 (https://smithery.ai/future). MCPfinder no
 longer syncs it, and remote URLs on retired Smithery hosts (`server.smithery.ai`,
 `*.run.tools`, `registry.smithery.ai`) are dropped even when the Official
 Registry or Glama still advertise them (`packages/core/src/remote-url.ts`).

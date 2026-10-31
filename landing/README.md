@@ -64,7 +64,7 @@ an external one is cut to its origin. Add new pages to `KNOWN_PATHS` in
 ## Content state
 
 Reconciled with the 1.0.0 release on 2026-04-20: version, license
-(AGPL-3.0), registry list (Official + Glama; Smithery dropped 2026-10, its API shuts
+(AGPL-3.0), registry list (Official + Glama; Smithery dropped 2026-10, its API was due to shut
 down 2026-10-31), AI-facing docs,
 and canonical stdio positioning all match the code. Avoid hard-coding raw
 server counts in copy unless they are driven from snapshot metadata or a

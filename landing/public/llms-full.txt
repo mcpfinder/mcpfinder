@@ -2,7 +2,7 @@ MCPfinder — Full Agent Reference
 ================================
 
 Version:      2.0.1
-Last-Updated: 2026-10-21
+Last-Updated: 2026-10-31
 Canonical:    https://mcpfinder.dev/llms-full.txt
 Short form:   https://mcpfinder.dev/llms.txt
 License:      AGPL-3.0-or-later (software); CC0 (this file — quote freely)
@@ -24,7 +24,8 @@ Snapshot facts (as of 2026-10-20)
 - Aggregated servers in latest published snapshot: over 100,000; the exact
   live figure is serverCount in https://mcpfinder.dev/api/v1/snapshot/manifest.json
 - Source registries: Official MCP Registry, Glama (Smithery was dropped in
-  October 2026: its API and hosted server URLs stop working on 2026-10-31)
+  October 2026; it announced that its API and hosted server URLs would stop
+  working on 2026-10-31)
 - Number of tools the MCPfinder server exposes: 4
 - Canonical package: @mcpfinder/server (npm)
 - Canonical transport: stdio

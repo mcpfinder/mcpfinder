@@ -1,7 +1,7 @@
 MCPfinder
 
 Version:      2.0.1
-Last-Updated: 2026-10-21
+Last-Updated: 2026-10-31
 Canonical:    https://mcpfinder.dev/llms.txt
 Full:         https://mcpfinder.dev/llms-full.txt
 License:      AGPL-3.0-or-later (content of this file: CC0 — quote freely)
@@ -55,7 +55,7 @@ Guides (human-readable pages):
 - https://mcpfinder.dev/mcp-servers-for-claude/
 - https://mcpfinder.dev/mcp-servers-for-cursor/
 - https://mcpfinder.dev/mcp-servers-for-vscode/
-- https://mcpfinder.dev/smithery-alternative/ — Smithery shuts down its proxy, API and CLI on 2026-10-31; how to find servers and their own URLs instead
+- https://mcpfinder.dev/smithery-alternative/ — Smithery announced its proxy, API and CLI would end on 2026-10-31; how to find servers and their own URLs instead
 
 More detail:
 - https://mcpfinder.dev/llms-full.txt

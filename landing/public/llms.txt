@@ -55,7 +55,7 @@ Guides (human-readable pages):
 - https://mcpfinder.dev/mcp-servers-for-claude/
 - https://mcpfinder.dev/mcp-servers-for-cursor/
 - https://mcpfinder.dev/mcp-servers-for-vscode/
-- https://mcpfinder.dev/smithery-alternative/ — Smithery announced the end of its proxy, API and CLI on 2026-10-31; how to find servers and their own URLs instead
+- https://mcpfinder.dev/smithery-alternative/ — Smithery announced its proxy, API and CLI would end on 2026-10-31; how to find servers and their own URLs instead
 
 More detail:
 - https://mcpfinder.dev/llms-full.txt

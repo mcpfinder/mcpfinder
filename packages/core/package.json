@@ -26,7 +26,7 @@
     "clean": "rm -rf dist"
   },
   "license": "AGPL-3.0-or-later",
-  "author": "Coder AI <hello@coderai.dev>",
+  "author": "Coder AI <support@coderai.dev>",
   "devDependencies": {
     "@types/node": "^22.13.0",
     "typescript": "^5.7.0"

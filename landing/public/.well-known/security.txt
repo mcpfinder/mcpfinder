@@ -1,7 +1,7 @@
 # MCPfinder security contact
 # https://mcpfinder.dev
 
-Contact: mailto:hello@coderai.dev
+Contact: mailto:security@coderai.dev
 Expires: 2027-05-25T00:00:00.000Z
 Preferred-Languages: en
 Canonical: https://mcpfinder.dev/.well-known/security.txt

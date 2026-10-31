@@ -37,7 +37,7 @@
     "llm-plugins",
     "claude-desktop-tool"
   ],
-  "author": "Coder AI <hello@coderai.dev>",
+  "author": "Coder AI <support@coderai.dev>",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@mcpfinder/core": "workspace:^2.0.1",

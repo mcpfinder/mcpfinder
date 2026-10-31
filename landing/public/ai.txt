@@ -11,7 +11,7 @@ Allow-RAG: yes
 Allow-Indexing: yes
 Allow-Citation: yes
 
-Contact: hello@coderai.dev
+Contact: support@coderai.dev
 Canonical: https://mcpfinder.dev/ai.txt
 Sitemap:   https://mcpfinder.dev/sitemap.xml
 Agent-Docs: https://mcpfinder.dev/llms.txt

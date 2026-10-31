@@ -22,7 +22,7 @@
     "agent-tooling",
     "discovery"
   ],
-  "author": "Coder AI <hello@coderai.dev>",
+  "author": "Coder AI <support@coderai.dev>",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@anthropic-ai/mcpb": "^2.1.2",

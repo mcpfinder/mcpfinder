@@ -61,7 +61,7 @@ More detail:
 - https://mcpfinder.dev/llms-full.txt
 - https://github.com/mcpfinder/mcpfinder
 
-## Also from CODER AI
+## Also from Coder AI
 The same team builds a family of small, privacy-first, AI-ready tools — each with a free tier:
 - [cnvs.app](https://cnvs.app) — Real-time collaborative whiteboard. No signup. Instant share.
 - [plugand.ai](https://plugand.ai) — Slack AI bot for the whole team. No per-seat fees.

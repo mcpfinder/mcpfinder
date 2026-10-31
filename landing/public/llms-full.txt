@@ -523,7 +523,7 @@ Q: Is the AGPL-3.0 license a problem for commercial use?
 A: For installing, running, and integrating MCPfinder with proprietary
    workflows: no. Only modified versions exposed as a network service
    must be published under AGPL-3.0. For embedded redistribution under
-   a non-AGPL license, contact hello@coderai.dev.
+   a non-AGPL license, contact support@coderai.dev.
 
 
 Agent Skill for installation
@@ -548,10 +548,10 @@ Project links
 - Registry:       https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder
 - Snapshot:       https://mcpfinder.dev/api/v1/snapshot/manifest.json
 - llms.txt:       https://mcpfinder.dev/llms.txt
-- Contact:        hello@coderai.dev
+- Contact:        support@coderai.dev
 
 
-Also from CODER AI
+Also from Coder AI
 ==================
 The same team builds a family of small, privacy-first, AI-ready tools —
 each with a free tier:

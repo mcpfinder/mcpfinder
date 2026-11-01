@@ -36,7 +36,7 @@ function syncLog(db, source) {
 }
 
 export async function runSnapshotMergeChecks(dir) {
-  const { initDatabase, syncOfficialRegistry, syncGlamaRegistry } =
+  const { initDatabase, searchServers, syncOfficialRegistry, syncGlamaRegistry } =
     await import('../packages/core/dist/index.js');
   const { mergeRawEnvelope } = await import('../packages/core/dist/raw-envelope.js');
 
@@ -118,13 +118,16 @@ export async function runSnapshotMergeChecks(dir) {
   // Cross-source merge keeps provenance, richer fields, and source payloads.
   const mergeDb = initDatabase(join(dir, 'merge-provenance.sqlite'));
   const sharedRepo = 'https://gitlab.com/acme/shared';
+  const sharedEntry = officialEntry('shared', null, 'obsolete retained');
+  sharedEntry.server.title = 'Bathymetry';
   await syncOfficialRegistry(
     mergeDb,
     runtime(async () => Response.json({
-      servers: [officialEntry('shared', null, 'obsolete retained')],
+      servers: [sharedEntry],
       metadata: { nextCursor: null, count: 1 },
     })),
   );
+  assert.deepEqual(searchServers(mergeDb, 'bathymetry').map(row => row.name), ['shared']);
   await syncGlamaRegistry(
     mergeDb,
     runtime(async () => Response.json({
@@ -136,6 +139,7 @@ export async function runSnapshotMergeChecks(dir) {
       pageInfo: { hasNextPage: false, endCursor: null },
     })),
   );
+  assert.deepEqual(searchServers(mergeDb, 'bathymetry').map(row => row.name), ['shared']);
   const merged = mergeDb.prepare('SELECT * FROM servers').get();
   assert.equal(mergeDb.prepare('SELECT COUNT(*) AS count FROM servers').get().count, 1);
   assert.deepEqual(JSON.parse(merged.sources), ['glama', 'official']);
@@ -151,6 +155,7 @@ export async function runSnapshotMergeChecks(dir) {
     'shared',
     'obsolete',
     'retained',
+    'bathymetry',
     'substantially',
     'richer',
     'glama',
@@ -200,6 +205,7 @@ export async function runSnapshotMergeChecks(dir) {
   assert.ok(JSON.parse(refreshed.keywords).includes('refreshed'));
   assert.ok(JSON.parse(refreshed.keywords).includes('retained'));
   assert.ok(!JSON.parse(refreshed.keywords).includes('obsolete'));
+  assert.deepEqual(searchServers(mergeDb, 'bathymetry'), []);
   assert.deepEqual(
     JSON.parse(refreshed.env_vars).map((envVar) => envVar.name),
     ['OFFICIAL_TOKEN', 'GLAMA_TOKEN'],

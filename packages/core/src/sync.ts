@@ -305,7 +305,7 @@ function normalizeOfficialEntry(entry: RegistryServerEntry) {
   const remoteUrl = firstUsableRemoteUrl(s.remotes);
 
   const slug = slugify(s.name);
-  const keywords = extractKeywords(s.name, s.description || '');
+  const keywords = extractKeywords(s.name, s.description || '', s.title);
   const envVars = pkg?.environmentVariables || [];
 
   return {

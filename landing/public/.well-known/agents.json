@@ -3,7 +3,7 @@
   "name": "MCPfinder",
   "description": "AI-first discovery layer over the Official MCP Registry and Glama. Exposes 4 MCP tools to AI agents.",
   "version": "2.0.1",
-  "lastUpdated": "2026-10-20",
+  "lastUpdated": "2026-10-31",
   "publisher": {
     "name": "Coder AI",
     "url": "https://coderai.dev",

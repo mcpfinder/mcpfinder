@@ -9,7 +9,7 @@
  *       checks <dir>/header.json and <dir>/responses.jsonl.gz against the
  *       pointer's checksums and capturedAt
  *
- * The age limit is the replay's own MAX_CAPTURE_AGE_MS (12 h), checked here so
+ * The age limit is the replay's own MAX_CAPTURE_AGE_MS (48 h), checked here so
  * a stale capture fails before the build instead of inside it.
  */
 import { createHash } from 'node:crypto';

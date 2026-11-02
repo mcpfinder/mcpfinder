@@ -3,12 +3,17 @@
 #                          ./install.sh fallback  (aic-wfs-mini)
 # Prerequisite Keychain items (account $USER): GLAMA_API_KEY,
 # MCPFINDER_GLAMA_CAPTURE_R2_ACCESS_KEY_ID, MCPFINDER_GLAMA_CAPTURE_R2_SECRET_ACCESS_KEY.
-# Interval: primary 6 h, fallback 1 h (it skips while latest.json is < 7 h old).
+# Both roles check every 6 h (at most 4 crawls a day per machine) and capture only
+# when latest.json is old enough: primary at >= 22 h (so about every 24 h, retrying
+# a failed run about 6 h later), fallback at >= 30 h.
 # The wrapper self-updates from main; rerun this only when the plist changes.
+# Moving from the hourly fallback: the primary needs no reinstall (its plist is
+# unchanged and its wrapper self-updates); rerun `install.sh fallback` to go from
+# 1 h to 6 h.
 # Bucket mcpfinder-glama-capture has a lifecycle rule expiring objects after 3 days.
 set -euo pipefail
 ROLE="${1:?usage: install.sh primary|fallback}"
-case "$ROLE" in primary) INTERVAL=21600 ;; fallback) INTERVAL=3600 ;; *) echo "bad role" >&2; exit 2 ;; esac
+case "$ROLE" in primary|fallback) INTERVAL=21600 ;; *) echo "bad role" >&2; exit 2 ;; esac
 HERE="$(cd "$(dirname "$0")" && pwd)"
 BASE="$HOME/Library/Application Support/mcpfinder-glama-capture"
 WRAPPER="$BASE/glama-capture-launchd.sh"

@@ -5,12 +5,17 @@
 # Macs and the GitHub-hosted build replays it from R2 (see
 # scripts/glama-capture-lib.mjs and .github/workflows/snapshot.yml).
 #
-# ROLE=primary  (aic-studio)    capture every run.
-# ROLE=fallback (aic-wfs-mini)  capture only when R2 latest.json is missing or
-#                               older than FALLBACK_MAX_AGE_HOURS (default 7).
-#                               install.sh gives the fallback a 1 h interval, so
-#                               it starts by ~8 h + crawl time, inside the build's
-#                               12 h limit.
+# install.sh runs both roles every 6 h, which caps a machine at 4 crawls a day
+# even during an outage; each run captures only when R2 latest.json is missing,
+# unreadable or at least MAX_AGE_MINUTES old. capturedAt is the crawl's start and
+# checks land about 6 h apart, so the primary sees ages near 6, 12, 18 and 24 h
+# plus crawl time:
+# ROLE=primary  (aic-studio)    default 1320 (22 h), between the 18 h and 24 h
+#                               checks, so a capture about every 24 h, and a
+#                               failed run is retried about 6 h later.
+# ROLE=fallback (aic-wfs-mini)  default 1800 (30 h), so it starts by ~36 h + crawl
+#                               time when the primary is down, inside the build's
+#                               48 h limit.
 #
 # install.sh copies this file out of the repo (git updates must not rewrite a
 # running bash script); each run installs main's version for the next run. Old captures expire through the bucket's
@@ -25,7 +30,8 @@ set -euo pipefail
 umask 077
 
 ROLE="${ROLE:-primary}"
-FALLBACK_MAX_AGE_HOURS="${FALLBACK_MAX_AGE_HOURS:-7}"
+if [ "$ROLE" = fallback ]; then DEFAULT_MAX_AGE_MINUTES=1800; else DEFAULT_MAX_AGE_MINUTES=1320; fi
+MAX_AGE_MINUTES="${MAX_AGE_MINUTES:-$DEFAULT_MAX_AGE_MINUTES}"
 R2_ACCOUNT_ID="${R2_ACCOUNT_ID:-9e7cfb40f9896e268a8212dc58e20780}"
 R2_BUCKET="${R2_BUCKET:-mcpfinder-glama-capture}"
 REPO_URL="${REPO_URL:-https://github.com/mcpfinder/mcpfinder.git}"
@@ -90,20 +96,18 @@ if [ -f "$NEW" ] && ! cmp -s "$0" "$NEW"; then
   log "wrapper updated from main ($COMMIT); takes effect next run"
 fi
 
-# --- fallback: skip while the primary's capture is fresh --------------------
-if [ "$ROLE" = fallback ]; then
-  latest=$(r2 "$R2_URL/latest.json" 2>/dev/null || true)
-  age=$(printf '%s' "$latest" | node -e '
-    let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-      try{const t=Date.parse(JSON.parse(s).capturedAt);
-        console.log(Number.isFinite(t)?Math.floor((Date.now()-t)/1000):-1)}
-      catch{console.log(-1)}})')
-  if [ "$age" -ge 0 ] && [ "$age" -lt $((FALLBACK_MAX_AGE_HOURS * 3600)) ]; then
-    log "latest capture is $((age / 60)) min old (< ${FALLBACK_MAX_AGE_HOURS}h); fallback skips"
-    exit 0
-  fi
-  log "latest capture missing or stale (age_s=$age); fallback captures"
+# --- skip while the latest capture is fresh ----------------------------------
+latest=$(r2 "$R2_URL/latest.json" 2>/dev/null || true)
+age=$(printf '%s' "$latest" | node -e '
+  let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+    try{const t=Date.parse(JSON.parse(s).capturedAt);
+      console.log(Number.isFinite(t)?Math.floor((Date.now()-t)/1000):-1)}
+    catch{console.log(-1)}})')
+if [ "$age" -ge 0 ] && [ "$age" -lt $((MAX_AGE_MINUTES * 60)) ]; then
+  log "latest capture is $((age / 60)) min old (< $MAX_AGE_MINUTES min); $ROLE skips"
+  exit 0
 fi
+log "latest capture missing or stale (age_s=$age); $ROLE captures"
 
 cd "$REPO"
 PNPM_VERSION=$(node -p 'require("./package.json").packageManager.split("@")[1]')

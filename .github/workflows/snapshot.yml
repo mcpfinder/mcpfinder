@@ -80,7 +80,7 @@ jobs:
       # dedicated R2 bucket mcpfinder-glama-capture as <UTC ts>/header.json +
       # responses.jsonl.gz and then move the latest.json pointer. This job only
       # reads that bucket (bucket-scoped read-only token). A missing pointer or
-      # object, a checksum mismatch, or a capture older than 12 h fails the job
+      # object, a checksum mismatch, or a capture older than 48 h fails the job
       # here, so nothing is published and the freeze signal below fires.
       - name: Download Glama capture from R2
         env:

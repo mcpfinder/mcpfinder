@@ -26,7 +26,7 @@ for (const prefix of ['../x/', '20261014T091500Z', 'a/20261014T091500Z/', '']) {
 assert.throws(() => checkPointer({ ...good, headerSha256: 'x' }, { now }), /checksums/);
 assert.throws(() => checkPointer({ ...good, capturedAt: 'nope' }, { now }), /invalid/);
 const stale = new Date(now - MAX_CAPTURE_AGE_MS - 1000).toISOString();
-assert.throws(() => checkPointer({ ...good, capturedAt: stale }, { now }), /older than 12 h/);
+assert.throws(() => checkPointer({ ...good, capturedAt: stale }, { now }), /older than 48 h/);
 const edge = new Date(now - MAX_CAPTURE_AGE_MS + 1000).toISOString();
 assert.equal(checkPointer({ ...good, capturedAt: edge }, { now }), good.prefix);
 const future = new Date(now + 120_000).toISOString();

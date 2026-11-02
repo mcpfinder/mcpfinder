@@ -26,8 +26,11 @@ import { join } from 'node:path';
 import { createGunzip, createGzip } from 'node:zlib';
 
 export const CAPTURE_VERSION = 1;
-/** A capture older than this is refused: replaying it would publish stale data. */
-export const MAX_CAPTURE_AGE_MS = 12 * 60 * 60_000;
+/**
+ * A capture older than this is refused: replaying it would publish stale data.
+ * Must stay under the bucket's 3-day lifecycle rule, which deletes the objects.
+ */
+export const MAX_CAPTURE_AGE_MS = 48 * 60 * 60_000;
 export const HEADER_FILE = 'header.json';
 export const RESPONSES_FILE = 'responses.jsonl.gz';
 

@@ -482,6 +482,7 @@ function keywordsForSourcePayload(
     return extractKeywords(
       server.name,
       typeof server.description === 'string' ? server.description : '',
+      typeof server.title === 'string' ? server.title : undefined,
     );
   }
   if (source === 'glama') {

@@ -33,10 +33,10 @@ const CATEGORY_DEFS: Array<{ name: string; keywords: string[] }> = [
 ];
 
 /**
- * Extract keywords from name and description for search indexing.
+ * Extract searchable keywords from the name, description, and optional display title.
  */
-export function extractKeywords(name: string, description: string): string[] {
-  const text = `${name} ${description}`.toLowerCase();
+export function extractKeywords(name: string, description: string, title = ''): string[] {
+  const text = `${name} ${description} ${title}`.toLowerCase();
   const words = text
     .replace(/[^\w\s-]/g, ' ')
     .split(/[\s/._-]+/)

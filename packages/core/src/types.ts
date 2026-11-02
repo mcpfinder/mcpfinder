@@ -7,6 +7,7 @@ export interface RegistryServerEntry {
   server: {
     $schema?: string;
     name: string;
+    title?: string;
     description?: string;
     version: string;
     repository?: {

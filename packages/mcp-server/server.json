@@ -3,7 +3,7 @@
   "name": "dev.mcpfinder/server",
   "title": "MCPfinder - MCP Server Discovery",
   "description": "Your AI discovers and installs MCP servers across the Official MCP Registry and Glama.",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "websiteUrl": "https://mcpfinder.dev",
   "repository": {
     "url": "https://github.com/mcpfinder/mcpfinder",
@@ -14,7 +14,7 @@
     {
       "registryType": "npm",
       "identifier": "@mcpfinder/server",
-      "version": "2.0.1",
+      "version": "2.0.2",
       "transport": {
         "type": "stdio"
       }
@@ -39,7 +39,7 @@
         },
         {
           "name": "get_server_details",
-          "description": "Inspect trust signals, tools, env vars, and warnings before recommending a server.",
+          "description": "Inspect trust signals, tools, local env vars, remote HTTP headers, and warnings before recommending a server.",
           "exampleQuery": "io.modelcontextprotocol/filesystem"
         },
         {

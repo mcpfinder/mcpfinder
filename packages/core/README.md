@@ -702,8 +702,33 @@ as a remote (`isDirectoryListingUrl`); older catalogs are cleaned on open.
 `mergeSameRemoteOfficialEntries` runs when the snapshot is built (not in a
 client's sync) and drops one of a pair of Official entries with the same
 normalized remote URL (exact groups of two; templated URLs, unrelated-looking
-pairs and pairs where the dropped row carries another source are skipped). See
-the CHANGELOG.
+pairs, pairs where the dropped row carries another source, and pairs where
+dropping one would lose its remote HTTP header metadata are skipped). See the
+CHANGELOG.
+
+For remote install configs, header metadata comes from the Official Registry
+`remotes[]` entry matching the selected `remote_url`. `remoteHeadersForRow`
+returns both the definitions and whether they are known: a valid matching
+remote with no headers is known empty, while a missing, malformed or mismatched
+Official payload is unknown. Existing snapshots need no database migration
+when they retain the Official raw payload. Local package
+`environmentVariables` configure the launched process; remote request `headers`
+configure the HTTP connection. A remote config includes
+only headers explicitly marked `isRequired`, while optional headers remain
+available as `remoteHeaders` metadata. This keeps a URL-only OAuth path open
+when the server offers one. Simple secret templates using `Bearer`, `Basic`,
+or `Token` retain their published prefix; other secret templates use a
+placeholder for the complete header value. The generator does not invent an
+`Authorization` scheme. Required
+secret inputs are rendered as placeholders and prevent a config from being
+marked safe for automatic installation. If header metadata is unknown,
+`remoteHeadersKnown` is false, `safe_to_autoinstall` is false, and
+`requires_user_secrets` is null until authentication is checked manually. In
+MCP structured output, `remoteHeadersKnown` is absent for local-only installs;
+false describes an actual remote with unknown metadata. The selected method's
+`trustSignals.requiresSecrets` may also be null, while
+`possibleUnlabeledSecrets` can flag a required remote header whose name looks
+like a credential; on local installs it can also flag optional env vars.
 
 ## Breaking changes in 2.0.0
 
@@ -732,10 +757,12 @@ now (Smithery was their only source). See [CHANGELOG](./CHANGELOG.md).
 | `variantDbPath` | Alternative home for a digest whose canonical name still has a peer's journal at it. |
 | `markSnapshotInstalled / getSnapshotInstalledAt` | Record and read when a snapshot was installed, for `isSyncNeeded`. |
 | `searchServers` | Ranked full-text search + filters. |
-| `getServerDetails` | Full metadata for one server (env vars, tools, trust signals). |
+| `getServerDetails` | Full metadata for one server (local env vars, selected remote HTTP headers, tools, trust signals). |
 | `listCategories / getServersByCategory` | Category browsing. |
 | `getInstallCommand` | Generate client-specific JSON install config. |
 | `buildEnvPlaceholders / envPlaceholderValue` | Fill an `env` block from registry env var definitions: `<YOUR_VALUE>` for secrets, otherwise `default`, then `placeholder`, then `<VALUE>`. |
+| `remoteHeadersForRow` | Read the selected Official remote's HTTP header definitions from a catalogue row and distinguish known empty metadata from missing or malformed metadata. |
+| `planRemoteHeaders` | Build required remote HTTP headers and report required versus optional headers, required secrets, and install safety. |
 | `looksLikeCredentialName / possibleUnlabeledSecrets` | Advisory name heuristic (`GITHUB_TOKEN`, `OPENAI_API_KEY` yes; `TOKEN_URL`, `*_KEY_FILE`, `SITE_KEY` no) for env vars the registry left unlabelled — absent `isSecret` means unlabelled, not non-secret. Never affects masking. |
 | `enrichDeprecationFlags` | Build-time enrichment pass (npm/GitHub deprecation flags). |
 | `usableRemoteUrl / firstUsableRemoteUrl` | Drop remote endpoints on retired hosts (Smithery's `server.smithery.ai`, `*.run.tools`, `registry.smithery.ai`, which stop working on 2026-10-31) and directory listing pages (`isDirectoryListingUrl`). |

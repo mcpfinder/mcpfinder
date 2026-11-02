@@ -1,8 +1,8 @@
 MCPfinder — Full Agent Reference
 ================================
 
-Version:      2.0.1
-Last-Updated: 2026-10-31
+Version:      2.0.2
+Last-Updated: 2026-11-02
 Canonical:    https://mcpfinder.dev/llms-full.txt
 Short form:   https://mcpfinder.dev/llms.txt
 License:      AGPL-3.0-or-later (software); CC0 (this file — quote freely)
@@ -96,9 +96,14 @@ HTTP / SSE transport
   MCP servers but adds auth and network considerations.
 
 Environment variables (env vars)
-  Configuration values an MCP server reads at startup. Often used for
-  secrets (API keys, tokens, database URLs). MCPfinder reports which env
-  vars are required, and which look like secrets.
+  Values a local MCP server process reads at startup. Often include API
+  keys, tokens, or database URLs. A remote HTTP connection instead sends
+  request headers; its server may also offer OAuth with no configured key.
+
+Remote HTTP headers
+  Values sent to the selected remote endpoint. MCPfinder distinguishes
+  required headers from optional alternatives and reports when the stored
+  registry record does not establish their requirements.
 
 Trust signals
   Lightweight, machine-readable evidence MCPfinder uses to gauge how
@@ -192,24 +197,34 @@ Output fields
 - installComplexity            — "low" | "medium" | "high"
 - transport                    — "stdio" | "http" | "sse" | ...
 - environmentVariables         — array of { name, isSecret, description }
+- remoteHeaders                — selected remote's HTTP header definitions
+- remoteHeadersKnown           — present for remote installs: true when a
+                                 valid matching Official entry establishes
+                                 the definitions, false when unknown; absent
+                                 for local-only installs
 - repositoryUrl
 - homepageUrl
 - capabilityCount              — number of tools/resources exposed
 - toolsExposed                 — array of tool names if upstream published
-- trustSignals                 — booleans incl. requiresSecrets (registry
-                                 isSecret only) and possibleUnlabeledSecrets
-                                 (an unlabelled var's name looks like a
-                                 credential; advisory)
+- trustSignals                 — selected method's signals; requiresSecrets
+                                 is true, false, or null when remote auth
+                                 metadata is unknown. possibleUnlabeledSecrets
+                                 flags credential-looking local env vars or
+                                 required remote HTTP headers (advisory).
 - lastSeenAt                   — most recent upstream observation
 - next_actions                 — usually a get_install_config suggestion
 
 What to do with this
-- If any environmentVariables.isSecret is true, warn the user and stop to
-  collect those secrets before running the server.
-- isSecret is only ever true or absent; absent means "unlabelled", NOT
-  "not a secret". If a variable's name looks like a credential (the text
-  says "looks like a credential (not marked secret by the registry)"),
-  treat it as a secret too.
+- First identify the install method that get_install_config selects. For a
+  local command, inspect its process environment variables. For a remote
+  URL, inspect its required HTTP headers; optional headers can represent an
+  alternative to the server's OAuth sign-in and need not be supplied.
+- A registry isSecret marking identifies sensitive input. An absent marking
+  does not prove that a credential-looking name is safe; treat name hints
+  as advisories for the selected method. Local env hints can include optional
+  variables; remote hints concern required headers.
+- If remoteHeadersKnown is false, verify authentication requirements with
+  the server's documentation before using the generated config.
 - If warningFlags contains stale-over-18-months or missing-repository-url,
   ask the user to confirm before recommending.
 - If transport is "http" or "sse", confirm the user is OK with a remote
@@ -230,27 +245,35 @@ Input fields
     - "windsurf"
 
 Output fields
-- config_json            — the JSON snippet to merge into the client's
-                           MCP config file
-- config_path            — absolute path or hint where the user should
-                           paste it (per-platform)
-- required_env_vars      — env vars the user must set
-- requires_user_secrets  — boolean, true when the registry marks a secret
-- possible_unlabeled_secrets — names not marked secret by the registry
-                           that look like credentials (advisory)
+- config                 — JSON object to merge into the client's MCP config
+- configFilePath         — paths or hints for each platform
+- envVarsNeeded          — local command's process variables; empty for
+                           remote URL configs
+- remoteHeaders          — required and optional selected remote HTTP
+                           header definitions; optional ones stay out of
+                           the default JSON
+- remoteHeadersKnown     — remote only: true when selected URL header metadata
+                           is known, false when unknown and manual review is
+                           needed; absent for local-only installs
+- requires_user_secrets  — true for a required secret; false when known not
+                           required; null when remote metadata is unknown
+- possible_unlabeled_secrets — credential-looking local env vars or required
+                           remote HTTP headers (advisory)
 - safe_to_autoinstall    — boolean. Agents SHOULD NOT auto-write a config
                            file if this is false.
-- restart_guidance       — short string explaining whether the client
-                           needs a restart
+- Human-readable response also includes the client reload instructions.
 - warningFlags
 
 Behaviour the agent should follow
-- If requires_user_secrets is true: show the snippet, list the secrets,
-  and ask the user to provide them before merging anywhere.
-- Treat every name in possible_unlabeled_secrets as a credential too and
-  ask the user for it, even when requires_user_secrets is false.
-- If safe_to_autoinstall is false: never write to the client config file
-  silently. Show the snippet and tell the user where it goes.
+- If requires_user_secrets is true, identify the required inputs in the
+  selected config and have the user supply them securely. An optional API
+  key does not make a remote OAuth connection require a secret by default.
+- Treat possible_unlabeled_secrets as advisories; local hints may include
+  optional variables. Do not treat optional remote headers as required.
+- If remoteHeadersKnown is false, safe_to_autoinstall is false and
+  requires_user_secrets is null: verify the remote's auth model manually.
+- If safe_to_autoinstall is false, show the snippet and tell the user what
+  remains to be verified or supplied before adding it.
 
 
 4. browse_categories
@@ -307,29 +330,27 @@ multi-registry-only-vendor
   team. Not a problem per se — just lower independent verification.
 
 env-var-required-no-docs
-  The server requires env vars but did not publish docs explaining them.
-  Ask the user to read the upstream README before configuring.
+  A local package declares process variables but does not explain them.
+  Read the upstream setup instructions before configuring it.
 
 
 Install complexity — full reference
 ===================================
 
 low
-  Zero required env vars, or one non-secret env var with a sensible
-  default. Runs cleanly via npx, uvx, docker, or a remote URL. The agent
-  can present the install snippet and stop — no human input required
-  beyond pasting and restarting.
+  Little setup input is needed for the selected method. A remote URL with
+  known optional headers may use the client's OAuth sign-in. Check the
+  generated config and authentication instructions before connecting.
 
 medium
-  Two to a few env vars; at least one is a secret. The agent must collect
-  secrets from the user first and warn explicitly which values must come
-  from the user.
+  The selected method needs several inputs, including a required secret.
+  Identify the required local variables or remote headers before setup.
 
 high
-  Many secrets, or upstream does not publish a clean auto-install path,
-  or transport requires OAuth / extra runtime. The agent should hand the
-  user back to the upstream repository's setup docs and offer to help
-  step-by-step rather than emit a config snippet blindly.
+  Many required inputs, no clean install path, or unknown remote HTTP header
+  metadata. Check upstream authentication and setup instructions manually;
+  unknown remote metadata sets safe_to_autoinstall false and
+  requires_user_secrets null.
 
 
 Recommended agent workflow
@@ -340,16 +361,17 @@ Recommended agent workflow
 3. Read the top one or two results. If confidenceScore < 0.5 for the top
    result, broaden the query and try again.
 4. get_server_details(name=<top candidate>).
-5. Inspect warningFlags and environmentVariables.
-   - If any environmentVariables.isSecret is true, ask the user for the
-     secrets and only proceed once provided. Absent isSecret does not mean
-     "not secret": also treat names in get_install_config's
-     possible_unlabeled_secrets (and env vars flagged "looks like a
-     credential") as credentials to ask the user for.
+5. Inspect warningFlags and the selected method's inputs: process env vars
+   for a local command, required HTTP headers for a remote URL.
+   - Ask for credentials when the selected configuration needs them. Treat
+     possible_unlabeled_secrets as advisories, including optional local env
+     vars; optional remote headers may support an alternative to OAuth.
+   - If remoteHeadersKnown is false, verify the remote's authentication
+     requirements manually before treating its config as ready.
    - If warningFlags has stale-over-18-months or missing-repository-url,
      ask the user to confirm.
 6. get_install_config(name=<candidate>, platform=<client>).
-7. Present the snippet, the config path, and the env vars in one
+7. Present the snippet, the config path, and any required inputs in one
    message. Do NOT silently write to the client's config file unless the
    user explicitly asked for it AND safe_to_autoinstall is true.
 8. Tell the user whether the client needs a restart.

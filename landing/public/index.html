@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MCPfinder | Search, Discover & Install MCP Servers</title>
-  <meta name="description" content="Search and discover MCP servers across the Official MCP Registry and Glama. Inspect trust signals, tools and env vars, then generate install config for Claude, Cursor, Claude Code, Cline, and Windsurf.">
+  <meta name="description" content="Search MCP servers across the Official MCP Registry and Glama. Inspect trust signals, local env vars and remote HTTP headers, then generate install config for Claude, Cursor, Claude Code, Cline, and Windsurf.">
   <meta name="keywords" content="MCP discovery, MCP server install, AI agent tooling, Model Context Protocol, MCP server registry, Claude Desktop MCP, Cursor MCP">
   <meta name="author" content="Coder AI">
   <meta name="robots" content="index, follow">
@@ -29,7 +29,7 @@
   <meta property="og:image:type" content="image/png">
   <meta property="og:site_name" content="MCPfinder">
   <meta property="og:locale" content="en_US">
-  <meta property="og:updated_time" content="2026-10-31T00:00:00Z">
+  <meta property="og:updated_time" content="2026-11-02T00:00:00Z">
   <meta property="article:author" content="Coder AI">
   <meta property="article:publisher" content="https://coderai.dev">
 
@@ -69,9 +69,9 @@
       "name": "Coder AI",
       "url": "https://coderai.dev"
     },
-    "softwareVersion": "2.0.1",
+    "softwareVersion": "2.0.2",
     "datePublished": "2025-04-20",
-    "dateModified": "2026-10-20",
+    "dateModified": "2026-11-02",
     "license": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     "downloadUrl": "https://www.npmjs.com/package/@mcpfinder/server",
     "codeRepository": "https://github.com/mcpfinder/mcpfinder",
@@ -118,7 +118,7 @@
     "url": "https://mcpfinder.dev",
     "description": "AI-first MCP server discovery layer across the Official MCP Registry and Glama.",
     "inLanguage": "en",
-    "dateModified": "2026-10-31",
+    "dateModified": "2026-11-02",
     "publisher": {
       "@type": "Organization",
       "name": "Coder AI",
@@ -138,8 +138,8 @@
     "targetProduct": "MCPfinder",
     "license": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     "url": "https://www.npmjs.com/package/@mcpfinder/server",
-    "version": "2.0.1",
-    "dateModified": "2026-10-20",
+    "version": "2.0.2",
+    "dateModified": "2026-11-02",
     "author": {
       "@type": "Organization",
       "name": "Coder AI",
@@ -207,7 +207,7 @@
         "@type": "ListItem",
         "position": 2,
         "name": "get_server_details",
-        "description": "Inspect trust signals, transport, environment variables, warnings, and tool manifest before recommending or installing a candidate."
+        "description": "Inspect trust signals, transport, local environment variables, selected remote HTTP headers, warnings, and tool manifest before recommending or installing a candidate."
       },
       {
         "@type": "ListItem",
@@ -263,7 +263,7 @@
         "name": "How do I find the best MCP server for my use case?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "MCPfinder helps an AI agent discover and evaluate MCP servers. Search first, inspect trust signals and environment variables, then generate a client-specific install config."
+          "text": "MCPfinder helps an AI agent discover and evaluate MCP servers. Search first, inspect trust signals and the selected connection's env vars or HTTP headers, then generate a client-specific install config."
         }
       },
       {
@@ -1163,7 +1163,7 @@
         <circle cx="12" cy="12" r="10"/>
         <polyline points="12,6 12,12 16,14"/>
       </svg>
-      v2.0.1 — FREE AND OPEN-SOURCE (AGPL-3.0)
+      v2.0.2 — FREE AND OPEN-SOURCE (AGPL-3.0)
     </div>
     <h1>
       YOUR AI FINDS<br>
@@ -1171,7 +1171,7 @@
       FOR YOU
     </h1>
     <p>
-      MCPfinder is a free, open-source discovery and install layer for AI agents. It helps an assistant search multiple MCP registries, inspect trust signals and environment variables, and generate install-ready JSON for the right client.
+      MCPfinder is a free, open-source discovery and install layer for AI agents. It helps an assistant search multiple MCP registries, inspect trust signals and local environment variables or remote HTTP headers, and generate install-ready JSON for the right client.
     </p>
 
     <div class="search-wrap">
@@ -1334,7 +1334,7 @@
       </div>
       <div class="feature">
         <h3>GET_SERVER_DETAILS</h3>
-        <p>Inspect trust signals, tools, warning flags, transport, and required environment variables before recommending anything.</p>
+        <p>Inspect trust signals, tools, warning flags, transport, and local environment variables or selected remote HTTP headers before recommending anything.</p>
       </div>
       <div class="feature">
         <h3>GET_INSTALL_CONFIG</h3>
@@ -1487,7 +1487,7 @@
         </tr>
         <tr>
           <td>Flags required secrets before install</td>
-          <td class="cell-strong">Yes (env vars, registry isSecret + credential-name hints)</td>
+          <td class="cell-strong">Yes (selected local env vars or required remote HTTP headers; credential-name hints are advisory)</td>
           <td class="cell-weak">Sometimes, in prose</td>
           <td class="cell-weak">Raw schema only</td>
           <td class="cell-weak">Unreliable</td>
@@ -1539,8 +1539,8 @@
         <dd>The MCP server runs as a child process and exchanges JSON-RPC over standard input/output. The most portable transport and MCPfinder's canonical mode.</dd>
       </div>
       <div class="glossary-term">
-        <dt>Environment variables</dt>
-        <dd>Configuration values the MCP server reads at startup, often secrets like API keys or database URLs. MCPfinder reports which are required, which the registry flags as sensitive, and which have credential-looking names.</dd>
+        <dt>Environment variables and HTTP headers</dt>
+        <dd>Local processes read environment variables at startup; remote endpoints receive HTTP headers. MCPfinder distinguishes required headers from optional alternatives and marks unknown remote auth metadata for manual review.</dd>
       </div>
       <div class="glossary-term">
         <dt>Trust signals</dt>
@@ -1595,7 +1595,7 @@
           HOW DO I FIND THE BEST MCP SERVER FOR MY USE CASE?
         </div>
         <div class="faq-a">
-          MCPfinder works best as an AI workflow rather than a human search page. Your assistant should search for candidates, inspect trust signals and environment variables with <code>get_server_details</code>, then generate config with <code>get_install_config</code>.
+          MCPfinder works best as an AI workflow rather than a human search page. Your assistant should search for candidates, inspect trust signals and selected local env vars or remote HTTP headers with <code>get_server_details</code>, then generate config with <code>get_install_config</code>.
         </div>
       </div>
       <div class="faq-item">
@@ -1697,7 +1697,7 @@
           For security disclosures or commercial-licensing questions, write to <span class="eml" data-e="ved.iaredoc@troppus"></span> — see also <a href="/.well-known/security.txt">security.txt</a>.
         </p>
         <p style="color:var(--text-muted);font-size:0.8rem;margin-top:24px;">
-          MCPfinder v2.0.1 · last updated <time datetime="2026-10-31">2026-10-31</time> · canonical: <a href="https://mcpfinder.dev">mcpfinder.dev</a>
+          MCPfinder v2.0.2 · last updated <time datetime="2026-11-02">2026-11-02</time> · canonical: <a href="https://mcpfinder.dev">mcpfinder.dev</a>
         </p>
       </div>
     </div>

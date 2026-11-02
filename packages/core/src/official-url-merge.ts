@@ -16,8 +16,8 @@
  *   with somewhat similar descriptions. Otherwise it is skipped and reported.
  * - The dropped row must be Official-only (`sources = ["official"]`), so no
  *   other source's payload is lost; its package and env var names must be on
- *   the kept row, and the kept row needs a repository if it has one
- *   (keptCovers). An active row
+ *   the kept row, the endpoint header declarations must match exactly, and
+ *   the kept row needs a repository if it has one (keptCovers). An active row
  *   ranks above an inactive one.
  *
  * The kept row is left as it is (its `sources` already include `official`); no
@@ -32,6 +32,7 @@
  */
 import type { DatabaseSync } from 'node:sqlite';
 import { normalizeRemoteUrlKey } from './remote-url.js';
+import { selectedRemoteHeaderDeclarations } from './remote-headers.js';
 
 interface CandidateRow {
   id: string;
@@ -44,6 +45,8 @@ interface CandidateRow {
   sources: string;
   status: string | null;
   updated_at: string | null;
+  raw_data: string;
+  source: string;
 }
 
 export interface OfficialUrlMergeResult {
@@ -158,8 +161,8 @@ function envVarNames(raw: string | null): Set<string> | null {
 /**
  * True when deleting `drop` loses nothing needed to install the endpoint: its
  * package and every env var name it declares are on the kept row, and the
- * kept row has a repository if the dropped one does. Nothing is copied over,
- * so anything less is a skip.
+ * kept row has a repository if the dropped one does. Header declarations
+ * must match: the surviving raw payload is not rewritten.
  */
 function keptCovers(keep: CandidateRow, drop: CandidateRow): boolean {
   if (drop.package_identifier && drop.package_identifier !== keep.package_identifier) return false;
@@ -171,7 +174,15 @@ function keptCovers(keep: CandidateRow, drop: CandidateRow): boolean {
   const keepVars = envVarNames(keep.env_vars);
   if (!dropVars || !keepVars) return false;
   for (const name of dropVars) if (!keepVars.has(name)) return false;
-  return true;
+  const droppedHeaders = selectedRemoteHeaderDeclarations(drop);
+  const keptHeaders = selectedRemoteHeaderDeclarations(keep);
+  if (!droppedHeaders || !keptHeaders) return false;
+  // No raw payload is copied when dropping a row. A same-name header can have
+  // different requiredness, secret handling or template, so compare the whole
+  // declaration instead of names alone.
+  const kept = keptHeaders.map((h) => JSON.stringify(h)).sort();
+  const dropped = droppedHeaders.map((h) => JSON.stringify(h)).sort();
+  return JSON.stringify(kept) === JSON.stringify(dropped);
 }
 
 function isOfficialOnly(row: CandidateRow): boolean {
@@ -186,7 +197,7 @@ function isOfficialOnly(row: CandidateRow): boolean {
 export function mergeSameRemoteOfficialEntries(db: DatabaseSync): OfficialUrlMergeResult {
   const rows = db.prepare(
     `SELECT id, name, description, remote_url, repository_url, package_identifier,
-            env_vars, sources, status, updated_at
+            env_vars, sources, status, updated_at, raw_data, source
        FROM servers
       WHERE has_remote = 1 AND remote_url IS NOT NULL AND sources LIKE '%"official"%'`,
   ).all() as unknown as CandidateRow[];

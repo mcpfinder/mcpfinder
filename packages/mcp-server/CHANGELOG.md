@@ -1,5 +1,18 @@
 # Changelog — @mcpfinder/server
 
+## 2.0.2 — 2026-11-02
+
+### Fixed
+- Remote install configs use HTTP `headers` from the selected Official Registry
+  endpoint instead of attaching local `env` variables to its URL. Only required
+  headers enter the default snippet; optional headers remain visible as
+  `remoteHeaders`, so servers such as Arcmira can use host OAuth with the URL
+  alone. Required secret headers receive placeholders and update
+  `requires_user_secrets` / `safe_to_autoinstall` accordingly.
+  Unsupported secret templates require the complete header value, including
+  any authentication scheme, in the placeholder.
+- Requires `@mcpfinder/core` ^2.0.2.
+
 ## 2.0.1 — 2026-10-20
 
 ### Fixed

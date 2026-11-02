@@ -1,5 +1,19 @@
 # Changelog — @mcpfinder/core
 
+## 2.0.2 — 2026-11-02
+
+### Fixed
+- Remote install configs distinguish HTTP request headers from local package
+  environment variables. `getServerDetails` exposes `remoteHeaders` for the
+  selected Official Registry endpoint, including entries retained in older
+  catalog snapshots. `getInstallCommand` renders only required headers and no
+  process `env` for a remote URL; optional headers stay available as metadata.
+  Secret header inputs receive placeholders, and simple published value
+  templates such as `Bearer {api_key}` keep their declared prefix. Other secret
+  templates use a placeholder for the entire header value, including its prefix.
+- Same-endpoint Official Registry entries are not merged when dropping one
+  would lose its remote header metadata.
+
 ## 2.0.1 — 2026-10-20
 
 ### Fixed

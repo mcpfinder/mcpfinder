@@ -16,6 +16,7 @@ import type { SqlParam } from './db.js';
 import type {
   ConfidenceBreakdown,
   McpServer,
+  RegistryEnvVar,
   SearchResult,
   ServerDetail,
   ToolSummary,
@@ -25,6 +26,7 @@ import { categorizeServer } from './categories.js';
 import { looksLikeCredentialName } from './credential-hint.js';
 import { parseRawEnvelope, rawPayloads } from './raw-envelope.js';
 import { usableRemoteUrl } from './remote-url.js';
+import { planRemoteHeaders, remoteHeadersForRow } from './remote-headers.js';
 
 /**
  * Whether a row has a remote MCP endpoint a client can use. Also refuses a
@@ -33,6 +35,12 @@ import { usableRemoteUrl } from './remote-url.js';
  */
 function hasUsableRemote(row: Pick<McpServer, 'has_remote' | 'remote_url'>): boolean {
   return row.has_remote === 1 && usableRemoteUrl(row.remote_url) !== null;
+}
+
+/** Match the package-first selection in getInstallCommand. */
+function usesRemoteInstall(row: McpServer): boolean {
+  return hasUsableRemote(row) && !(row.package_identifier &&
+    ['npm', 'pypi', 'oci'].includes(row.registry_type ?? ''));
 }
 
 /**
@@ -489,7 +497,13 @@ function formatSearchResult(row: McpServer, idx: number): SearchResult {
   } catch {
     envVars = [];
   }
+  const remote = usesRemoteInstall(row) ? remoteHeadersForRow(row) : null;
+  const remotePlan = remote ? planRemoteHeaders(remote.headers, remote.known) : null;
   const trustSignals = getTrustSignals(row, sources, envVars);
+  if (remotePlan) {
+    trustSignals.requiresSecrets = remotePlan.requiresUserSecrets;
+    trustSignals.possibleUnlabeledSecrets = remotePlan.possibleUnlabeledSecrets.length > 0;
+  }
   const freshnessDays = getFreshnessDays(row);
 
   return {
@@ -516,8 +530,9 @@ function formatSearchResult(row: McpServer, idx: number): SearchResult {
     trustSignals,
     freshnessDays,
     freshnessLabel: getFreshnessLabel(freshnessDays),
-    installComplexity: getInstallComplexity(row, [], toolsExposed),
-    secretCount: 0,
+    installComplexity: remotePlan && !remotePlan.known ? 'high' : getInstallComplexity(row,
+      remotePlan ? remotePlan.requiredSecretHeaders : envVars, toolsExposed),
+    secretCount: remotePlan ? remotePlan.requiredSecretCount : envVars.filter((v) => v.isSecret).length,
     capabilityCount: toolsExposed.length,
   };
 }
@@ -533,7 +548,7 @@ export function getServerDetails(
 
   if (!row) return null;
 
-  let envVars = [];
+  let envVars: RegistryEnvVar[] = [];
   try {
     envVars = JSON.parse(row.env_vars || '[]');
   } catch {
@@ -561,9 +576,15 @@ export function getServerDetails(
   const confidenceBreakdown = getConfidenceBreakdown(row, sources, warningFlags);
   const confidenceScore = confidenceBreakdown.score;
   const toolsExposed = extractTools(row);
+  const remote = hasUsableRemote(row) ? remoteHeadersForRow(row) : { headers: [], known: false };
+  const remotePlan = usesRemoteInstall(row) ? planRemoteHeaders(remote.headers, remote.known) : null;
   const trustSignals = getTrustSignals(row, sources, envVars);
+  if (remotePlan) {
+    trustSignals.requiresSecrets = remotePlan.requiresUserSecrets;
+    trustSignals.possibleUnlabeledSecrets = remotePlan.possibleUnlabeledSecrets.length > 0;
+  }
   const freshnessDays = getFreshnessDays(row);
-  const secretCount = envVars.filter((envVar: { isSecret?: boolean }) => envVar.isSecret).length;
+  const secretCount = remotePlan ? remotePlan.requiredSecretCount : envVars.filter((input) => input.isSecret).length;
 
   return {
     name: row.name,
@@ -582,6 +603,8 @@ export function getServerDetails(
     listingUrl: row.listing_url ?? null,
     categories,
     environmentVariables: envVars,
+    remoteHeaders: remote.headers,
+    ...(hasUsableRemote(row) ? { remoteHeadersKnown: remote.known } : {}),
     sources,
     useCount: row.use_count || 0,
     verified: row.verified === 1,
@@ -594,7 +617,8 @@ export function getServerDetails(
     trustSignals,
     freshnessDays,
     freshnessLabel: getFreshnessLabel(freshnessDays),
-    installComplexity: getInstallComplexity(row, envVars, toolsExposed),
+    installComplexity: remotePlan && !remotePlan.known ? 'high' : getInstallComplexity(row,
+      remotePlan ? remotePlan.requiredSecretHeaders : envVars, toolsExposed),
     secretCount,
     capabilityCount: toolsExposed.length,
     toolsExposed,
@@ -855,7 +879,7 @@ function getInstallComplexity(
   toolsExposed: ToolSummary[] = [],
 ): 'low' | 'medium' | 'high' {
   const secretCount = envVars.filter((envVar) => envVar.isSecret).length;
-  if (hasUsableRemote(row) && secretCount === 0) return 'low';
+  if (usesRemoteInstall(row) && secretCount === 0) return 'low';
   if (secretCount >= 2) return 'high';
   if (!row.package_identifier && !hasUsableRemote(row)) return 'high';
   if (row.registry_type === 'oci') return 'medium';

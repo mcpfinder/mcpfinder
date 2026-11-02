@@ -30,6 +30,22 @@ export interface RegistryPackage {
 export interface RegistryRemote {
   type: string;
   url: string;
+  headers?: RegistryRemoteHeader[];
+}
+
+export interface RegistryRemoteHeaderVariable {
+  description?: string;
+  isRequired?: boolean;
+  isSecret?: boolean;
+  value?: string;
+  default?: string | number | boolean;
+  placeholder?: string;
+}
+
+/** HTTP request header declared for one remote endpoint, not a process env var. */
+export interface RegistryRemoteHeader extends RegistryEnvVar {
+  value?: string;
+  variables?: Record<string, RegistryRemoteHeaderVariable>;
 }
 
 export interface RegistryEnvVar {
@@ -68,7 +84,7 @@ export interface TrustSignals {
   hasRemote: boolean;
   multiSource: boolean;
   hasRecentUpdate: boolean;
-  requiresSecrets: boolean;
+  requiresSecrets: boolean | null;
   /** Some env var is not marked `isSecret` but its name looks like a credential. */
   possibleUnlabeledSecrets: boolean;
 }
@@ -168,7 +184,7 @@ export interface SearchResult {
   freshnessDays: number | null;
   freshnessLabel: string;
   installComplexity: 'low' | 'medium' | 'high';
-  secretCount: number;
+  secretCount: number | null;
   capabilityCount: number;
 }
 
@@ -191,6 +207,9 @@ export interface ServerDetail {
   listingUrl: string | null;
   categories: string[];
   environmentVariables: RegistryEnvVar[];
+  remoteHeaders: RegistryRemoteHeader[];
+  /** False when the selected remote endpoint's header declarations are unavailable or invalid. */
+  remoteHeadersKnown?: boolean;
   sources: string[];
   useCount: number;
   verified: boolean;
@@ -204,7 +223,7 @@ export interface ServerDetail {
   freshnessDays: number | null;
   freshnessLabel: string;
   installComplexity: 'low' | 'medium' | 'high';
-  secretCount: number;
+  secretCount: number | null;
   capabilityCount: number;
   toolsExposed: ToolSummary[];
 }

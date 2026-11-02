@@ -7,6 +7,8 @@ export type {
   RegistryServerEntry,
   RegistryPackage,
   RegistryRemote,
+  RegistryRemoteHeader,
+  RegistryRemoteHeaderVariable,
   RegistryEnvVar,
   RegistryMeta,
   RegistryListResponse,
@@ -99,6 +101,8 @@ export {
 
 // Install
 export { getInstallCommand, buildEnvPlaceholders, envPlaceholderValue } from './install.js';
+export { planRemoteHeaders, remoteHeadersForRow } from './remote-headers.js';
+export type { RemoteHeaderPlan } from './remote-headers.js';
 export type { ClientType } from './install.js';
 
 // Credential-name hint (advisory only; never changes config values)

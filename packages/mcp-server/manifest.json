@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "mcpfinder",
   "display_name": "MCPfinder",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Discover and install MCP servers across the Official MCP Registry and Glama.",
   "long_description": "MCPfinder is an AI-first discovery layer over the MCP ecosystem. It searches servers across the Official MCP Registry and Glama, inspects trust signals and required secrets, and generates client-specific install config — so your AI can find and add the tools it is missing on demand.",
   "author": { "name": "Coder AI", "email": "support@coderai.dev", "url": "https://coderai.dev" },
@@ -36,7 +36,7 @@
     },
     {
       "name": "get_server_details",
-      "description": "Inspect trust signals, tools, env vars, and warnings before recommending a server.",
+      "description": "Inspect trust signals, tools, local env vars, remote HTTP headers, and warnings before recommending a server.",
       "inputSchema": {
         "type": "object",
         "properties": {

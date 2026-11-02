@@ -167,7 +167,7 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
 | Tool | Purpose |
 | --- | --- |
 | `search_mcp_servers` | Ranked full-text search by keyword, technology, or use case. |
-| `get_server_details` | Trust signals, env vars, tool manifest, warnings before install. |
+| `get_server_details` | Trust signals, local env vars, selected remote HTTP headers, tool manifest, warnings before install. |
 | `get_install_config` | Ready-to-paste JSON config for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf. |
 | `browse_categories` | Single-call category browser (omit `category` to list; pass `category` for top servers). |
 
@@ -180,20 +180,62 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
   their only source and is no longer synced — see [CHANGELOG](./CHANGELOG.md).
 - `warningFlags`: `deprecated-npm`, `archived-repo`, `stale-over-18-months`,
   `single-source-only`, `missing-repository-url`, `install-method-unclear`.
-- Install metadata: target file path per OS, required env vars (secrets
-  marked), `safe_to_autoinstall` and `requires_user_secrets` signals.
-- The `env` block of a generated config carries values, never prose: secrets
+- Install metadata: target file path per OS, local process variables or remote
+  HTTP headers, `safe_to_autoinstall` and `requires_user_secrets` signals.
+- For a local command, the `env` block carries values, never prose: secrets
   get `<YOUR_VALUE>`, other variables get the registry-published `default`,
   then `placeholder`, then `<VALUE>`. Descriptions stay in the "Required
   environment variables" section under the snippet.
+- For a remote HTTP connection, the JSON uses `url` and any explicitly required
+  registry request `headers`; it does not put local process variables beside
+  the URL. The selected URL's header definitions appear as `remoteHeaders` in
+  structured results, with `remoteHeadersKnown` indicating whether the
+  registry metadata establishes their requirements. Optional headers are
+  described separately and omitted from the default JSON, so a client can
+  use the server's OAuth flow when
+  supported. `envVarsNeeded` is empty for a remote config. Required secret
+  headers set `requires_user_secrets` and clear `safe_to_autoinstall`; optional
+  key alternatives do not make a secret required. Published header values and
+  templates determine any `Bearer` prefix; MCPfinder does not infer it from
+  the name `Authorization`. Unsupported secret templates use a placeholder
+  for the full header value, including any required scheme. If the selected
+  remote's header metadata is
+  missing, malformed, or does not match its URL, `remoteHeadersKnown` is false,
+  `safe_to_autoinstall` is false, and `requires_user_secrets` is null: the
+  remote's authentication requirements need manual verification. A known
+  empty header list has `remoteHeadersKnown: true` and requires no configured
+  header by default. Local-only structured results omit `remoteHeadersKnown`;
+  `false` applies only to a selected remote with unknown metadata.
 - A registry `isSecret` flag is only ever present or absent, and absent means
   unlabelled, not non-secret. Unlabelled variables whose names look like
   credentials (`GITHUB_TOKEN`, `OPENAI_API_KEY`, ...) get an advisory in the
   env-var listings ("looks like a credential (not marked secret by the
   registry); treat it as one") and are listed in `get_install_config`'s
   `possible_unlabeled_secrets`. This is advisory only: their config value is
-  still chosen exactly as for any unmarked variable (registry `default`, then
-  `placeholder`, then `<VALUE>`); the heuristic never changes it, and `requires_user_secrets` keeps its registry-only meaning.
+  still chosen exactly as for any unmarked local variable (registry `default`,
+  then `placeholder`, then `<VALUE>`); the heuristic never changes it. For a
+  remote install, the same advisory can apply to a required HTTP header whose
+  name looks like a credential. `trustSignals.requiresSecrets` is null when
+  the selected remote's header requirements are unknown. Local env-var hints
+  can also include optional variables; the advisory alone does not make them
+  required.
+
+For example, Arcmira offers OAuth when Cursor connects to its URL without a
+header, so its optional API key is not added to the default config:
+
+```json
+{
+  "mcpServers": {
+    "arcmira": {
+      "url": "https://mcp.arcmira.com/mcp"
+    }
+  }
+}
+```
+
+If the user chooses Arcmira's API-key path, its published setup instructions
+call for an `Authorization` request header with a bearer value. Whether OAuth
+or that key path is usable depends on the server and the MCP client.
 
 ## 2.0.1: listing links are not remotes
 

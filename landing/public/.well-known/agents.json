@@ -2,8 +2,8 @@
   "$schema": "https://agents.json/schemas/0.1/agents.schema.json",
   "name": "MCPfinder",
   "description": "AI-first discovery layer over the Official MCP Registry and Glama. Exposes 4 MCP tools to AI agents.",
-  "version": "2.0.1",
-  "lastUpdated": "2026-10-31",
+  "version": "2.0.2",
+  "lastUpdated": "2026-11-02",
   "publisher": {
     "name": "Coder AI",
     "url": "https://coderai.dev",
@@ -41,12 +41,12 @@
     },
     {
       "name": "get_server_details",
-      "description": "Inspect trust signals, env vars, warnings, transport, and tool manifest before recommending or installing a candidate.",
+      "description": "Inspect trust signals, local env vars, selected remote HTTP headers and whether their metadata is known, warnings, transport, and tool manifest before recommending or installing a candidate.",
       "inputs": { "name": "string" }
     },
     {
       "name": "get_install_config",
-      "description": "Generate a client-specific JSON install snippet for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf.",
+      "description": "Generate a client-specific JSON install snippet with local process env or required remote HTTP headers for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf.",
       "inputs": { "name": "string", "platform": "string" }
     },
     {

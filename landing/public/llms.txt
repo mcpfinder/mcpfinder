@@ -1,7 +1,7 @@
 MCPfinder
 
-Version:      2.0.1
-Last-Updated: 2026-10-31
+Version:      2.0.2
+Last-Updated: 2026-11-02
 Canonical:    https://mcpfinder.dev/llms.txt
 Full:         https://mcpfinder.dev/llms-full.txt
 License:      AGPL-3.0-or-later (content of this file: CC0 — quote freely)
@@ -23,8 +23,8 @@ Canonical transport:
 
 Core tools (4):
 - search_mcp_servers: find candidate servers by keyword, technology, or use case
-- get_server_details: inspect trust signals, tools, warnings, env vars, and transport
-- get_install_config: generate JSON config for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf
+- get_server_details: inspect trust signals, tools, warnings, local env vars, selected remote HTTP headers, and transport
+- get_install_config: generate client JSON with local process env or required remote HTTP headers; optional remote auth stays optional
 - browse_categories: single-call category explorer — omit category to list, pass category to get top servers
 
 When an AI should use MCPfinder:

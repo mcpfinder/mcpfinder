@@ -3,9 +3,10 @@
  * Supports Claude Desktop, Cursor, Claude Code, Cline/Roo Code, Windsurf, and generic configurations.
  */
 import type { DatabaseSync } from 'node:sqlite';
-import type { McpServer, RegistryEnvVar } from './types.js';
+import type { RegistryEnvVar, RegistryRemoteHeader } from './types.js';
 import { findServerByNameOrSlug } from './search.js';
 import { usableRemoteUrl } from './remote-url.js';
+import { planRemoteHeaders, remoteHeadersForRow } from './remote-headers.js';
 
 export type ClientType =
   | 'claude-desktop'
@@ -24,6 +25,8 @@ export interface InstallConfig {
   instructions: string;
   postInstallNote: string;
   envVarsNeeded: RegistryEnvVar[];
+  remoteHeaders?: RegistryRemoteHeader[];
+  remoteHeadersKnown?: boolean;
 }
 
 /** Platform metadata: config file paths and notes. */
@@ -145,7 +148,8 @@ export function getInstallCommand(
 
   const remoteUrl = row.has_remote ? usableRemoteUrl(row.remote_url) : null;
   if (remoteUrl) {
-    return generateRemoteConfig(serverKey, remoteUrl, envVars, client);
+    const remote = remoteHeadersForRow(row);
+    return generateRemoteConfig(serverKey, remoteUrl, remote.headers, remote.known, client);
   }
 
   const platform = PLATFORM_INFO[client];
@@ -256,11 +260,24 @@ function generateDockerConfig(
 function generateRemoteConfig(
   serverKey: string,
   remoteUrl: string,
-  envVars: RegistryEnvVar[],
+  remoteHeaders: RegistryRemoteHeader[],
+  remoteHeadersKnown: boolean,
   client: ClientType,
 ): InstallConfig {
-  const mcpConfig = { mcpServers: { [serverKey]: { url: remoteUrl } } };
+  const plan = planRemoteHeaders(remoteHeaders, remoteHeadersKnown);
+  const config: Record<string, unknown> = { url: remoteUrl };
+  if (Object.keys(plan.headers).length > 0) config.headers = plan.headers;
+  const mcpConfig = { mcpServers: { [serverKey]: config } };
   const meta = buildInstructions(mcpConfig, client, 'This is a hosted/remote MCP server — no local installation needed.');
-
-  return { client, serverName: serverKey, ...meta, config: mcpConfig, envVarsNeeded: envVars };
+  const headerNotes = [
+    ...(!plan.known ? ['Remote HTTP header metadata is unavailable or invalid; authentication requirements are unknown. Verify the endpoint before installing.'] : []),
+    ...plan.requiredHeaders.map((h) => `- Required HTTP header ${h.name}: ${h.description || 'No description'}`),
+    ...plan.optionalHeaders.map((h) => `- Optional HTTP header ${h.name}: ${h.description || 'No description'}`),
+    ...(plan.possibleUnlabeledSecrets.length ? [`Possible unlabelled credentials in required HTTP headers: ${plan.possibleUnlabeledSecrets.join(', ')}. Verify whether values are needed.`] : []),
+  ];
+  return {
+    client, serverName: serverKey, ...meta,
+    instructions: headerNotes.length ? `${meta.instructions}\n\n${headerNotes.join('\n')}` : meta.instructions,
+    config: mcpConfig, envVarsNeeded: [], remoteHeaders, remoteHeadersKnown,
+  };
 }

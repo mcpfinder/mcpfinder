@@ -22,6 +22,7 @@ import {
   listCategories,
   getServersByCategory,
   buildEnvPlaceholders,
+  planRemoteHeaders,
   looksLikeCredentialName,
   possibleUnlabeledSecrets,
   usableRemoteUrl,
@@ -226,6 +227,17 @@ function credentialAdvisory(v: { name: string; isSecret?: boolean }): string {
     : '';
 }
 
+/** A registry description can require a scheme even when its value template is absent. */
+function remoteSecretHeaderHint(renderedValue: string | undefined, isSecret: boolean): string {
+  if (!isSecret) return '';
+  if (!renderedValue?.includes('<YOUR_VALUE>')) {
+    return ' ⚠️ secret — complete the unresolved header template using the published format';
+  }
+  return renderedValue === '<YOUR_VALUE>'
+    ? ' ⚠️ secret — replace <YOUR_VALUE> with the complete header value in the published format'
+    : ' ⚠️ secret — replace <YOUR_VALUE> with the secret and keep the surrounding header text in JSON';
+}
+
 const nextActionsSchema = z.array(z.string());
 
 // Every tool can answer "not ready yet". That state must stay distinguishable
@@ -276,8 +288,10 @@ const installOutputSchema = {
   configFilePath: z.record(z.string(), z.string()).optional(),
   config: z.record(z.string(), z.unknown()).optional(),
   envVarsNeeded: z.array(z.record(z.string(), z.unknown())).optional(),
+  remoteHeaders: z.array(z.record(z.string(), z.unknown())).optional(),
+  remoteHeadersKnown: z.boolean().optional(),
   safe_to_autoinstall: z.boolean().optional(),
-  requires_user_secrets: z.boolean().optional(),
+  requires_user_secrets: z.boolean().nullable().optional(),
   possible_unlabeled_secrets: z.array(z.string()).optional(),
   warningFlags: z.array(z.string()).optional(),
   next_actions: nextActionsSchema,
@@ -397,7 +411,7 @@ server.registerTool(
   'get_server_details',
   {
     description:
-      'Always call this before recommending or installing a server. It returns the metadata you need to judge safety and fit: install method, transport, environment variables, source count, trust signals, warnings, and any discovered tools/capabilities. Use it to warn the user about secrets, stale projects, or weak metadata before calling get_install_config.',
+      'Always call this before recommending or installing a server. It returns the metadata you need to judge safety and fit: install method, transport, local environment variables, remote HTTP headers and whether header metadata is known, source count, trust signals, warnings, and any discovered tools/capabilities. Use it to warn the user about secrets, stale projects, or weak metadata before calling get_install_config.',
     inputSchema: {
       name: z
         .string()
@@ -426,15 +440,43 @@ server.registerTool(
       });
     }
 
+    const remotePlan = detail.hasRemote
+      ? planRemoteHeaders(detail.remoteHeaders, detail.remoteHeadersKnown === true) : null;
+    const selectedSecretCount = remotePlan ? remotePlan.requiredSecretCount : detail.secretCount;
+    const selectedTrustSignals = remotePlan ? {
+      ...detail.trustSignals,
+      requiresSecrets: remotePlan.requiresUserSecrets,
+      possibleUnlabeledSecrets: remotePlan.possibleUnlabeledSecrets.length > 0,
+    } : detail.trustSignals;
+    const selectedInstallComplexity = remotePlan
+      ? remotePlan.requiredSecretCount === null ? 'high'
+        : remotePlan.requiredSecretCount === 0 ? 'low'
+          : remotePlan.requiredSecretCount === 1 ? 'medium' : 'high'
+      : detail.installComplexity;
     const envSection =
       detail.environmentVariables.length > 0
-        ? '\n\n**Environment Variables:**\n' +
+        ? `\n\n**${detail.hasRemote ? 'Registry environment variable hints (not used for the remote URL)' : 'Environment Variables'}:**\n` +
           detail.environmentVariables
             .map(
               (v) =>
                 `- \`${v.name}\`: ${v.description || 'No description'}${v.isSecret ? ' (secret)' : ''}${credentialAdvisory(v)}`,
             )
             .join('\n')
+        : '';
+    const plannedHeaders = remotePlan
+      ? [...remotePlan.requiredHeaders, ...remotePlan.optionalHeaders] : [];
+    const remoteHeaderSection = remotePlan && !remotePlan.known
+      ? '\n\n**HTTP headers:** Metadata unavailable for this remote URL; verify authentication requirements manually.'
+      : remotePlan && plannedHeaders.length > 0
+        ? '\n\n**HTTP headers for the selected remote URL:**\n' +
+          plannedHeaders.map((h) => {
+            const secret = h.isRequired
+              ? remotePlan.requiredSecretHeaders.includes(h)
+              : h.isSecret === true;
+            const advisory = remotePlan.possibleUnlabeledSecrets.includes(h.name)
+              ? ' (possible credential; registry did not mark it secret)' : '';
+            return `- \`${h.name}\` (${h.isRequired ? 'required' : 'optional'}): ${h.description || 'No description'}${secret ? ' (secret)' : ''}${advisory}`;
+          }).join('\n')
         : '';
 
     const badges = sourceBadges(detail.sources);
@@ -450,17 +492,21 @@ server.registerTool(
       detail.warningFlags.length > 0 ? `**Warnings:** ${detail.warningFlags.join(', ')}` : '';
     const trustSection = [
       `**Freshness:** ${detail.freshnessLabel}${detail.freshnessDays !== null ? ` (${detail.freshnessDays}d)` : ''}`,
-      `**Install Complexity:** ${detail.installComplexity}`,
-      `**Secrets Required:** ${detail.secretCount}`,
+      `**Install Complexity:** ${selectedInstallComplexity}`,
+      detail.hasRemote
+        ? `**Required remote secret headers:** ${selectedSecretCount ?? 'unknown'}`
+        : `**Secrets Required:** ${selectedSecretCount}`,
+      `**Requires Secrets:** ${selectedTrustSignals.requiresSecrets === null ? 'unknown' : selectedTrustSignals.requiresSecrets ? 'yes' : 'no'}`,
+      `**Possible Unlabeled Secrets:** ${selectedTrustSignals.possibleUnlabeledSecrets ? 'yes' : 'no'}`,
       `**Capabilities Discovered:** ${detail.capabilityCount}`,
       `**Trust Signals:** ${
         [
-          detail.trustSignals.hasOfficialSource ? 'official' : '',
-          detail.trustSignals.isVerified ? 'verified' : '',
-          detail.trustSignals.multiSource ? 'multi-source' : '',
-          detail.trustSignals.hasRepository ? 'repository' : '',
-          detail.trustSignals.hasRemote ? 'remote' : '',
-          detail.trustSignals.hasRecentUpdate ? 'recent-update' : '',
+          selectedTrustSignals.hasOfficialSource ? 'official' : '',
+          selectedTrustSignals.isVerified ? 'verified' : '',
+          selectedTrustSignals.multiSource ? 'multi-source' : '',
+          selectedTrustSignals.hasRepository ? 'repository' : '',
+          selectedTrustSignals.hasRemote ? 'remote' : '',
+          selectedTrustSignals.hasRecentUpdate ? 'recent-update' : '',
         ]
           .filter(Boolean)
           .join(', ') || 'none'
@@ -474,8 +520,9 @@ server.registerTool(
       '',
       `**Version:** ${detail.version || 'N/A'}`,
       `**Status:** ${detail.status}`,
-      `**Package:** ${detail.packageIdentifier || 'N/A'} (${detail.registryType || 'unknown'})`,
-      `**Transport:** ${detail.transportType || 'N/A'}`,
+      detail.hasRemote ? '**Default install method:** Remote HTTP' : '',
+      `**Package${detail.hasRemote ? ' (local alternative)' : ''}:** ${detail.packageIdentifier || 'N/A'} (${detail.registryType || 'unknown'})`,
+      `**${detail.hasRemote ? 'Package transport' : 'Transport'}:** ${detail.transportType || 'N/A'}`,
       `**Repository:** ${detail.repositoryUrl || 'N/A'}`,
       detail.hasRemote ? `**Remote URL:** ${detail.remoteUrl}` : '',
       detail.listingUrl ? `**Listing:** ${detail.listingUrl}` : '',
@@ -495,6 +542,7 @@ server.registerTool(
       trustSection,
       warningsSection,
       toolSection,
+      remoteHeaderSection,
       envSection,
       '',
       'If this looks acceptable, call get_install_config to generate a client-specific JSON config snippet.',
@@ -509,6 +557,7 @@ server.registerTool(
         registryType: detail.registryType,
         packageIdentifier: detail.packageIdentifier,
         transportType: detail.transportType,
+        selectedInstallType: detail.hasRemote ? 'remote' : detail.registryType,
         repositoryUrl: detail.repositoryUrl,
         remoteUrl: detail.remoteUrl,
         listingUrl: detail.listingUrl,
@@ -521,13 +570,15 @@ server.registerTool(
         confidenceBreakdown: detail.confidenceBreakdown,
         recommendationReason: detail.recommendationReason,
         warningFlags: detail.warningFlags,
-        trustSignals: detail.trustSignals,
+        trustSignals: selectedTrustSignals,
         freshnessDays: detail.freshnessDays,
         freshnessLabel: detail.freshnessLabel,
-        installComplexity: detail.installComplexity,
-        secretCount: detail.secretCount,
+        installComplexity: selectedInstallComplexity,
+        secretCount: selectedSecretCount,
         capabilityCount: detail.capabilityCount,
         environmentVariables: detail.environmentVariables,
+        remoteHeaders: plannedHeaders,
+        ...(remotePlan ? { remoteHeadersKnown: remotePlan.known } : {}),
         toolsExposed: detail.toolsExposed,
       },
       next_actions: [`get_install_config(name="${detail.name}", platform="claude-desktop")`],
@@ -561,6 +612,7 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
   const serverKey = detail.name.includes('/') ? detail.name.split('/').pop() || detail.name : detail.name;
   const envVars = detail.environmentVariables || [];
   const env = buildEnvPlaceholders(envVars);
+  const remotePlan = planRemoteHeaders(detail.remoteHeaders, detail.remoteHeadersKnown === true);
   const platformInfo = PLATFORMS[platform];
   // Never hand out a URL on a retired host (see core remote-url.ts), even if an
   // older catalog still has one on the row.
@@ -571,7 +623,7 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
 
   if (remoteUrl) {
     serverConfig = { url: remoteUrl };
-    if (Object.keys(env).length > 0) serverConfig.env = env;
+    if (Object.keys(remotePlan.headers).length > 0) serverConfig.headers = remotePlan.headers;
     installType = 'remote';
   } else if (detail.registryType === 'npm' && detail.packageIdentifier) {
     serverConfig = { command: 'npx', args: ['-y', detail.packageIdentifier] };
@@ -649,7 +701,27 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
     '```',
   ];
 
-  if (envVars.length > 0) {
+  if (remoteUrl) {
+    if (!remotePlan.known) {
+      sections.push('', '## HTTP authentication',
+        'Header metadata is unavailable for this remote URL. Verify authentication requirements manually before installing.');
+    }
+    if (remotePlan.requiredHeaders.length > 0) {
+      sections.push('', '## Required HTTP headers');
+      for (const h of remotePlan.requiredHeaders) {
+        const isSecret = remotePlan.requiredSecretHeaders.includes(h);
+        const advisory = remotePlan.possibleUnlabeledSecrets.includes(h.name)
+          ? ' — possible credential; registry did not mark it secret' : '';
+        sections.push(`- \`${h.name}\`: ${h.description || 'No description'}${remoteSecretHeaderHint(remotePlan.headers[h.name], isSecret)}${advisory}`);
+      }
+    }
+    if (remotePlan.optionalHeaders.length > 0) {
+      sections.push('', '## Optional HTTP headers');
+      for (const h of remotePlan.optionalHeaders) {
+        sections.push(`- \`${h.name}\`: ${h.description || 'No description'}${h.isSecret ? ' (secret)' : ''}`);
+      }
+    }
+  } else if (envVars.length > 0) {
     sections.push('', '## Required environment variables');
     for (const v of envVars) {
       sections.push(
@@ -668,10 +740,12 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
     installType,
     configFilePath: platformInfo.configPaths,
     config: wrapper,
-    envVarsNeeded: envVars,
-    safe_to_autoinstall: envVars.length === 0,
-    requires_user_secrets: envVars.some((v) => v.isSecret),
-    possible_unlabeled_secrets: possibleUnlabeledSecrets(envVars),
+    envVarsNeeded: remoteUrl ? [] : envVars,
+    remoteHeaders: remoteUrl ? [...remotePlan.requiredHeaders, ...remotePlan.optionalHeaders] : [],
+    ...(remoteUrl ? { remoteHeadersKnown: remotePlan.known } : {}),
+    safe_to_autoinstall: remoteUrl ? remotePlan.safeToAutoinstall : envVars.length === 0,
+    requires_user_secrets: remoteUrl ? remotePlan.requiresUserSecrets : envVars.some((v) => v.isSecret),
+    possible_unlabeled_secrets: remoteUrl ? remotePlan.possibleUnlabeledSecrets : possibleUnlabeledSecrets(envVars),
     warningFlags: detail.warningFlags,
     next_actions: [],
   });
@@ -681,7 +755,7 @@ server.registerTool(
   'get_install_config',
   {
     description:
-      'Use this after get_server_details to generate a ready-to-paste JSON config snippet for the target client. Returns structured config, file paths, required env vars, restart guidance, and safety flags like requires_user_secrets and safe_to_autoinstall.',
+      'Use this after get_server_details to generate a client-specific JSON config snippet. Returns paths, local env vars or remote HTTP headers (required and optional), remoteHeadersKnown, restart guidance, and safety flags. Unknown header metadata requires manual verification and sets requires_user_secrets to null.',
     inputSchema: {
       name: z
         .string()

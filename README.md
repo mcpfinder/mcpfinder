@@ -105,14 +105,14 @@ Preferred workflow:
 1. `search_mcp_servers(query="postgres")`
 2. `get_server_details(name="...best candidate...")`
 3. `get_install_config(name="...best candidate...", platform="claude-desktop")`
-4. Tell the user what server you chose, why, which secrets are required, and what restart/reload step is needed.
+4. Tell the user what server you chose, why, which credentials are required or optional, and what restart/reload step is needed.
 
 ## Tool Surface
 
 | Tool | Purpose | When to call |
 | --- | --- | --- |
 | `search_mcp_servers` | Search by keyword, technology, or use case | First step when a capability is missing |
-| `get_server_details` | Inspect metadata, trust signals, tools, warnings, env vars | Before recommending or installing |
+| `get_server_details` | Inspect metadata, trust signals, tools, warnings, local env vars, and remote HTTP headers | Before recommending or installing |
 | `get_install_config` | Generate a JSON config snippet for a target client | After selecting a server |
 | `browse_categories` | Single-call category browser (omit `category` to list; pass `category` for top servers) | Domain-driven discovery |
 
@@ -126,7 +126,16 @@ MCPfinder is intentionally optimized for agent consumption.
   popularity fields remain in the output but are empty since Smithery, their
   only source, was dropped)
 - Warning flags: stale projects, missing repository URL, unclear install path, single-source-only
-- Install metadata: config snippet, target file paths, required environment variables, restart instructions
+- Install metadata: config snippet, target file paths, local process variables or remote HTTP headers, credential requirements, restart instructions
+
+For local command servers, `env` configures the launched process. For remote
+HTTP servers, `headers` configures requests to the selected endpoint; a local
+process `env` block does not authenticate that connection. MCPfinder includes
+explicitly required registry headers in the generated remote JSON and lists
+optional headers separately. An optional API key therefore does not block a
+server's OAuth sign-in path when the client supports it. The server's published
+header template or instructions determine whether a value needs a prefix such
+as `Bearer`; the generator does not assume one from `Authorization` alone.
 
 ## Ranking and Recommendation
 

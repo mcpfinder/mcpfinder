@@ -1,0 +1,31 @@
+name: auto-approve-owner
+
+# The "PR to main" ruleset requires one approval, and GitHub rulesets have no
+# condition on the PR author. This approves the owner's own PRs, so they merge
+# without --admin, while everyone else's still need a real review.
+#
+# Needs the repo setting "Allow GitHub Actions to create and approve pull
+# requests" (Settings > Actions > General > Workflow permissions).
+#
+# pull_request_target runs this file from the base branch, so a PR cannot edit
+# the author check to approve itself. It must never check out PR code.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  approve:
+    if: >-
+      github.event.pull_request.user.login == 'lksrz' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Approve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr review "$PR_URL" --approve --body "Auto-approved: authored by the repository owner."

@@ -117,3 +117,9 @@
 
 /smithery-alternative/index.html
   Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/mcp-server-directories/
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400
+
+/mcp-server-directories/index.html
+  Cache-Control: public, max-age=300, s-maxage=3600, stale-while-revalidate=86400

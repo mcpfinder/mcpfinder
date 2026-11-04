@@ -8,6 +8,7 @@
 /mcp-servers-for-cursor /mcp-servers-for-cursor/ 301
 /mcp-servers-for-vscode /mcp-servers-for-vscode/ 301
 /smithery-alternative /smithery-alternative/ 301
+/mcp-server-directories /mcp-server-directories/ 301
 /index.html / 301
 
 # /<page>/index.html: 301 to the trailing-slash canonical (otherwise 307).
@@ -18,3 +19,4 @@
 /mcp-servers-for-cursor/index.html /mcp-servers-for-cursor/ 301
 /mcp-servers-for-vscode/index.html /mcp-servers-for-vscode/ 301
 /smithery-alternative/index.html /smithery-alternative/ 301
+/mcp-server-directories/index.html /mcp-server-directories/ 301

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP Server Directories Compared (2026) | MCPfinder</title>
+  <meta name="description" content="Where to list or find an MCP server in 2026: Official MCP Registry, Glama, mcp.so, PulseMCP and Smithery compared, with how each one accepts servers.">
+  <meta name="author" content="Coder AI">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://mcpfinder.dev/mcp-server-directories/">
+  <link rel="icon" type="image/png" href="/mcpfinder-icon.png">
+  <link rel="apple-touch-icon" href="/mcpfinder-icon.png">
+  <meta name="theme-color" content="#0A0A0A">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="me" href="https://github.com/mcpfinder/mcpfinder">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mcpfinder.dev/mcp-server-directories/">
+  <meta property="og:title" content="MCP Server Directories Compared (2026) | MCPfinder">
+  <meta property="og:description" content="Where to list or find an MCP server in 2026: Official MCP Registry, Glama, mcp.so, PulseMCP and Smithery compared, with how each one accepts servers.">
+  <meta property="og:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
+  <meta property="og:site_name" content="MCPfinder">
+  <meta property="og:locale" content="en_US">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@coderaidev">
+  <meta name="twitter:title" content="MCP Server Directories Compared (2026) | MCPfinder">
+  <meta name="twitter:description" content="Where to list or find an MCP server in 2026: Official MCP Registry, Glama, mcp.so, PulseMCP and Smithery compared, with how each one accepts servers.">
+  <meta name="twitter:image" content="https://mcpfinder.dev/mcpfinder-icon.png">
+
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "MCPfinder",
+      "item": "https://mcpfinder.dev/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "MCP server directories",
+      "item": "https://mcpfinder.dev/mcp-server-directories/"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Where should I list a new MCP server first?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only, so publish the package (for example to npm) first. PulseMCP says the Official MCP Registry is the best first step and that it picks up servers from there; MCPfinder also indexes it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the Official MCP Registry ready for production?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Its documentation says the registry is in preview, and breaking changes or data resets may occur before general availability (modelcontextprotocol.io, checked 4 November 2026)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I still submit a server to PulseMCP?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Not right now. PulseMCP’s submit page says new server and client submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry instead."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is listing on mcp.so free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "mcp.so offers a free submission that goes through review, and a paid option for a one-time fee of $39 that publishes immediately without review (mcp.so/submit, checked 4 November 2026)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Smithery still work as a directory?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "smithery.ai stays online as a public, non-proxied directory, now part of Arcade. Smithery said its MCP proxy, server URLs, API, CLI and SDKs would stop working on 31 October 2026 (smithery.ai/future)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I get my server into MCPfinder?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "There is no separate submission. MCPfinder builds its index from the Official MCP Registry and Glama, so a server listed in either one shows up after the next index snapshot."
+      }
+    }
+  ]
+}
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #0A0A0A;
+      --text-primary: #F5F5F5;
+      --text-secondary: #999;
+      --text-muted: #666;
+      --accent: #D4FF00;
+      --border: #333;
+      --font-mono: 'JetBrains Mono', monospace;
+      --max-width: 1100px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-mono);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      font-weight: 400;
+    }
+    a { color: var(--text-primary); text-decoration: none; transition: color 0.15s; }
+    a:hover { color: var(--accent); }
+    .container { max-width: var(--max-width); margin: 0 auto; padding: 0 32px; }
+    .section-label {
+      font-size: 0.75rem; font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--accent); margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; margin-bottom: 16px;
+    }
+    .section-desc {
+      color: var(--text-secondary); font-size: 1rem; max-width: 680px; margin-bottom: 40px;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--bg-primary); border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: var(--max-width); margin: 0 auto; padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between; height: 64px;
+    }
+    .nav-logo {
+      font-size: 1.1rem; font-weight: 700; color: var(--text-primary);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-links { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+    .nav-links a { color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-cta {
+      background: var(--accent); color: #000 !important; padding: 8px 16px;
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .nav-cta:hover { background: var(--text-primary); color: #000 !important; }
+    .hero { padding: 140px 0 64px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border); padding: 8px 16px; font-size: 0.75rem;
+      color: var(--text-secondary); margin-bottom: 28px; text-transform: uppercase;
+      letter-spacing: 0.05em; font-weight: 500;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 700; line-height: 1.15;
+      margin-bottom: 20px; max-width: 900px;
+    }
+    .hero h1 .highlight { color: var(--accent); }
+    .hero-lead {
+      font-size: 1rem; color: var(--text-secondary); max-width: 720px; margin-bottom: 36px;
+    }
+    .btn-group { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+      font-size: 0.85rem; font-weight: 700; font-family: var(--font-mono);
+      border: 1px solid var(--border); cursor: pointer; transition: all 0.15s;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--text-primary); border-color: var(--text-primary); color: #000; }
+    .btn-secondary { background: transparent; color: var(--text-primary); }
+    .btn-secondary:hover { background: var(--text-primary); color: #000; border-color: var(--text-primary); }
+    section { padding: 64px 0; }
+    .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .card {
+      border: 1px solid var(--border); padding: 28px; transition: border-color 0.15s;
+    }
+    .card:hover { border-color: var(--text-muted); }
+    .card h3 {
+      font-size: 0.95rem; margin-bottom: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .card p { color: var(--text-secondary); font-size: 0.85rem; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .step { border: 1px solid var(--border); padding: 28px; }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border: 1px solid var(--accent); color: var(--accent);
+      font-size: 0.8rem; font-weight: 700; margin-bottom: 20px;
+    }
+    .step h3 { font-size: 1rem; margin-bottom: 10px; font-weight: 700; }
+    .step p { color: var(--text-secondary); font-size: 0.85rem; }
+    .code-block { border: 1px solid var(--border); overflow: hidden; margin-top: 24px; max-width: 720px; }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .code-body { padding: 20px 24px; font-size: 0.8rem; line-height: 1.8; overflow-x: auto; }
+    .code-body .prompt { color: var(--accent); }
+    .code-body .comment { color: var(--text-muted); }
+    .faq-list { max-width: 800px; }
+    .faq-item { border-bottom: 1px solid var(--border); padding: 28px 0; }
+    .faq-item:first-child { border-top: 1px solid var(--border); }
+    .faq-q {
+      font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      margin-bottom: 12px;
+    }
+    .faq-a { color: var(--text-secondary); font-size: 0.85rem; }
+    .faq-a code {
+      background: rgba(212, 255, 0, 0.1); padding: 2px 4px; color: var(--accent); font-size: 0.8rem;
+    }
+    .related {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px;
+    }
+    .related a {
+      border: 1px solid var(--border); padding: 10px 14px; font-size: 0.75rem;
+      color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .related a:hover { border-color: var(--accent); color: var(--accent); }
+    .cta-section { text-align: center; padding: 80px 0; border-top: 1px solid var(--border); }
+    .cta-section h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; margin-bottom: 16px; }
+    .cta-section p { color: var(--text-secondary); margin-bottom: 32px; }
+    footer { border-top: 1px solid var(--border); padding: 48px 0; text-align: center; }
+    .footer-links { display: flex; gap: 28px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .footer-links a {
+      color: var(--text-muted); font-size: 0.8rem; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .footer-links a:hover { color: var(--text-secondary); }
+    .footer-credit { color: var(--text-muted); font-size: 0.75rem; }
+    .footer-credit a { color: var(--text-secondary); }
+    .footer-credit a:hover { color: var(--accent); }
+    .prose { color: var(--text-secondary); font-size: 0.9rem; max-width: 760px; }
+    .prose p { margin-bottom: 16px; }
+    .prose ul { margin: 0 0 16px 1.2em; }
+    .prose li { margin-bottom: 8px; }
+    .prose a { text-decoration: underline; }
+    .card code, .step code {
+      background: rgba(212, 255, 0, 0.1); padding: 2px 4px; color: var(--accent); font-size: 0.8rem;
+    }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); }
+    table.cmp { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    table.cmp th, table.cmp td { text-align: left; vertical-align: top; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    table.cmp th { color: var(--accent); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7rem; }
+    table.cmp td { color: var(--text-secondary); }
+    table.cmp td strong { color: var(--text-primary); }
+    table.cmp .muted { color: var(--text-muted); font-size: 0.75rem; }
+    table.cmp a, .step a { text-decoration: underline; }
+    table.cmp code { background: rgba(212, 255, 0, 0.1); padding: 2px 4px; color: var(--accent); }
+    @media (max-width: 768px) {
+      .card-grid, .steps { grid-template-columns: 1fr; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .container { padding: 0 20px; }
+    }
+
+  </style>
+  <!-- Google Analytics 4 (G-LPLFNBLWG4); gtag.js only loads on mcpfinder.dev -->
+  <script src="/analytics.js" defer></script>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+      MCPFINDER.DEV
+    </a>
+    <div class="nav-links">
+      <a href="/#how-it-works">HOW IT WORKS</a>
+      <a href="/#install">INSTALL</a>
+      <a href="/best-mcp-servers/">BEST MCP</a>
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
+      <a href="/#install" class="nav-cta">GET STARTED</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">GUIDE · MCP DIRECTORIES</div>
+    <h1>MCP server directories <span class="highlight">compared</span></h1>
+    <p class="hero-lead">Where to list a new MCP server, and where to look for one, in November 2026. For each directory: what it is, how it accepts servers, and what it costs. Every row was checked against the directory&rsquo;s own page on 4 November 2026.</p>
+    <div class="btn-group">
+      <a href="#compare" class="btn btn-primary">SEE THE TABLE</a>
+      <a href="/#install" class="btn btn-secondary">INSTALL MCPFINDER</a>
+    </div>
+  </div>
+</section>
+
+<section id="compare">
+  <div class="container">
+    <div class="section-label">COMPARISON</div>
+    <h2 class="section-title">MCP registries and directories at a glance</h2>
+    <div class="table-wrap">
+      <table class="cmp">
+        <thead><tr><th>Directory</th><th>What it is</th><th>How to list a server</th><th>Cost to list</th><th>Checked</th></tr></thead>
+        <tbody>
+        <tr><td><strong>Official MCP Registry</strong><br><span class="muted">registry.modelcontextprotocol.io</span></td><td>Metadata for publicly published servers, run by the MCP project. In preview.</td><td>Publish <code>server.json</code> with the <code>mcp-publisher</code> CLI after the package is on npm (or another package registry). Namespace is verified: GitHub login for <code>io.github.&lt;user&gt;/</code> names, DNS for custom domains.</td><td>Free</td><td><a href="https://modelcontextprotocol.io/registry/quickstart" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>Glama</strong><br><span class="muted">glama.ai/mcp/servers</span></td><td>Large searchable index of open-source MCP servers with per-server metadata; its page title said 115,452 servers on 4 November 2026.</td><td>“Add Server” button on the directory page.</td><td>Free</td><td><a href="https://glama.ai/mcp/servers" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>mcp.so</strong><br><span class="muted">mcp.so</span></td><td>Community directory of MCP servers, clients and related tools.</td><td>Submit a repository URL: free submission with review, or $39 one-time to publish immediately without review.</td><td>Free or $39</td><td><a href="https://mcp.so/submit" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>PulseMCP</strong><br><span class="muted">pulsemcp.com</span></td><td>Directory of MCP servers and clients.</td><td>Submissions and listing changes paused (page last updated 3 September 2026); it says it will pick up servers from the Official MCP Registry.</td><td>Paused</td><td><a href="https://www.pulsemcp.com/submit" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>Smithery</strong><br><span class="muted">smithery.ai</span></td><td>Public, non-proxied directory, now part of Arcade. Proxy, server URLs, API, CLI and SDKs announced to stop on 31 October 2026.</td><td>No public submission flow found on smithery.ai on 4 November 2026.</td><td>n/a</td><td><a href="https://smithery.ai/future" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>MCPfinder</strong><br><span class="muted">mcpfinder.dev</span></td><td>MCP server your agent calls to search the Official MCP Registry and Glama in one index and get an install config.</td><td>No separate submission: listed in the Official MCP Registry or Glama means indexed after the next index snapshot.</td><td>Free, AGPL-3.0</td><td><a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">source</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">WHERE TO LIST</div>
+    <h2 class="section-title">Where to list an MCP server, in order</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Official MCP Registry</h3>
+        <p>Publish the package, add <code>mcpName</code>, then run <code>mcp-publisher publish</code>. Other directories and tools read from it, including PulseMCP (once it reopens) and MCPfinder.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Glama</h3>
+        <p>Use &ldquo;Add Server&rdquo; on <a href="https://glama.ai/mcp/servers" target="_blank" rel="noopener">glama.ai/mcp/servers</a> for an open-source repository. MCPfinder indexes Glama too.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Browsing directories</h3>
+        <p>Add the server to directories people browse, such as <a href="https://mcp.so/submit" target="_blank" rel="noopener">mcp.so</a> (free with review). Keep the description and install command the same everywhere.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">FINDING SERVERS</div>
+    <h2 class="section-title">Using directories to find a server</h2>
+    <div class="prose">
+      <p>No directory is complete, and a listing is not proof that a server works or is safe. Check who published it, the repository, and the install command before you connect. See <a href="/how-to-find-mcp-servers/">how to find MCP servers</a> for a checklist.</p>
+      <p>If you moved off Smithery after 31 October, the <a href="/smithery-alternative/">Smithery alternative guide</a> shows how to swap a server.smithery.ai or run.tools URL for the vendor&rsquo;s own one.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">FAQ</div>
+    <h2 class="section-title">Common questions</h2>
+    <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q">Where should I list a new MCP server first?</div>
+      <div class="faq-a">Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only, so publish the package (for example to npm) first. PulseMCP says the Official MCP Registry is the best first step and that it picks up servers from there; MCPfinder also indexes it.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is the Official MCP Registry ready for production?</div>
+      <div class="faq-a">Its documentation says the registry is in preview, and breaking changes or data resets may occur before general availability (modelcontextprotocol.io, checked 4 November 2026).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I still submit a server to PulseMCP?</div>
+      <div class="faq-a">Not right now. PulseMCP’s submit page says new server and client submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry instead.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is listing on mcp.so free?</div>
+      <div class="faq-a">mcp.so offers a free submission that goes through review, and a paid option for a one-time fee of $39 that publishes immediately without review (mcp.so/submit, checked 4 November 2026).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Does Smithery still work as a directory?</div>
+      <div class="faq-a">smithery.ai stays online as a public, non-proxied directory, now part of Arcade. Smithery said its MCP proxy, server URLs, API, CLI and SDKs would stop working on 31 October 2026 (smithery.ai/future).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How do I get my server into MCPfinder?</div>
+      <div class="faq-a">There is no separate submission. MCPfinder builds its index from the Official MCP Registry and Glama, so a server listed in either one shows up after the next index snapshot.</div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-label">MORE GUIDES</div>
+    <h2 class="section-title">Related MCP finder pages</h2>
+    <div class="related">
+      <a href="/how-to-find-mcp-servers/">How to find MCP</a>
+      <a href="/smithery-alternative/">Smithery alternative</a>
+      <a href="/best-mcp-servers-2026/">Best MCP 2026</a>
+      <a href="/mcp-servers-for-claude/">MCP for Claude</a>
+      <a href="/mcp-servers-for-cursor/">MCP for Cursor</a>
+      <a href="/">Home</a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="container">
+    <h2>Let your agent find the right MCP</h2>
+    <p>Install MCPfinder once. Search registries, inspect trust signals, and paste client-ready config.</p>
+    <div class="btn-group" style="justify-content:center">
+      <a href="/#install" class="btn btn-primary">INSTALL NOW</a>
+      <a href="/llms.txt" class="btn btn-secondary">READ LLMS.TXT</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-links">
+      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
+      <a href="https://www.npmjs.com/package/@mcpfinder/server" target="_blank" rel="noopener">NPM</a>
+      <a href="/llms.txt">LLMS.TXT</a>
+      <a href="/sitemap.xml">SITEMAP</a>
+      <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP SPEC</a>
+      <a href="https://coderai.dev" target="_blank" rel="noopener">Coder AI</a>
+    </div>
+    <p class="footer-credit">
+      Built by <a href="https://coderai.dev" target="_blank" rel="noopener">Coder AI</a> · AGPL-3.0 license
+    </p>
+  </div>
+</footer>
+</body>
+</html>

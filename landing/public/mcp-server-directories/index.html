@@ -58,7 +58,7 @@
       "name": "Where should I list a new MCP server first?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only, so publish the package (for example to npm) first. PulseMCP says the Official MCP Registry is the best first step and that it picks up servers from there; MCPfinder also indexes it."
+        "text": "Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only: for a package-based server, add mcpName to package.json, publish the package (for example to npm), then run mcp-publisher init, login and publish. Remote-only servers can be registered with a remotes entry in server.json instead. PulseMCP’s submit page also points to the Official MCP Registry and says it will pick servers up from there once it is back, and MCPfinder indexes it."
       }
     },
     {
@@ -74,7 +74,7 @@
       "name": "Can I still submit a server to PulseMCP?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Not right now. PulseMCP’s submit page says new server and client submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry instead."
+        "text": "Not right now. PulseMCP’s submit page says new server and client submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry, which it says it will pick up once submissions resume."
       }
     },
     {
@@ -90,7 +90,7 @@
       "name": "Does Smithery still work as a directory?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "smithery.ai stays online as a public, non-proxied directory, now part of Arcade. Smithery said its MCP proxy, server URLs, API, CLI and SDKs would stop working on 31 October 2026 (smithery.ai/future)."
+        "text": "smithery.ai stays online as a public, non-proxied directory, now powered by Arcade.dev. Smithery said its MCP proxy, server URLs, CLI and SDKs would stop working on 31 October 2026 (smithery.ai/future)."
       }
     },
     {
@@ -98,7 +98,7 @@
       "name": "How do I get my server into MCPfinder?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "There is no separate submission. MCPfinder builds its index from the Official MCP Registry and Glama, so a server listed in either one shows up after the next index snapshot."
+        "text": "There is no separate submission. MCPfinder builds its index from the Official MCP Registry and Glama. New index snapshots are built several times a day, but Glama data comes from a capture taken about once a day, so a new Glama listing can take a day or two to appear."
       }
     }
   ]
@@ -299,7 +299,7 @@
   <div class="container">
     <div class="hero-badge">GUIDE · MCP DIRECTORIES</div>
     <h1>MCP server directories <span class="highlight">compared</span></h1>
-    <p class="hero-lead">Where to list a new MCP server, and where to look for one, in November 2026. For each directory: what it is, how it accepts servers, and what it costs. Every row was checked against the directory&rsquo;s own page on 4 November 2026.</p>
+    <p class="hero-lead">Where to list a new MCP server, and where to look for one, in November 2026. For each directory: what it is and how it accepts new servers. Each row links the page it was checked against on 4 November 2026.</p>
     <div class="btn-group">
       <a href="#compare" class="btn btn-primary">SEE THE TABLE</a>
       <a href="/#install" class="btn btn-secondary">INSTALL MCPFINDER</a>
@@ -313,14 +313,14 @@
     <h2 class="section-title">MCP registries and directories at a glance</h2>
     <div class="table-wrap">
       <table class="cmp">
-        <thead><tr><th>Directory</th><th>What it is</th><th>How to list a server</th><th>Cost to list</th><th>Checked</th></tr></thead>
+        <thead><tr><th>Directory</th><th>What it is</th><th>How to list a server</th><th>Source</th></tr></thead>
         <tbody>
-        <tr><td><strong>Official MCP Registry</strong><br><span class="muted">registry.modelcontextprotocol.io</span></td><td>Metadata for publicly published servers, run by the MCP project. In preview.</td><td>Publish <code>server.json</code> with the <code>mcp-publisher</code> CLI after the package is on npm (or another package registry). Namespace is verified: GitHub login for <code>io.github.&lt;user&gt;/</code> names, DNS for custom domains.</td><td>Free</td><td><a href="https://modelcontextprotocol.io/registry/quickstart" target="_blank" rel="noopener">source</a></td></tr>
-        <tr><td><strong>Glama</strong><br><span class="muted">glama.ai/mcp/servers</span></td><td>Large searchable index of open-source MCP servers with per-server metadata; its page title said 115,452 servers on 4 November 2026.</td><td>“Add Server” button on the directory page.</td><td>Free</td><td><a href="https://glama.ai/mcp/servers" target="_blank" rel="noopener">source</a></td></tr>
-        <tr><td><strong>mcp.so</strong><br><span class="muted">mcp.so</span></td><td>Community directory of MCP servers, clients and related tools.</td><td>Submit a repository URL: free submission with review, or $39 one-time to publish immediately without review.</td><td>Free or $39</td><td><a href="https://mcp.so/submit" target="_blank" rel="noopener">source</a></td></tr>
-        <tr><td><strong>PulseMCP</strong><br><span class="muted">pulsemcp.com</span></td><td>Directory of MCP servers and clients.</td><td>Submissions and listing changes paused (page last updated 3 September 2026); it says it will pick up servers from the Official MCP Registry.</td><td>Paused</td><td><a href="https://www.pulsemcp.com/submit" target="_blank" rel="noopener">source</a></td></tr>
-        <tr><td><strong>Smithery</strong><br><span class="muted">smithery.ai</span></td><td>Public, non-proxied directory, now part of Arcade. Proxy, server URLs, API, CLI and SDKs announced to stop on 31 October 2026.</td><td>No public submission flow found on smithery.ai on 4 November 2026.</td><td>n/a</td><td><a href="https://smithery.ai/future" target="_blank" rel="noopener">source</a></td></tr>
-        <tr><td><strong>MCPfinder</strong><br><span class="muted">mcpfinder.dev</span></td><td>MCP server your agent calls to search the Official MCP Registry and Glama in one index and get an install config.</td><td>No separate submission: listed in the Official MCP Registry or Glama means indexed after the next index snapshot.</td><td>Free, AGPL-3.0</td><td><a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>Official MCP Registry</strong><br><span class="muted">registry.modelcontextprotocol.io</span></td><td>Metadata for publicly published servers, run by the MCP project. In preview.</td><td>Add <code>mcpName</code>, publish the package (e.g. to npm), then <code>mcp-publisher init</code>, <code>login</code> and <code>publish</code>. Remote-only servers can list a <code>remotes</code> URL instead of a package. Namespace is verified: GitHub login for <code>io.github.&lt;user&gt;/</code> names, DNS for custom domains.</td><td><a href="https://modelcontextprotocol.io/registry/quickstart" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>Glama</strong><br><span class="muted">glama.ai/mcp/servers</span></td><td>Searchable index of open-source MCP servers; its page title said 115,452 servers on 4 November 2026.</td><td>“Add Server” button on the directory page.</td><td><a href="https://glama.ai/mcp/servers" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>mcp.so</strong><br><span class="muted">mcp.so</span></td><td>Directory of MCP servers, clients, CLIs and agent skills.</td><td>Submit form with a repository URL: free review, or a $39 one-time fee to publish immediately without review.</td><td><a href="https://mcp.so/submit" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>PulseMCP</strong><br><span class="muted">pulsemcp.com</span></td><td>Directory of MCP servers and clients.</td><td>Submissions and listing changes paused (page last updated 3 September 2026); it says it will pick up servers from the Official MCP Registry once it is back.</td><td><a href="https://www.pulsemcp.com/submit" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>Smithery</strong><br><span class="muted">smithery.ai</span></td><td>Public, non-proxied directory, now powered by Arcade.dev. Proxy, server URLs, API, CLI and SDKs announced to stop on 31 October 2026.</td><td>No public submission flow found on smithery.ai on 4 November 2026.</td><td><a href="https://smithery.ai/future" target="_blank" rel="noopener">announcement</a>, <a href="https://smithery.ai/" target="_blank" rel="noopener">homepage</a></td></tr>
+        <tr><td><strong>MCPfinder</strong><br><span class="muted">mcpfinder.dev</span></td><td>MCP server your agent calls to search the Official MCP Registry and Glama in one index and get an install config.</td><td>No separate submission: it indexes the Official MCP Registry and Glama (Glama data refreshed about once a day).</td><td><a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">source</a></td></tr>
         </tbody>
       </table>
     </div>
@@ -335,12 +335,12 @@
       <div class="step">
         <div class="step-num">01</div>
         <h3>Official MCP Registry</h3>
-        <p>Publish the package, add <code>mcpName</code>, then run <code>mcp-publisher publish</code>. Other directories and tools read from it, including PulseMCP (once it reopens) and MCPfinder.</p>
+        <p>Add <code>mcpName</code>, publish the package, then run <code>mcp-publisher init</code>, <code>login</code> and <code>publish</code>. MCPfinder reads from it, and PulseMCP says it will once it reopens.</p>
       </div>
       <div class="step">
         <div class="step-num">02</div>
         <h3>Glama</h3>
-        <p>Use &ldquo;Add Server&rdquo; on <a href="https://glama.ai/mcp/servers" target="_blank" rel="noopener">glama.ai/mcp/servers</a> for an open-source repository. MCPfinder indexes Glama too.</p>
+        <p>Use &ldquo;Add Server&rdquo; on <a href="https://glama.ai/mcp/servers" target="_blank" rel="noopener">glama.ai/mcp/servers</a> MCPfinder indexes Glama too.</p>
       </div>
       <div class="step">
         <div class="step-num">03</div>
@@ -369,7 +369,7 @@
     <div class="faq-list">
     <div class="faq-item">
       <div class="faq-q">Where should I list a new MCP server first?</div>
-      <div class="faq-a">Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only, so publish the package (for example to npm) first. PulseMCP says the Official MCP Registry is the best first step and that it picks up servers from there; MCPfinder also indexes it.</div>
+      <div class="faq-a">Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only: for a package-based server, add mcpName to package.json, publish the package (for example to npm), then run mcp-publisher init, login and publish. Remote-only servers can be registered with a remotes entry in server.json instead. PulseMCP’s submit page also points to the Official MCP Registry and says it will pick servers up from there once it is back, and MCPfinder indexes it.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Is the Official MCP Registry ready for production?</div>
@@ -377,7 +377,7 @@
     </div>
     <div class="faq-item">
       <div class="faq-q">Can I still submit a server to PulseMCP?</div>
-      <div class="faq-a">Not right now. PulseMCP’s submit page says new server and client submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry instead.</div>
+      <div class="faq-a">Not right now. PulseMCP’s submit page says new server and client submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry, which it says it will pick up once submissions resume.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Is listing on mcp.so free?</div>
@@ -385,11 +385,11 @@
     </div>
     <div class="faq-item">
       <div class="faq-q">Does Smithery still work as a directory?</div>
-      <div class="faq-a">smithery.ai stays online as a public, non-proxied directory, now part of Arcade. Smithery said its MCP proxy, server URLs, API, CLI and SDKs would stop working on 31 October 2026 (smithery.ai/future).</div>
+      <div class="faq-a">smithery.ai stays online as a public, non-proxied directory, now powered by Arcade.dev. Smithery said its MCP proxy, server URLs, CLI and SDKs would stop working on 31 October 2026 (smithery.ai/future).</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">How do I get my server into MCPfinder?</div>
-      <div class="faq-a">There is no separate submission. MCPfinder builds its index from the Official MCP Registry and Glama, so a server listed in either one shows up after the next index snapshot.</div>
+      <div class="faq-a">There is no separate submission. MCPfinder builds its index from the Official MCP Registry and Glama. New index snapshots are built several times a day, but Glama data comes from a capture taken about once a day, so a new Glama listing can take a day or two to appear.</div>
     </div>
     </div>
   </div>

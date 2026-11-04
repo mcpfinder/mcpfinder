@@ -58,7 +58,7 @@
       "name": "Where should I list a new MCP server first?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only: for an npm package, add mcpName to package.json and publish it (other package types such as PyPI or OCI use their own verification), then run mcp-publisher init, login and publish. Remote-only servers can be registered with a remotes entry in server.json instead. PulseMCP’s submit page also points to the Official MCP Registry and says it will pick servers up from there once it is back, and MCPfinder indexes it."
+        "text": "Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only: for an npm package, add mcpName to package.json and publish it, then run mcp-publisher init, login and publish. Remote-only servers can be registered with a remotes entry in server.json instead. PulseMCP’s submit page also points to the Official MCP Registry and says it will pick servers up from there once it is back, and MCPfinder indexes it."
       }
     },
     {
@@ -74,7 +74,7 @@
       "name": "Can I still submit a server to PulseMCP?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Not right now. PulseMCP’s submit page says new server and client submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry, which it says it will pick up once submissions resume."
+        "text": "Not right now. PulseMCP’s submit page says new submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry, which it says it will pick up once submissions resume."
       }
     },
     {
@@ -315,10 +315,10 @@
       <table class="cmp">
         <thead><tr><th>Directory</th><th>What it is</th><th>How to list a server</th><th>Source</th></tr></thead>
         <tbody>
-        <tr><td><strong>Official MCP Registry</strong><br><span class="muted">registry.modelcontextprotocol.io</span></td><td>Metadata for publicly published servers, run by the MCP project. In preview.</td><td>For an npm package, add <code>mcpName</code> to package.json and publish it (other package types use their own verification), then <code>mcp-publisher init</code>, <code>login</code> and <code>publish</code>. Remote-only servers can list a <code>remotes</code> URL instead of a package. Namespace is verified: GitHub login for <code>io.github.&lt;user&gt;/</code> names, DNS for custom domains.</td><td><a href="https://modelcontextprotocol.io/registry/quickstart" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>Official MCP Registry</strong><br><span class="muted">registry.modelcontextprotocol.io</span></td><td>Metadata for publicly published servers, run by the MCP project. In preview.</td><td>For an npm package, add <code>mcpName</code> to package.json and publish it, then <code>mcp-publisher init</code>, <code>login</code> and <code>publish</code>. Remote-only servers can list a <code>remotes</code> URL instead of a package. Namespace is verified: GitHub login for <code>io.github.&lt;user&gt;/</code> names, DNS for custom domains.</td><td><a href="https://modelcontextprotocol.io/registry/quickstart" target="_blank" rel="noopener">quickstart</a>, <a href="https://modelcontextprotocol.io/registry/remote-servers" target="_blank" rel="noopener">remote servers</a></td></tr>
         <tr><td><strong>Glama</strong><br><span class="muted">glama.ai/mcp/servers</span></td><td>Searchable index of open-source MCP servers; its page title said 115,452 servers on 4 November 2026.</td><td>“Add Server” button on the directory page.</td><td><a href="https://glama.ai/mcp/servers" target="_blank" rel="noopener">source</a></td></tr>
         <tr><td><strong>mcp.so</strong><br><span class="muted">mcp.so</span></td><td>Directory of MCP servers, clients, CLIs and agent skills.</td><td>Submit form with a repository URL: free review, or a $39 one-time fee to publish immediately without review.</td><td><a href="https://mcp.so/submit" target="_blank" rel="noopener">source</a></td></tr>
-        <tr><td><strong>PulseMCP</strong><br><span class="muted">pulsemcp.com</span></td><td>Directory of MCP servers and clients.</td><td>Submissions and listing changes paused (page last updated 3 September 2026); it says it will pick up servers from the Official MCP Registry once it is back.</td><td><a href="https://www.pulsemcp.com/submit" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>PulseMCP</strong><br><span class="muted">pulsemcp.com</span></td><td>Directory of MCP servers.</td><td>Submissions and listing changes paused (page last updated 3 September 2026); it says it will pick up servers from the Official MCP Registry once it is back.</td><td><a href="https://www.pulsemcp.com/submit" target="_blank" rel="noopener">source</a></td></tr>
         <tr><td><strong>Smithery</strong><br><span class="muted">smithery.ai</span></td><td>Public, non-proxied directory, now powered by Arcade.dev. Proxy, server URLs, CLI and SDKs announced to stop on 31 October 2026.</td><td>No public submission flow found on smithery.ai on 4 November 2026.</td><td><a href="https://smithery.ai/future" target="_blank" rel="noopener">announcement</a>, <a href="https://smithery.ai/" target="_blank" rel="noopener">homepage</a></td></tr>
         <tr><td><strong>MCPfinder</strong><br><span class="muted">mcpfinder.dev</span></td><td>MCP server your agent calls to search the Official MCP Registry and Glama in one index and get an install config.</td><td>No separate submission: it indexes the Official MCP Registry and Glama (Glama data refreshed about once a day).</td><td><a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">source</a></td></tr>
         </tbody>
@@ -369,7 +369,7 @@
     <div class="faq-list">
     <div class="faq-item">
       <div class="faq-q">Where should I list a new MCP server first?</div>
-      <div class="faq-a">Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only: for an npm package, add mcpName to package.json and publish it (other package types such as PyPI or OCI use their own verification), then run mcp-publisher init, login and publish. Remote-only servers can be registered with a remotes entry in server.json instead. PulseMCP’s submit page also points to the Official MCP Registry and says it will pick servers up from there once it is back, and MCPfinder indexes it.</div>
+      <div class="faq-a">Publish it to the Official MCP Registry with the mcp-publisher CLI. The registry hosts metadata only: for an npm package, add mcpName to package.json and publish it, then run mcp-publisher init, login and publish. Remote-only servers can be registered with a remotes entry in server.json instead. PulseMCP’s submit page also points to the Official MCP Registry and says it will pick servers up from there once it is back, and MCPfinder indexes it.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Is the Official MCP Registry ready for production?</div>
@@ -377,7 +377,7 @@
     </div>
     <div class="faq-item">
       <div class="faq-q">Can I still submit a server to PulseMCP?</div>
-      <div class="faq-a">Not right now. PulseMCP’s submit page says new server and client submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry, which it says it will pick up once submissions resume.</div>
+      <div class="faq-a">Not right now. PulseMCP’s submit page says new submissions and listing changes are paused (last updated 3 September 2026) and points developers to the Official MCP Registry, which it says it will pick up once submissions resume.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">Is listing on mcp.so free?</div>

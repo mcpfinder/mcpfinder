@@ -90,7 +90,7 @@
       "name": "Does Smithery still work as a directory?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "smithery.ai stays online as a public, non-proxied directory, now powered by Arcade.dev. Smithery said its MCP proxy, server URLs, Smithery API, CLI and SDKs would stop working on 31 October 2026 (smithery.ai/future)."
+        "text": "smithery.ai stays online as a public, non-proxied directory, now powered by Arcade.dev. Smithery’s MCP proxy, server URLs, Smithery API, CLI and SDKs shut down on 31 October 2026 (smithery.ai/future, re-checked 13 November 2026)."
       }
     },
     {
@@ -299,7 +299,7 @@
   <div class="container">
     <div class="hero-badge">GUIDE · MCP DIRECTORIES</div>
     <h1>MCP server directories <span class="highlight">compared</span></h1>
-    <p class="hero-lead">Where to list a new MCP server, and where to look for one, in November 2026. For each directory: what it is and how it accepts new servers. Each row links the page it was checked against on 4 November 2026.</p>
+    <p class="hero-lead">Where to list a new MCP server, and where to look for one, in November 2026. For each directory: what it is and how it accepts new servers. Glama&rsquo;s public count and Smithery&rsquo;s status were re-checked on 13 November 2026; the other rows were checked on 4 November 2026.</p>
     <div class="btn-group">
       <a href="#compare" class="btn btn-primary">SEE THE TABLE</a>
       <a href="/#install" class="btn btn-secondary">INSTALL MCPFINDER</a>
@@ -316,10 +316,10 @@
         <thead><tr><th>Directory</th><th>What it is</th><th>How to list a server</th><th>Source</th></tr></thead>
         <tbody>
         <tr><td><strong>Official MCP Registry</strong><br><span class="muted">registry.modelcontextprotocol.io</span></td><td>Metadata for publicly published servers, run by the MCP project. In preview.</td><td>For an npm package, add <code>mcpName</code> to package.json and publish it, then <code>mcp-publisher init</code>, <code>login</code> and <code>publish</code>. Remote-only servers can list a <code>remotes</code> URL instead of a package. Namespace is verified: GitHub login for <code>io.github.&lt;user&gt;/</code> names, DNS for custom domains.</td><td><a href="https://modelcontextprotocol.io/registry/quickstart" target="_blank" rel="noopener">quickstart</a>, <a href="https://modelcontextprotocol.io/registry/remote-servers" target="_blank" rel="noopener">remote servers</a></td></tr>
-        <tr><td><strong>Glama</strong><br><span class="muted">glama.ai/mcp/servers</span></td><td>Searchable index of open-source MCP servers; its page title said 115,452 servers on 4 November 2026.</td><td>“Add Server” button on the directory page.</td><td><a href="https://glama.ai/mcp/servers" target="_blank" rel="noopener">source</a></td></tr>
+        <tr><td><strong>Glama</strong><br><span class="muted">glama.ai/mcp/servers</span></td><td>Searchable index of open-source MCP servers; its page title said 120,509 servers on 13 November 2026.</td><td>“Add Server” button on the directory page.</td><td><a href="https://glama.ai/mcp/servers" target="_blank" rel="noopener">source</a></td></tr>
         <tr><td><strong>mcp.so</strong><br><span class="muted">mcp.so</span></td><td>Directory of MCP servers, clients, CLIs and agent skills.</td><td>Submit form with a repository URL: free review, or a $39 one-time fee to publish immediately without review.</td><td><a href="https://mcp.so/submit" target="_blank" rel="noopener">source</a></td></tr>
         <tr><td><strong>PulseMCP</strong><br><span class="muted">pulsemcp.com</span></td><td>Directory of MCP servers.</td><td>Submissions and listing changes paused (page last updated 3 September 2026); it says it will pick up servers from the Official MCP Registry once it is back.</td><td><a href="https://www.pulsemcp.com/submit" target="_blank" rel="noopener">source</a></td></tr>
-        <tr><td><strong>Smithery</strong><br><span class="muted">smithery.ai</span></td><td>Public, non-proxied directory, now powered by Arcade.dev. Proxy, server URLs, Smithery API, CLI and SDKs announced to stop on 31 October 2026.</td><td>No submission flow found on the smithery.ai homepage, checked 4 November 2026.</td><td><a href="https://smithery.ai/future" target="_blank" rel="noopener">announcement</a>, <a href="https://smithery.ai/" target="_blank" rel="noopener">homepage</a></td></tr>
+        <tr><td><strong>Smithery</strong><br><span class="muted">smithery.ai</span></td><td>Public, non-proxied directory, now powered by Arcade.dev. The MCP proxy, server URLs, Smithery API, CLI and SDKs shut down on 31 October 2026.</td><td>No submission flow found on the smithery.ai homepage (checked 4 November 2026; shutdown wording re-checked 13 November 2026).</td><td><a href="https://smithery.ai/future" target="_blank" rel="noopener">announcement</a>, <a href="https://smithery.ai/" target="_blank" rel="noopener">homepage</a></td></tr>
         <tr><td><strong>MCPfinder</strong><br><span class="muted">mcpfinder.dev</span></td><td>MCP server your agent calls to search the Official MCP Registry and Glama in one index and get an install config.</td><td>No separate submission: it indexes the Official MCP Registry and Glama (Glama data refreshed about once a day).</td><td><a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">source</a></td></tr>
         </tbody>
       </table>
@@ -357,6 +357,7 @@
     <h2 class="section-title">Using directories to find a server</h2>
     <div class="prose">
       <p>No directory is complete, and a listing is not proof that a server works or is safe. Check who published it, the repository, and the install command before you connect. See <a href="/how-to-find-mcp-servers/">how to find MCP servers</a> for a checklist.</p>
+      <p>MCPfinder is one part of the <a href="https://aicommander.dev/agent-stack/" target="_blank" rel="noopener">agent stack</a> used alongside Claude Code, Codex and Grok. It is built by <a href="https://coderai.dev" target="_blank" rel="noopener">Coder AI</a>, which also ships <a href="https://cnvs.app" target="_blank" rel="noopener">cnvs.app</a> (a collaborative whiteboard with a built-in MCP endpoint) and <a href="https://plai.chat" target="_blank" rel="noopener">plai.chat</a> (private multi-model AI chat).</p>
       <p>If you still use a server.smithery.ai or run.tools URL, the <a href="/smithery-alternative/">Smithery alternative guide</a> shows how to swap it for the vendor&rsquo;s own one.</p>
     </div>
   </div>
@@ -385,7 +386,7 @@
     </div>
     <div class="faq-item">
       <div class="faq-q">Does Smithery still work as a directory?</div>
-      <div class="faq-a">smithery.ai stays online as a public, non-proxied directory, now powered by Arcade.dev. Smithery said its MCP proxy, server URLs, Smithery API, CLI and SDKs would stop working on 31 October 2026 (smithery.ai/future).</div>
+      <div class="faq-a">smithery.ai stays online as a public, non-proxied directory, now powered by Arcade.dev. Smithery’s MCP proxy, server URLs, Smithery API, CLI and SDKs shut down on 31 October 2026 (smithery.ai/future, re-checked 13 November 2026).</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">How do I get my server into MCPfinder?</div>
@@ -430,6 +431,7 @@
       <a href="/sitemap.xml">SITEMAP</a>
       <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP SPEC</a>
       <a href="https://coderai.dev" target="_blank" rel="noopener">Coder AI</a>
+      <a href="https://aicommander.dev/agent-stack/" target="_blank" rel="noopener">Agent stack</a>
     </div>
     <p class="footer-credit">
       Built by <a href="https://coderai.dev" target="_blank" rel="noopener">Coder AI</a> · AGPL-3.0 license

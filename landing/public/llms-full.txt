@@ -2,7 +2,7 @@ MCPfinder — Full Agent Reference
 ================================
 
 Version:      2.0.2
-Last-Updated: 2026-11-02
+Last-Updated: 2026-11-13
 Canonical:    https://mcpfinder.dev/llms-full.txt
 Short form:   https://mcpfinder.dev/llms.txt
 License:      AGPL-3.0-or-later (software); CC0 (this file — quote freely)
@@ -573,11 +573,14 @@ Project links
 - Contact:        support@coderai.dev
 
 
+MCPfinder is one part of the agent stack at https://aicommander.dev/agent-stack/,
+used alongside Claude Code, Codex and Grok.
+
 Also from Coder AI
 ==================
 The same team builds a family of small, privacy-first, AI-ready tools —
 each with a free tier:
-- cnvs.app       https://cnvs.app — Real-time collaborative whiteboard. No signup. Instant share.
+- cnvs.app       https://cnvs.app — Real-time collaborative whiteboard, with a built-in MCP endpoint. No signup. Instant share.
 - plugand.ai     https://plugand.ai — Slack AI bot for the whole team. No per-seat fees.
 - plai.chat      https://plai.chat — Private AI chat, every model. No subscription.
 - free-sign.com  https://free-sign.com — Sign PDFs confidentially in your browser. No upload. No account.

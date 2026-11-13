@@ -1,7 +1,7 @@
 MCPfinder
 
 Version:      2.0.2
-Last-Updated: 2026-11-02
+Last-Updated: 2026-11-13
 Canonical:    https://mcpfinder.dev/llms.txt
 Full:         https://mcpfinder.dev/llms-full.txt
 License:      AGPL-3.0-or-later (content of this file: CC0 — quote freely)
@@ -56,15 +56,17 @@ Guides (human-readable pages):
 - https://mcpfinder.dev/mcp-servers-for-cursor/
 - https://mcpfinder.dev/mcp-servers-for-vscode/
 - https://mcpfinder.dev/smithery-alternative/ — Smithery announced its proxy, API and CLI would end on 2026-10-31; how to find servers and their own URLs instead
-- https://mcpfinder.dev/mcp-server-directories/ — MCP server directories compared (Official MCP Registry, Glama, mcp.so, PulseMCP, Smithery): how each accepts new servers, checked 2026-11-04
+- https://mcpfinder.dev/mcp-server-directories/ — MCP server directories compared (Official MCP Registry, Glama, mcp.so, PulseMCP, Smithery): how each accepts new servers; Glama count and Smithery shutdown status re-checked 2026-11-13
 
 More detail:
 - https://mcpfinder.dev/llms-full.txt
 - https://github.com/mcpfinder/mcpfinder
 
+MCPfinder is one part of the agent stack at https://aicommander.dev/agent-stack/, used alongside Claude Code, Codex and Grok.
+
 ## Also from Coder AI
 The same team builds a family of small, privacy-first, AI-ready tools — each with a free tier:
-- [cnvs.app](https://cnvs.app) — Real-time collaborative whiteboard. No signup. Instant share.
+- [cnvs.app](https://cnvs.app) — Real-time collaborative whiteboard, with a built-in MCP endpoint. No signup. Instant share.
 - [plugand.ai](https://plugand.ai) — Slack AI bot for the whole team. No per-seat fees.
 - [plai.chat](https://plai.chat) — Private AI chat, every model. No subscription.
 - [free-sign.com](https://free-sign.com) — Sign PDFs confidentially in your browser. No upload. No account.

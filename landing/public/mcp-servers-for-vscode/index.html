@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MCP Servers for VS Code | Discover & Install with MCPfinder</title>
-  <meta name="description" content="Find MCP servers for VS Code (Cline). Search multiple MCP registries, inspect tools and env vars, and generate a .vscode/mcp.json install config with MCPfinder.">
+  <meta name="description" content="Find MCP servers for VS Code (Copilot Chat and Cline). Search multiple MCP registries, inspect tools and env vars, and generate a .vscode/mcp.json or Cline install config with MCPfinder.">
   <meta name="keywords" content="MCP servers for VS Code, VS Code MCP, Cline MCP, Model Context Protocol VS Code, install MCP VS Code">
   <meta name="author" content="Coder AI">
   <meta name="robots" content="index, follow">
@@ -18,7 +18,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mcpfinder.dev/mcp-servers-for-vscode/">
   <meta property="og:title" content="MCP Servers for VS Code | MCPfinder">
-  <meta property="og:description" content="Find MCP servers for VS Code (Cline). Search multiple MCP registries, inspect tools and env vars, and generate a .vscode/mcp.json install config with MCPfinder.">
+  <meta property="og:description" content="Find MCP servers for VS Code (Copilot Chat and Cline). Search multiple MCP registries, inspect tools and env vars, and generate a .vscode/mcp.json or Cline install config with MCPfinder.">
   <meta property="og:image" content="https://mcpfinder.dev/og-image.png">
   <meta property="og:site_name" content="MCPfinder">
   <meta property="og:locale" content="en_US">
@@ -26,7 +26,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@coderaidev">
   <meta name="twitter:title" content="MCP Servers for VS Code | MCPfinder">
-  <meta name="twitter:description" content="Find MCP servers for VS Code (Cline). Search multiple MCP registries, inspect tools and env vars, and generate a .vscode/mcp.json install config with MCPfinder.">
+  <meta name="twitter:description" content="Find MCP servers for VS Code (Copilot Chat and Cline). Search multiple MCP registries, inspect tools and env vars, and generate a .vscode/mcp.json or Cline install config with MCPfinder.">
   <meta name="twitter:image" content="https://mcpfinder.dev/og-image.png">
 
   <script type="application/ld+json">
@@ -59,7 +59,7 @@
       "name": "Does VS Code support MCP servers?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. VS Code can connect MCP servers through a project .vscode/mcp.json file. Once configured, an agent such as Cline can call those tools from chat."
+        "text": "Yes. VS Code can connect MCP servers through a project .vscode/mcp.json file. Once configured, Copilot Chat can call those tools; Cline keeps its own list in cline_mcp_settings.json."
       }
     },
     {
@@ -83,7 +83,7 @@
       "name": "Is there a VS Code-specific install path?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Ask MCPfinder for get_install_config with platform=\"cline\". It returns a ready-to-paste snippet that uses the servers key and a project .vscode/mcp.json path."
+        "text": "Yes. Ask MCPfinder for get_install_config with platform=\"vscode\" for VS Code's built-in MCP support (Copilot Chat): a project .vscode/mcp.json snippet under the servers key. For Cline use platform=\"cline\": a snippet under the mcpServers key for cline_mcp_settings.json (Cline MCP Servers panel → Configure)."
       }
     }
   ]
@@ -271,7 +271,7 @@
   <div class="container">
     <div class="hero-badge">GUIDE · VS CODE</div>
     <h1>MCP servers for <span class="highlight">VS Code</span></h1>
-    <p class="hero-lead">VS Code can run MCP servers so agents like Cline reach databases, browsers, docs, and APIs. MCPfinder searches the Official MCP Registry and Glama, then emits a VS Code-compatible install config so you spend less time hunting directories.</p>
+    <p class="hero-lead">VS Code can run MCP servers so Copilot Chat and agents like Cline reach databases, browsers, docs, and APIs. MCPfinder searches the Official MCP Registry and Glama, then emits a client-specific install config (VS Code or Cline) so you spend less time hunting directories.</p>
     <div class="btn-group">
       <a href="/#install" class="btn btn-primary">INSTALL MCPFINDER</a>
       <a href="https://github.com/mcpfinder/mcpfinder" class="btn btn-secondary" target="_blank" rel="noopener">VIEW ON GITHUB</a>
@@ -300,7 +300,7 @@
       <div class="step">
         <div class="step-num">01</div>
         <h3>Install MCPfinder in VS Code</h3>
-        <p>Add the <code>npx -y @mcpfinder/server</code> entry to .vscode/mcp.json, then reload the window.</p>
+        <p>Add the <code>npx -y @mcpfinder/server</code> entry to .vscode/mcp.json (Copilot Chat) or to Cline's cline_mcp_settings.json, then reload the window.</p>
       </div>
       <div class="step">
         <div class="step-num">02</div>
@@ -310,7 +310,7 @@
       <div class="step">
         <div class="step-num">03</div>
         <h3>Paste the VS Code config</h3>
-        <p><code>get_install_config</code> returns a VS Code-oriented snippet plus the usual trust checks before you commit secrets.</p>
+        <p><code>get_install_config</code> with <code>platform="vscode"</code> (or <code>"cline"</code>) returns a ready-to-paste snippet plus the usual trust checks before you commit secrets.</p>
       </div>
     </div>
     <div class="code-block" data-snippet="mcp_config">
@@ -343,7 +343,7 @@
       </div>
       <div class="card">
         <h3>Client-aware snippets</h3>
-        <p>MCPfinder treats Cline in VS Code as a first-class client and shapes install output accordingly.</p>
+        <p>MCPfinder treats VS Code (.vscode/mcp.json, <code>servers</code>) and Cline (cline_mcp_settings.json, <code>mcpServers</code>) as separate first-class clients and shapes install output for each.</p>
       </div>
       <div class="card">
         <h3>Open source</h3>
@@ -361,7 +361,7 @@
     <div class="faq-list">
     <div class="faq-item">
       <div class="faq-q">Does VS Code support MCP servers?</div>
-      <div class="faq-a">Yes. VS Code can connect MCP servers through a project .vscode/mcp.json file. Once configured, an agent such as Cline can call those tools from chat.</div>
+      <div class="faq-a">Yes. VS Code can connect MCP servers through a project .vscode/mcp.json file. Once configured, Copilot Chat can call those tools; Cline keeps its own list in cline_mcp_settings.json.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">How is MCPfinder different from browsing mcp.so or a registry UI?</div>
@@ -373,7 +373,7 @@
     </div>
     <div class="faq-item">
       <div class="faq-q">Is there a VS Code-specific install path?</div>
-      <div class="faq-a">Ask MCPfinder for <code>get_install_config</code> with <code>platform=&quot;cline&quot;</code>. It returns a ready-to-paste snippet that uses the servers key and a project .vscode/mcp.json path.</div>
+      <div class="faq-a">Yes. Ask MCPfinder for <code>get_install_config</code> with <code>platform=&quot;vscode&quot;</code> for VS Code's built-in MCP support (Copilot Chat): a project .vscode/mcp.json snippet under the <code>servers</code> key. For Cline use <code>platform=&quot;cline&quot;</code>: a snippet under the <code>mcpServers</code> key for cline_mcp_settings.json (Cline MCP Servers panel → Configure).</div>
     </div>
     </div>
   </div>

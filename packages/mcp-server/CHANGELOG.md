@@ -1,5 +1,22 @@
 # Changelog — @mcpfinder/server
 
+## 2.0.4 — 2026-11-15
+
+### Fixed
+- `get_install_config` for remote servers returns a config each client can
+  load: Claude Desktop gets an `mcp-remote` stdio bridge (never a bare `url`)
+  with a Connectors alternative and an honest OAuth note; Claude Code gets
+  `type` + `url` and the `claude mcp add --transport …` command; Cline
+  `streamableHttp`/`sse`; Windsurf `serverUrl`.
+- Cline configs target `cline_mcp_settings.json` with `mcpServers` instead of
+  VS Code's `.vscode/mcp.json`.
+- `search_mcp_servers` ranks servers named for the query above keyword-stuffed
+  stack generators (e.g. "postgres").
+
+### Added
+- `platform: "vscode"` for VS Code's native `.vscode/mcp.json` (`servers`).
+- Requires `@mcpfinder/core` ^2.0.4.
+
 ## 2.0.3 — 2026-11-14
 
 ### Fixed

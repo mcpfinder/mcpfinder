@@ -2,14 +2,17 @@
  * Search engine using SQLite FTS5 for MCP server discovery.
  *
  * Ranking formula, per candidate row (see `searchServers`):
- *   5.0 for every query term found in the hosting-prefix-stripped name
+ *   (5.0 for every query term found in the hosting-prefix-stripped name)
+ *     * (0.4 + 0.6 * name_focus)
  * + fts_relevance * 0.3
  * + log(use_count + 1) * 0.2
  * + (3.0 if official | 1.5 if verified | 0) * 0.15
  *
  * The name-match term dominates by design — a query word occurring in the name
  * is the strongest signal we have — which is exactly why it must not fire on
- * the reverse-DNS hosting prefix. See HOSTING_PREFIXES.
+ * the reverse-DNS hosting prefix. See HOSTING_PREFIXES. `name_focus` (see
+ * `nameFocus`) keeps it from being a constant across every name that merely
+ * mentions the term: `x/postgres` outranks `x/postgres-grafana-stack-generator`.
  */
 import type { DatabaseSync } from 'node:sqlite';
 import type { SqlParam } from './db.js';
@@ -287,10 +290,48 @@ export function findServerByNameOrSlug(
   return undefined;
 }
 
+/** Name tokens that say nothing about what a server does. */
+const GENERIC_NAME_TOKENS = new Set(['mcp', 'server', 'servers', 'model', 'context', 'protocol']);
+
+/** Lower-case alphanumeric runs: the tokenizer for both names and terms. */
+function nameTokens(text: string): string[] {
+  // One-character parts ("e-commerce" → `e`) are dropped on both sides: as a
+  // query part, any token containing the letter would count as a match; as a
+  // name token, it would dilute the focus of the server named for the term.
+  return text.split(/[^a-z0-9]+/).filter((t) => t.length > 1);
+}
+
 /**
- * Search for MCP servers using FTS5 full-text search.
- * Searches across name, description, and keywords with multi-factor ranking.
+ * How much of a server's own name the query covers, in (0, 1]. `matchName` is
+ * the lower-cased, hosting-prefix-stripped name; `termsJson` a JSON array of
+ * query terms already split by `nameTokens`. Counts the leaf (after the last `/`) tokens that
+ * contain a term — substring, like the LIKE boost — over all non-generic leaf
+ * tokens. Without that, every name containing the term ties on the +5.0 boost
+ * and BM25 length normalization lets short keyword-stuffed entries
+ * (`postgres-grafana-stack-generator`) bury the real server.
+ *
+ * A term found only outside the leaf (`com.supabase/mcp` for "supabase": the
+ * vendor's own server), or a leaf that is all generic tokens, counts as full
+ * focus.
  */
+function nameFocus(matchName: string, termsJson: string): number {
+  const terms = JSON.parse(termsJson) as string[];
+  const leaf = matchName.slice(matchName.lastIndexOf('/') + 1);
+  const tokens = nameTokens(leaf).filter((t) => !GENERIC_NAME_TOKENS.has(t));
+  const matched = tokens.filter((t) => terms.some((term) => t.includes(term))).length;
+  return matched > 0 ? matched / tokens.length : 1;
+}
+
+/** Connections that already have `name_focus` registered. */
+const focusRegistered = new WeakSet<DatabaseSync>();
+
+function registerNameFocus(db: DatabaseSync): void {
+  if (focusRegistered.has(db)) return;
+  db.function('name_focus', { deterministic: true }, (name, terms) =>
+    nameFocus(String(name ?? ''), String(terms)));
+  focusRegistered.add(db);
+}
+
 /**
  * Expand a query using the alias dictionary.
  * Returns both the expanded query and whether aliases were used (for OR logic).
@@ -309,6 +350,10 @@ function expandAliases(query: string): { query: string; hasAlias: boolean } {
   return { query: expanded.join(' '), hasAlias };
 }
 
+/**
+ * Search for MCP servers using FTS5 full-text search.
+ * Searches across name, description, and keywords with multi-factor ranking.
+ */
 export function searchServers(
   db: DatabaseSync,
   query: string,
@@ -372,6 +417,19 @@ export function searchServers(
     `CASE WHEN h.match_name LIKE @nm${i} THEN 5.0 ELSE 0 END`
   ).join(' + ');
 
+  // The boost is scaled by how much of the name the query covers (nameFocus).
+  // A CASE keeps the UDF off every row the LIKEs did not match — for a broad
+  // query most hits — so it only runs where it can change the score.
+  let nameScoreSql = '0';
+  if (nameMatchTerms.length) {
+    registerNameFocus(db);
+    // Split terms like the leaf so "brave-search" matches `brave`, `search`.
+    params.focusTerms = JSON.stringify(nameMatchTerms.flatMap((t) => nameTokens(t.toLowerCase())));
+    nameScoreSql = `(SELECT CASE WHEN b > 0
+        THEN b * (0.4 + 0.6 * name_focus(h.match_name, @focusTerms)) ELSE 0 END
+      FROM (SELECT ${nameMatchClauses} AS b))`;
+  }
+
   // A query whose every word is a single character leaves no terms to boost by,
   // and then nothing downstream reads match_name. Don't strip and lower-case a
   // name for all 19k hits of a broad query so that the outer SELECT can ignore
@@ -382,6 +440,7 @@ export function searchServers(
 
   // Multi-factor ranking:
   // - Name match boost (huge): does the query term appear in server NAME?
+  //   Scaled by name focus, so a name *about* the term beats one that lists it.
   // - FTS5 rank for text relevance
   // - log(use_count + 1) for popularity
   // - Official registry boost
@@ -424,7 +483,7 @@ export function searchServers(
     SELECT s.*,
            h.fts_relevance,
            (
-             (${nameMatchClauses || '0'}) +
+             ${nameScoreSql} +
              h.fts_relevance * 0.3 +
              (CASE WHEN s.use_count > 0 THEN log(s.use_count + 1) ELSE 0 END) * 0.2 +
              (CASE WHEN s.sources LIKE '%official%' THEN 3.0

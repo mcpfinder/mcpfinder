@@ -759,7 +759,10 @@ now (Smithery was their only source). See [CHANGELOG](./CHANGELOG.md).
 | `searchServers` | Ranked full-text search + filters. |
 | `getServerDetails` | Full metadata for one server (local env vars, selected remote HTTP headers, tools, trust signals). |
 | `listCategories / getServersByCategory` | Category browsing. |
-| `getInstallCommand` | Generate client-specific JSON install config. |
+| `getInstallCommand` | Generate client-specific JSON install config for `claude-desktop`, `cursor`, `claude-code`, `cline`, `windsurf`, `vscode`, or `generic`. |
+| `CLIENTS` | Per-client display name, config paths (macOS/Windows/Linux), top-level key (`mcpServers`, or `servers` for VS Code), and post-install note. |
+| `buildRemoteServerEntry` | Client-specific entry for a remote endpoint: `mcp-remote` stdio bridge for Claude Desktop, `{type, url}` for Claude Code / Cline / VS Code, `{serverUrl}` for Windsurf, `{url}` for Cursor and generic clients. |
+| `remoteTransportForRow` | `http` or `sse` for a row's remote URL, from the selected Official remote's `type`, else a URL path ending in `/sse`. |
 | `buildEnvPlaceholders / envPlaceholderValue` | Fill an `env` block from registry env var definitions: `<YOUR_VALUE>` for secrets, otherwise `default`, then `placeholder`, then `<VALUE>`. |
 | `remoteHeadersForRow` | Read the selected Official remote's HTTP header definitions from a catalogue row and distinguish known empty metadata from missing or malformed metadata. |
 | `planRemoteHeaders` | Build required remote HTTP headers and report required versus optional headers, required secrets, and install safety. |

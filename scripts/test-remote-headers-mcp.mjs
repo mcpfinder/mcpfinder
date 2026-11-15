@@ -29,7 +29,7 @@ const insert = (db, name, { remotes = [], selectedUrl = remotes[0]?.url ?? null,
   });
 };
 
-async function callTool(name, toolName = 'get_install_config') {
+async function callTool(name, toolName = 'get_install_config', platform = 'cursor') {
   const child = spawn(process.execPath, [resolve('packages/mcp-server/dist/cli.js')], {
     env: { ...process.env, MCPFINDER_DATA_DIR: dir, MCPFINDER_DISABLE_SNAPSHOT: '1', GLAMA_API_KEY: '' },
     stdio: ['pipe', 'pipe', 'pipe'],
@@ -58,7 +58,7 @@ async function callTool(name, toolName = 'get_install_config') {
     child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
     const response = await request(2, 'tools/call', {
       name: toolName,
-      arguments: toolName === 'get_install_config' ? { name, platform: 'cursor' } : { name },
+      arguments: toolName === 'get_install_config' ? { name, platform } : { name },
     });
     return { ...response.structuredContent, text: response.content?.[0]?.text ?? '' };
   } finally {
@@ -123,6 +123,12 @@ try {
       { name: 'Authorization', isRequired: true, isSecret: true },
     ] }],
   });
+  insert(db, 'io.example/both', { remotes: [{ type: 'streamable-http', url: 'https://example.com/both', headers: [
+    { name: 'Authorization', isRequired: true, isSecret: true, value: 'Bearer {token}', variables: { token: { isSecret: true } } },
+    { name: 'X-Client', isRequired: true, value: 'mcpfinder' },
+  ] }] });
+  insert(db, 'io.example/insecure', { remotes: [{ type: 'streamable-http', url: 'http://example.com/insecure' }] });
+  insert(db, 'io.example/sse', { remotes: [{ type: 'sse', url: 'https://example.com/events' }] });
   insert(db, 'io.example/local', { env: [{ name: 'LOCAL_TOKEN', isSecret: true }], packageId: '@example/local' });
   const now = new Date().toISOString();
   db.prepare("INSERT INTO sync_log (source, last_synced_at, last_successful_at, server_count, status) VALUES ('official', ?, ?, 14, 'ok')").run(now, now);
@@ -249,6 +255,61 @@ try {
   const localDetails = await callTool('io.example/local', 'get_server_details');
   assert.equal(Object.hasOwn(localDetails.server, 'remoteHeadersKnown'), false);
   assert.equal(localDetails.server.selectedInstallType, 'npm');
+  const bothHeaders = { Authorization: 'Bearer <YOUR_VALUE>', 'X-Client': 'mcpfinder' };
+  const bothUrl = 'https://example.com/both';
+  const plainUrl = 'https://example.com/plain';
+  const platformCases = {
+    'claude-desktop': [
+      { command: 'npx', args: ['-y', 'mcp-remote', bothUrl, '--header', 'Authorization:${MCP_HEADER_AUTHORIZATION}', '--header', 'X-Client:${MCP_HEADER_X_CLIENT}'],
+        env: { MCP_HEADER_AUTHORIZATION: 'Bearer <YOUR_VALUE>', MCP_HEADER_X_CLIENT: 'mcpfinder' } },
+      { command: 'npx', args: ['-y', 'mcp-remote', plainUrl] },
+    ],
+    cursor: [{ url: bothUrl, headers: bothHeaders }, { url: plainUrl }],
+    'claude-code': [{ type: 'http', url: bothUrl, headers: bothHeaders }, { type: 'http', url: plainUrl }],
+    cline: [{ type: 'streamableHttp', url: bothUrl, headers: bothHeaders }, { type: 'streamableHttp', url: plainUrl }],
+    windsurf: [{ serverUrl: bothUrl, headers: bothHeaders }, { serverUrl: plainUrl }],
+    vscode: [{ type: 'http', url: bothUrl, headers: bothHeaders }, { type: 'http', url: plainUrl }],
+  };
+  for (const [platform, [withHeaders, withoutHeaders]] of Object.entries(platformCases)) {
+    const both = await callTool('io.example/both', 'get_install_config', platform);
+    const key = platform === 'vscode' ? 'servers' : 'mcpServers';
+    assert.deepEqual(both.config, { [key]: { both: withHeaders } }, platform);
+    assert.equal(both.requires_user_secrets, true, platform);
+    assert.equal(both.safe_to_autoinstall, false, platform);
+    const plainResult = await callTool('io.example/plain', 'get_install_config', platform);
+    assert.deepEqual(plainResult.config, { [key]: { plain: withoutHeaders } }, platform);
+    assert.equal(plainResult.safe_to_autoinstall, true, platform);
+    if (platform === 'claude-desktop') {
+      assert.doesNotMatch(JSON.stringify([both.config, plainResult.config]), /"(?:url|serverUrl)"/);
+      assert.match(both.text, /mcp-remote \(requires Node\.js\)/);
+      assert.match(both.text, /Custom connectors cannot send custom HTTP headers/);
+      assert.match(plainResult.text, /recommended when no headers are needed/);
+      assert.match(both.text, /~\/\.mcp-auth/);
+    }
+    if (platform === 'claude-code') {
+      assert.match(both.text, /claude mcp add --transport http both https:\/\/example\.com\/both --header 'Authorization: Bearer <YOUR_VALUE>'/);
+      assert.match(both.text, /run \/mcp/);
+    }
+    if (platform === 'windsurf') {
+      assert.equal(both.configFilePath.mac, '~/.codeium/windsurf/mcp_config.json');
+      assert.match(both.text, /devin\/mcp_config\.json/);
+    }
+    if (platform === 'cline') {
+      assert.match(both.configFilePath.mac, /saoudrizwan\.claude-dev\/settings\/cline_mcp_settings\.json$/);
+      assert.match(both.configFilePath.windows, /^%APPDATA%\\Code\\User\\globalStorage/);
+    }
+  }
+  for (const platform of ['claude-code', 'cline']) {
+    const sse = await callTool('io.example/sse', 'get_install_config', platform);
+    assert.deepEqual(sse.config.mcpServers.sse, { type: 'sse', url: 'https://example.com/events' }, platform);
+  }
+  const insecure = await callTool('io.example/insecure', 'get_install_config', 'claude-desktop');
+  assert.deepEqual(insecure.config.mcpServers.insecure.args, ['-y', 'mcp-remote', 'http://example.com/insecure', '--allow-http']);
+  const vscodeLocal = await callTool('io.example/local', 'get_install_config', 'vscode');
+  assert.deepEqual(vscodeLocal.config, { servers: { local: { command: 'npx', args: ['-y', '@example/local'], env: { LOCAL_TOKEN: '<YOUR_VALUE>' } } } });
+  assert.equal(vscodeLocal.configFilePath.mac, '.vscode/mcp.json');
+  const clineLocal = await callTool('io.example/local', 'get_install_config', 'cline');
+  assert.equal(clineLocal.config.mcpServers.local.command, 'npx');
   console.log('remote header MCP install tests passed');
 } finally {
   rmSync(dir, { recursive: true, force: true });

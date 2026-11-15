@@ -26,6 +26,10 @@ import {
   looksLikeCredentialName,
   possibleUnlabeledSecrets,
   usableRemoteUrl,
+  findServerByNameOrSlug,
+  remoteTransportForRow,
+  buildRemoteServerEntry,
+  CLIENTS,
   NO_INSTALL_METHOD_NOTE,
 } from '@mcpfinder/core';
 import { createCatalog } from './catalog.js';
@@ -71,67 +75,8 @@ const server = new McpServer({
 
 // ─── Platform Configuration ─────────────────────────────────────────────────
 
-type Platform = 'claude-desktop' | 'cursor' | 'claude-code' | 'cline' | 'windsurf';
-
-interface PlatformConfig {
-  name: string;
-  configPaths: { mac: string; windows: string; linux: string };
-  postInstall: string;
-  topLevelKey: string; // "mcpServers" or "servers"
-}
-
-const PLATFORMS: Record<Platform, PlatformConfig> = {
-  'claude-desktop': {
-    name: 'Claude Desktop',
-    configPaths: {
-      mac: '~/Library/Application Support/Claude/claude_desktop_config.json',
-      windows: '%APPDATA%\\Claude\\claude_desktop_config.json',
-      linux: '~/.config/Claude/claude_desktop_config.json',
-    },
-    postInstall: 'Restart Claude Desktop to activate the new server.',
-    topLevelKey: 'mcpServers',
-  },
-  cursor: {
-    name: 'Cursor',
-    configPaths: {
-      mac: '~/.cursor/mcp.json',
-      windows: '%USERPROFILE%\\.cursor\\mcp.json',
-      linux: '~/.cursor/mcp.json',
-    },
-    postInstall: 'Restart Cursor or reload the window to activate.',
-    topLevelKey: 'mcpServers',
-  },
-  'claude-code': {
-    name: 'Claude Code',
-    configPaths: {
-      mac: '.mcp.json (project-level) or ~/.claude.json (global)',
-      windows: '.mcp.json (project-level) or %USERPROFILE%\\.claude.json (global)',
-      linux: '.mcp.json (project-level) or ~/.claude.json (global)',
-    },
-    postInstall: 'The server will be available on the next Claude Code session.',
-    topLevelKey: 'mcpServers',
-  },
-  cline: {
-    name: 'Cline (VS Code)',
-    configPaths: {
-      mac: '.vscode/mcp.json',
-      windows: '.vscode\\mcp.json',
-      linux: '.vscode/mcp.json',
-    },
-    postInstall: 'Reload VS Code window to activate.',
-    topLevelKey: 'servers',
-  },
-  windsurf: {
-    name: 'Windsurf',
-    configPaths: {
-      mac: '~/.codeium/windsurf/mcp_config.json',
-      windows: '%USERPROFILE%\\.codeium\\windsurf\\mcp_config.json',
-      linux: '~/.codeium/windsurf/mcp_config.json',
-    },
-    postInstall: 'Restart Windsurf to activate the new server.',
-    topLevelKey: 'mcpServers',
-  },
-};
+// Paths, top-level keys and notes come from core `CLIENTS`.
+type Platform = 'claude-desktop' | 'cursor' | 'claude-code' | 'cline' | 'windsurf' | 'vscode';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -613,17 +558,23 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
   const envVars = detail.environmentVariables || [];
   const env = buildEnvPlaceholders(envVars);
   const remotePlan = planRemoteHeaders(detail.remoteHeaders, detail.remoteHeadersKnown === true);
-  const platformInfo = PLATFORMS[platform];
+  const platformInfo = CLIENTS[platform];
   // Never hand out a URL on a retired host (see core remote-url.ts), even if an
   // older catalog still has one on the row.
   const remoteUrl = detail.hasRemote ? usableRemoteUrl(detail.remoteUrl) : null;
 
   let serverConfig: Record<string, unknown>;
   let installType: string;
+  let remoteNotes: string[] = [];
+  let postInstall = platformInfo.postInstall;
 
   if (remoteUrl) {
-    serverConfig = { url: remoteUrl };
-    if (Object.keys(remotePlan.headers).length > 0) serverConfig.headers = remotePlan.headers;
+    const row = findServerByNameOrSlug(db, name);
+    const transport = row ? remoteTransportForRow(row) : 'http';
+    const remote = buildRemoteServerEntry(platform, serverKey, remoteUrl, transport, remotePlan.headers);
+    serverConfig = remote.entry;
+    remoteNotes = remote.notes;
+    postInstall = remote.postInstall;
     installType = 'remote';
   } else if (detail.registryType === 'npm' && detail.packageIdentifier) {
     serverConfig = { command: 'npx', args: ['-y', detail.packageIdentifier] };
@@ -647,7 +598,7 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
   } else {
     const noPackage = !detail.packageIdentifier;
     const fallbackLines = [
-      `# Install ${detail.name} on ${platformInfo.name}`,
+      `# Install ${detail.name} on ${platformInfo.displayName}`,
       '',
       noPackage
         ? NO_INSTALL_METHOD_NOTE
@@ -683,10 +634,11 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
   };
   const snippet = JSON.stringify(wrapper, null, 2);
 
-  const configPath = `  macOS: ${platformInfo.configPaths.mac}\n  Windows: ${platformInfo.configPaths.windows}\n  Linux: ${platformInfo.configPaths.linux}`;
+  const configPath = `  macOS: ${platformInfo.configPaths.mac}\n  Windows: ${platformInfo.configPaths.windows}\n  Linux: ${platformInfo.configPaths.linux}` +
+    (platformInfo.configNote ? `\n\n${platformInfo.configNote}` : '');
 
   const sections: string[] = [
-    `# Install ${detail.name} on ${platformInfo.name}`,
+    `# Install ${detail.name} on ${platformInfo.displayName}`,
     '',
     installType === 'remote'
       ? 'Hosted/remote server. No local package install is needed.'
@@ -702,6 +654,7 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
   ];
 
   if (remoteUrl) {
+    if (remoteNotes.length > 0) sections.push('', '## Notes', ...remoteNotes);
     if (!remotePlan.known) {
       sections.push('', '## HTTP authentication',
         'Header metadata is unavailable for this remote URL. Verify authentication requirements manually before installing.');
@@ -730,7 +683,7 @@ async function buildInstallConfigResponse(name: string, platform: Platform) {
     }
   }
 
-  sections.push('', '## After adding the config', platformInfo.postInstall);
+  sections.push('', '## After adding the config', postInstall);
 
   return makeTextResponse(sections.join('\n'), {
     found: true,
@@ -755,13 +708,13 @@ server.registerTool(
   'get_install_config',
   {
     description:
-      'Use this after get_server_details to generate a client-specific JSON config snippet. Returns paths, local env vars or remote HTTP headers (required and optional), remoteHeadersKnown, restart guidance, and safety flags. Unknown header metadata requires manual verification and sets requires_user_secrets to null.',
+      'Use this after get_server_details to generate a client-specific JSON config snippet (claude-desktop, cursor, claude-code, cline, windsurf, or vscode for VS Code\'s native .vscode/mcp.json). Returns paths, local env vars or remote HTTP headers (required and optional), remoteHeadersKnown, restart guidance, and safety flags. Unknown header metadata requires manual verification and sets requires_user_secrets to null.',
     inputSchema: {
       name: z
         .string()
         .describe('Server name or slug (e.g., "filesystem", "io.modelcontextprotocol/filesystem")'),
       platform: z
-        .enum(['claude-desktop', 'cursor', 'claude-code', 'cline', 'windsurf'])
+        .enum(['claude-desktop', 'cursor', 'claude-code', 'cline', 'windsurf', 'vscode'])
         .default('claude-desktop')
         .describe('Target platform for install config'),
     },

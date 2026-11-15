@@ -101,9 +101,10 @@ export {
 
 // Install
 export { getInstallCommand, buildEnvPlaceholders, envPlaceholderValue } from './install.js';
-export { planRemoteHeaders, remoteHeadersForRow } from './remote-headers.js';
-export type { RemoteHeaderPlan } from './remote-headers.js';
-export type { ClientType } from './install.js';
+export { planRemoteHeaders, remoteHeadersForRow, remoteTransportForRow } from './remote-headers.js';
+export type { RemoteHeaderPlan, RemoteTransport } from './remote-headers.js';
+export { CLIENTS, buildRemoteServerEntry } from './clients.js';
+export type { ClientType, ClientInfo, RemoteEntry } from './clients.js';
 
 // Credential-name hint (advisory only; never changes config values)
 export { looksLikeCredentialName, possibleUnlabeledSecrets } from './credential-hint.js';

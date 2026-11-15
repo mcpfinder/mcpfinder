@@ -57,21 +57,23 @@ directory = Cursor; etc.
 | Cursor (project) | `<project>/.cursor/mcp.json` |
 | Claude Code (project, preferred) | `<project>/.mcp.json` |
 | Claude Code (global) | `~/.claude.json` |
-| Cline / Roo Code | `<project>/.vscode/mcp.json` |
+| Cline (macOS) | `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` |
+| Cline (Windows) | `%APPDATA%\Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json` |
+| Cline (Linux) | `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` |
 | Windsurf (macOS/Linux) | `~/.codeium/windsurf/mcp_config.json` |
 | Windsurf (Windows) | `%USERPROFILE%\.codeium\windsurf\mcp_config.json` |
 
 If the user has both a project-scoped and global config and hasn't said which
-to use, ask. Default to project-scoped for Cursor, Claude Code, and Cline;
-default to global for Claude Desktop and Windsurf.
+to use, ask. Default to project-scoped for Cursor and Claude Code;
+default to global for Claude Desktop, Cline, and Windsurf.
 
 ### 3. Merge, do not clobber
 
 Read the existing config. If it doesn't exist yet, create it with the
 minimum wrapping structure.
 
-**Top-level key:** `mcpServers` for everyone *except* Cline, which uses
-`servers`.
+**Top-level key:** `mcpServers` for every client listed here (Cline
+included).
 
 **MCPfinder entry to add:**
 
@@ -144,8 +146,10 @@ simply ask again and the AI will use MCPfinder to handle it end-to-end.
 
 ## Gotchas
 
-- **Cline uses `servers`, not `mcpServers`.** Every other supported client
-  uses `mcpServers` at the top level. Easy to miss.
+- **Cline's config is `cline_mcp_settings.json`, not `.vscode/mcp.json`.**
+  It uses `mcpServers` like the other clients. `.vscode/mcp.json` (top-level
+  `servers`) belongs to VS Code's built-in MCP support, and Roo Code uses its
+  own file.
 - **Node 22.15+ is required.** MCPfinder's core uses the built-in `node:sqlite`
   module. If `node -v` shows anything lower, tell the user to upgrade
   (`nvm install 22` or similar) before installing.
@@ -161,7 +165,7 @@ simply ask again and the AI will use MCPfinder to handle it end-to-end.
 - **Running sessions don't hot-reload.** Claude Code, in particular, reads
   MCP config at session start. Editing the config while a session is live
   does nothing until the user starts a new session.
-- **Preserve JSON comments if the file has them.** Cursor and Cline use JSONC
+- **Preserve JSON comments if the file has them.** Cursor uses JSONC
   (JSON with comments) for `mcp.json`. Strip comments before parsing, then
   restore them — or use a JSONC-aware parser if available.
 

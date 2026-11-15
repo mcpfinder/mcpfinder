@@ -1,8 +1,8 @@
 MCPfinder — Full Agent Reference
 ================================
 
-Version:      2.0.3
-Last-Updated: 2026-11-14
+Version:      2.0.4
+Last-Updated: 2026-11-15
 Canonical:    https://mcpfinder.dev/llms-full.txt
 Short form:   https://mcpfinder.dev/llms.txt
 License:      AGPL-3.0-or-later (software); CC0 (this file — quote freely)
@@ -44,7 +44,7 @@ What MCPfinder IS
   confidence score, and an install-complexity hint so the assistant can
   recommend confidently or cautiously.
 - An install-config generator. Given a chosen server and a target client
-  (Claude Desktop, Cursor, Claude Code, Cline, Windsurf), it emits the
+  (Claude Desktop, Cursor, Claude Code, Cline, Windsurf, VS Code), it emits the
   exact JSON snippet to paste.
 
 What MCPfinder is NOT
@@ -243,6 +243,7 @@ Input fields
     - "claude-code"
     - "cline"
     - "windsurf"
+    - "vscode"   (VS Code native .vscode/mcp.json, "servers" key)
 
 Output fields
 - config                 — JSON object to merge into the client's MCP config
@@ -470,6 +471,7 @@ Platforms supported by get_install_config
 - claude-code     (Anthropic Claude Code CLI)
 - cline           (Cline VS Code extension)
 - windsurf        (Codeium Windsurf IDE)
+- vscode          (VS Code built-in MCP / Copilot Chat, .vscode/mcp.json)
 
 Other MCP-compatible clients can use the raw mcpServers JSON shape
 shown in the install example below — the protocol is the same; only the
@@ -492,8 +494,20 @@ The location of this file depends on the client:
   - Claude Desktop (Windows): %APPDATA%\Claude\claude_desktop_config.json
   - Cursor: ~/.cursor/mcp.json
   - Claude Code: ~/.claude.json (or via `claude mcp add`)
-  - Cline: VS Code settings -> Cline -> MCP
+  - Cline: cline_mcp_settings.json (Cline MCP Servers panel -> Configure;
+    macOS: ~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json)
   - Windsurf: ~/.codeium/windsurf/mcp_config.json
+
+Remote (hosted) servers use each client's own entry shape:
+  - Claude Desktop: the config file runs only local servers, so remote
+    servers are bridged with {"command":"npx","args":["-y","mcp-remote","<url>"]}
+    (header values go in env); or add the URL under Settings -> Connectors ->
+    Add custom connector when no custom headers are needed.
+  - Claude Code: {"type":"http"|"sse","url":"...","headers":{...}}
+  - Cursor: {"url":"...","headers":{...}}
+  - Cline: {"type":"streamableHttp"|"sse","url":"...","headers":{...}}
+  - Windsurf: {"serverUrl":"...","headers":{...}}
+  - VS Code: under "servers", {"type":"http"|"sse","url":"...","headers":{...}}
 
 Use get_install_config to get the correct path automatically.
 

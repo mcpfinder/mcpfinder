@@ -496,7 +496,7 @@ insert(retiredDb, { name: 'io.example/vendor', slug: 'vendor', registry_type: nu
 const guarded = getInstallCommand(retiredDb, 'proxied', 'claude-desktop');
 assert.ok(!JSON.stringify(guarded).includes('smithery.ai'), 'install config must not offer a retired remote');
 assert.equal(
-  getInstallCommand(retiredDb, 'vendor', 'claude-desktop').config.mcpServers.vendor.url,
+  getInstallCommand(retiredDb, 'vendor', 'cursor').config.mcpServers.vendor.url,
   'https://mcp.example.com/mcp?via=smithery.ai',
   'only the host decides, not a substring elsewhere in the URL',
 );

@@ -1,5 +1,29 @@
 # Changelog — @mcpfinder/core
 
+## 2.0.4 — 2026-11-15
+
+### Fixed
+- `getInstallCommand` emits each client's own remote-server format. Claude
+  Desktop's config file runs only stdio servers, so remote endpoints get an
+  `npx -y mcp-remote <url>` bridge (header values in `env`, referenced from
+  `--header Name:${MCP_HEADER_…}`; `--allow-http` for plain-HTTP URLs) plus a
+  note to use Settings → Connectors when no headers are needed. Claude Code and
+  VS Code get `type` + `url`, Cline `type: "streamableHttp" | "sse"` + `url`,
+  Windsurf `serverUrl`, Cursor `url`. The transport comes from the selected
+  Official remote (`remoteTransportForRow`), falling back to a `/sse` URL.
+- Windsurf config path is `~/.codeium/windsurf/mcp_config.json` (was
+  `~/.windsurf/mcp.json`).
+- Cline configs target `cline_mcp_settings.json` with `mcpServers`; VS Code
+  configs use `servers`.
+- Search: the name-match boost is scaled by name focus (the share of the
+  server's own name the query covers), so short keyword-stuffed entries such as
+  `postgres-grafana-stack-generator` no longer outrank servers named for the
+  term. "postgres" now returns Postgres servers first.
+
+### Added
+- `CLIENTS` (per-client paths, top-level key, post-install notes) and
+  `buildRemoteServerEntry`, shared by core and `@mcpfinder/server`.
+
 ## 2.0.3 — 2026-11-14
 
 ### Changed

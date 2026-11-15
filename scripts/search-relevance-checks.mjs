@@ -127,8 +127,85 @@ function seedSearchCorpus(db) {
     id: 'com.example/postgres-mcp',
     slug: 'postgres-mcp',
     name: 'com.example/postgres-mcp',
-    description: 'Query Postgres databases over MCP',
-    use_count: 400,
+    description: 'Query Postgres databases over MCP: run read-only SQL, list schemas and tables, and explain query plans',
+    // No popularity edge: the live catalog has use_count 0 everywhere, and a
+    // head start here would hide the stack-generator regression below.
+  });
+  // Stack generators: short, keyword-stuffed, official, and each naming
+  // "postgres". Every one ties with the real server on the name boost, and BM25
+  // length normalization favours them, so only name focus can order them below.
+  for (const other of ['redis', 'grafana', 'kafka', 'minio']) {
+    const name = `com.example/postgres-${other}-stack-generator`;
+    const title = `Postgres + ${other[0].toUpperCase()}${other.slice(1)} Stack Generator`;
+    insert(db, {
+      id: name,
+      slug: `postgres-${other}-stack-generator`,
+      name,
+      description: title,
+      keywords: JSON.stringify(['postgres', other, 'stack', 'generator', 'postgres']),
+      sources: '["official"]',
+    });
+  }
+  insert(db, {
+    id: 'com.example/slack',
+    slug: 'slack',
+    name: 'com.example/slack',
+    description: 'Read channels, post messages and search history in a Slack workspace',
+  });
+  // Hyphenated query: the term must be tokenized like the name, or no leaf
+  // token contains "brave-search" and the generator gets the fallback focus.
+  insert(db, {
+    id: 'com.example/brave-search',
+    slug: 'brave-search',
+    name: 'com.example/brave-search',
+    description: 'Web and news results from the Brave Search API with freshness filters',
+  });
+  insert(db, {
+    id: 'com.example/brave-search-reddit-stack-generator',
+    slug: 'brave-search-reddit-stack-generator',
+    name: 'com.example/brave-search-reddit-stack-generator',
+    description: 'Brave Search + Reddit Stack Generator',
+    keywords: JSON.stringify(['brave-search', 'reddit', 'stack', 'generator']),
+    sources: '["official"]',
+  });
+  // One-letter part of a hyphenated query: `e` occurs in every token of this
+  // generator's name (redis, webhook, generator), so it must not count as a
+  // name match, and the real server's own `e` must not dilute its focus.
+  insert(db, {
+    id: 'com.example/e-commerce',
+    slug: 'e-commerce',
+    name: 'com.example/e-commerce',
+    description: 'Manage storefront products, orders and customers for an online e-commerce shop',
+  });
+  insert(db, {
+    id: 'com.example/e-commerce-redis-webhook-generator',
+    slug: 'e-commerce-redis-webhook-generator',
+    name: 'com.example/e-commerce-redis-webhook-generator',
+    description: 'E-Commerce + Redis Webhook Generator',
+    keywords: JSON.stringify(['e-commerce', 'redis', 'webhook', 'generator']),
+    sources: '["official"]',
+  });
+  insert(db, {
+    id: 'com.example/slack-webhook-relay-shape',
+    slug: 'slack-webhook-relay-shape',
+    name: 'com.example/slack-webhook-relay-shape',
+    description: 'Slack webhook shape',
+    sources: '["official"]',
+  });
+  // A vendor's own server: the term is only in the namespace and the leaf is
+  // generic. It must keep the full boost against a name that lists the vendor.
+  insert(db, {
+    id: 'com.acmevendor/mcp',
+    slug: 'acmevendor-mcp',
+    name: 'com.acmevendor/mcp',
+    description: 'Official server for the platform: projects, tables and storage',
+  });
+  insert(db, {
+    id: 'com.example/acmevendor-backup-tool',
+    slug: 'acmevendor-backup-tool',
+    name: 'com.example/acmevendor-backup-tool',
+    description: 'Acmevendor backups',
+    sources: '["official"]',
   });
   insert(db, {
     id: 'com.example/filesystem',
@@ -219,8 +296,36 @@ function checkSearchPath(searchServers, db) {
 
   // Non-regression: queries that never collide with a hosting prefix keep their
   // result.
-  assert.equal(searchServers(db, 'postgres', 5)[0]?.name, 'com.example/postgres-mcp');
   assert.equal(searchServers(db, 'filesystem', 5)[0]?.name, 'com.example/filesystem');
+
+  // Name focus: a name *about* the term beats short entries that merely list it
+  // (live catalog: 95 `*-stack-generator` rows took "postgres" #1-#12).
+  const postgres = searchServers(db, 'postgres', 5);
+  assert.equal(
+    postgres[0]?.name,
+    'com.example/postgres-mcp',
+    `"postgres" must surface the real server before stack generators, got: ${names(postgres).join(', ')}`,
+  );
+  assert.equal(
+    searchServers(db, 'slack', 5)[0]?.name,
+    'com.example/slack',
+    'a focused name must beat a short official entry that lists the term',
+  );
+  assert.equal(
+    searchServers(db, 'brave-search', 5)[0]?.name,
+    'com.example/brave-search',
+    'a hyphenated query must be tokenized like the name it is matched against',
+  );
+  assert.equal(
+    searchServers(db, 'e-commerce', 5)[0]?.name,
+    'com.example/e-commerce',
+    'a one-character part of a hyphenated query must not match every name token',
+  );
+  assert.equal(
+    searchServers(db, 'acmevendor', 5)[0]?.name,
+    'com.acmevendor/mcp',
+    "a term in the namespace with a generic leaf is the vendor's own server and keeps the full boost",
+  );
 
   // Stripping removes the hosting namespace, never the owner segment — for
   // every prefix spelling, and regardless of case.

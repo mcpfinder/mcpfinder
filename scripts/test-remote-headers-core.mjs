@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   getInstallCommand, getServerDetails, initDatabase, searchServers,
-  mergeSameRemoteOfficialEntries, planRemoteHeaders,
+  mergeSameRemoteOfficialEntries, planRemoteHeaders, buildRemoteServerEntry,
 } from '../packages/core/dist/index.js';
 
 const dir = mkdtempSync(join(tmpdir(), 'mcpf-remote-headers-core-'));
@@ -286,6 +286,84 @@ try {
   assert.ok(reverseMerge.skipped.some((s) => s.ids.includes('io.github.acme/duplicate-c') &&
     s.reason === 'would-lose-fields'));
   assert.ok(db.prepare('SELECT id FROM servers WHERE id=?').get('io.github.acme/duplicate-c'));
+
+  // Per-client remote entry shapes.
+  insert('io.github.acme/clients-auth', [{ type: 'streamable-http', url: 'https://clients.acme.test/mcp', headers: [
+    { name: 'Authorization', isRequired: true, isSecret: true, value: 'Bearer {token}',
+      variables: { token: { isSecret: true } } },
+    { name: 'X-Client-Id', isRequired: true, value: 'acme' },
+    { name: 'X-Trace', description: 'optional' },
+  ] }]);
+  insert('io.github.acme/clients-plain', [{ type: 'streamable-http', url: 'https://plain.acme.test/mcp' }]);
+  insert('io.github.acme/clients-sse', [{ type: 'sse', url: 'https://sse.acme.test/events' }]);
+  insert('io.github.acme/clients-sse-path', [], { url: 'https://inferred.acme.test/sse', raw: { server: {} } });
+  const authHeaders = { Authorization: 'Bearer <YOUR_VALUE>', 'X-Client-Id': 'acme' };
+  const authUrl = 'https://clients.acme.test/mcp';
+  const expectedAuth = {
+    'claude-desktop': { mcpServers: { 'clients-auth': {
+      command: 'npx',
+      args: ['-y', 'mcp-remote', authUrl,
+        '--header', 'Authorization:${MCP_HEADER_AUTHORIZATION}',
+        '--header', 'X-Client-Id:${MCP_HEADER_X_CLIENT_ID}'],
+      env: { MCP_HEADER_AUTHORIZATION: 'Bearer <YOUR_VALUE>', MCP_HEADER_X_CLIENT_ID: 'acme' },
+    } } },
+    cursor: { mcpServers: { 'clients-auth': { url: authUrl, headers: authHeaders } } },
+    generic: { mcpServers: { 'clients-auth': { url: authUrl, headers: authHeaders } } },
+    'claude-code': { mcpServers: { 'clients-auth': { type: 'http', url: authUrl, headers: authHeaders } } },
+    windsurf: { mcpServers: { 'clients-auth': { serverUrl: authUrl, headers: authHeaders } } },
+    cline: { mcpServers: { 'clients-auth': { type: 'streamableHttp', url: authUrl, headers: authHeaders } } },
+    vscode: { servers: { 'clients-auth': { type: 'http', url: authUrl, headers: authHeaders } } },
+  };
+  const plainUrl = 'https://plain.acme.test/mcp';
+  const expectedPlain = {
+    'claude-desktop': { mcpServers: { 'clients-plain': { command: 'npx', args: ['-y', 'mcp-remote', plainUrl] } } },
+    cursor: { mcpServers: { 'clients-plain': { url: plainUrl } } },
+    generic: { mcpServers: { 'clients-plain': { url: plainUrl } } },
+    'claude-code': { mcpServers: { 'clients-plain': { type: 'http', url: plainUrl } } },
+    windsurf: { mcpServers: { 'clients-plain': { serverUrl: plainUrl } } },
+    cline: { mcpServers: { 'clients-plain': { type: 'streamableHttp', url: plainUrl } } },
+    vscode: { servers: { 'clients-plain': { type: 'http', url: plainUrl } } },
+  };
+  for (const [client, expected] of Object.entries(expectedAuth)) {
+    const result = getInstallCommand(db, 'io.github.acme/clients-auth', client);
+    assert.deepEqual(result.config, expected, client);
+    assert.deepEqual(getInstallCommand(db, 'io.github.acme/clients-plain', client).config, expectedPlain[client], client);
+    assert.match(result.instructions, /Required HTTP header Authorization/, client);
+    assert.match(result.instructions, /Optional HTTP header X-Trace/, client);
+  }
+  const desktop = getInstallCommand(db, 'io.github.acme/clients-auth', 'claude-desktop');
+  assert.doesNotMatch(JSON.stringify(desktop.config), /"(?:url|serverUrl)"/);
+  assert.match(desktop.instructions, /mcp-remote \(requires Node\.js\)/);
+  assert.match(desktop.instructions, /Custom connectors cannot send custom HTTP headers/);
+  assert.match(desktop.postInstallNote, /~\/\.mcp-auth/);
+  assert.match(desktop.postInstallNote, /Replace placeholder values/);
+  const desktopPlain = getInstallCommand(db, 'io.github.acme/clients-plain', 'claude-desktop');
+  assert.match(desktopPlain.instructions, /Add custom connector .*recommended|recommended when no headers/);
+  const code = getInstallCommand(db, 'io.github.acme/clients-auth', 'claude-code');
+  assert.match(code.instructions, /claude mcp add --transport http clients-auth https:\/\/clients\.acme\.test\/mcp --header 'Authorization: Bearer <YOUR_VALUE>' --header 'X-Client-Id: acme'/);
+  assert.match(code.postInstallNote, /\/mcp/);
+  assert.equal(getInstallCommand(db, 'io.github.acme/clients-auth', 'windsurf').configFilePath, '~/.codeium/windsurf/mcp_config.json');
+  assert.match(getInstallCommand(db, 'io.github.acme/clients-auth', 'windsurf').instructions, /devin\/mcp_config\.json/);
+  assert.match(getInstallCommand(db, 'io.github.acme/clients-auth', 'cline').configFilePath,
+    /saoudrizwan\.claude-dev\/settings\/cline_mcp_settings\.json$/);
+  for (const name of ['clients-sse', 'clients-sse-path']) {
+    const url = name === 'clients-sse' ? 'https://sse.acme.test/events' : 'https://inferred.acme.test/sse';
+    assert.deepEqual(getInstallCommand(db, `io.github.acme/${name}`, 'claude-code').config.mcpServers[name], { type: 'sse', url });
+    assert.deepEqual(getInstallCommand(db, `io.github.acme/${name}`, 'cline').config.mcpServers[name], { type: 'sse', url });
+    assert.deepEqual(getInstallCommand(db, `io.github.acme/${name}`, 'vscode').config.servers[name], { type: 'sse', url });
+    assert.match(getInstallCommand(db, `io.github.acme/${name}`, 'claude-code').instructions, /--transport sse/);
+  }
+  assert.deepEqual(buildRemoteServerEntry('claude-desktop', 'k', 'https://x.test/mcp', 'http', { 'X-A': '1', 'X.A': '2' }).entry, {
+    command: 'npx',
+    args: ['-y', 'mcp-remote', 'https://x.test/mcp', '--header', 'X-A:${MCP_HEADER_X_A}', '--header', 'X.A:${MCP_HEADER_X_A_2}'],
+    env: { MCP_HEADER_X_A: '1', MCP_HEADER_X_A_2: '2' },
+  });
+  insert('io.github.acme/clients-http', [{ type: 'streamable-http', url: 'http://insecure.acme.test/mcp' }]);
+  assert.deepEqual(getInstallCommand(db, 'io.github.acme/clients-http', 'claude-desktop').config.mcpServers['clients-http'].args,
+    ['-y', 'mcp-remote', 'http://insecure.acme.test/mcp', '--allow-http']);
+  // Stdio configs follow the client's top-level key.
+  assert.equal(getInstallCommand(db, 'io.github.acme/local', 'vscode').config.servers.local.command, 'npx');
+  assert.equal(getInstallCommand(db, 'io.github.acme/local', 'cline').config.mcpServers.local.command, 'npx');
 } finally {
   db.close();
   rmSync(dir, { recursive: true, force: true });

@@ -140,20 +140,12 @@ Restart Claude Desktop.
 
 `.mcp.json` (project) or `~/.claude.json` (global) — same snippet as above.
 
-### Cline / Roo Code (VS Code)
+### Cline
 
-`.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "mcpfinder": {
-      "command": "npx",
-      "args": ["-y", "@mcpfinder/server"]
-    }
-  }
-}
-```
+`cline_mcp_settings.json` (open it from Cline's MCP Servers panel → Configure;
+on macOS it lives at
+`~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json`)
+— same `mcpServers` snippet as Cursor.
 
 ### Windsurf
 
@@ -168,7 +160,7 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
 | --- | --- |
 | `search_mcp_servers` | Ranked full-text search by keyword, technology, or use case. |
 | `get_server_details` | Trust signals, local env vars, selected remote HTTP headers, tool manifest, warnings before install. |
-| `get_install_config` | Ready-to-paste JSON config for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf. |
+| `get_install_config` | Ready-to-paste JSON config for Claude Desktop, Cursor, Claude Code, Cline, Windsurf, or VS Code (`platform="vscode"`, `.vscode/mcp.json`), in each client's own format (remote servers in Claude Desktop are bridged through `mcp-remote`). |
 | `browse_categories` | Single-call category browser (omit `category` to list; pass `category` for top servers). |
 
 ## What MCPfinder returns to your AI
@@ -186,9 +178,14 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
   get `<YOUR_VALUE>`, other variables get the registry-published `default`,
   then `placeholder`, then `<VALUE>`. Descriptions stay in the "Required
   environment variables" section under the snippet.
-- For a remote HTTP connection, the JSON uses `url` and any explicitly required
-  registry request `headers`; it does not put local process variables beside
-  the URL. The selected URL's header definitions appear as `remoteHeaders` in
+- For a remote HTTP connection, the JSON uses the per-client entry shape: Cursor `{url, headers}`; Claude Code and VS Code
+  `{type: "http"|"sse", url, headers}`; Cline `{type: "streamableHttp"|"sse",
+  url, headers}`; Windsurf `{serverUrl, headers}`; Claude Desktop an
+  `npx -y mcp-remote <url>` stdio bridge whose header values sit in `env` and
+  are referenced from `--header Name:${MCP_HEADER_…}` args (plus
+  `--allow-http` for plain-HTTP URLs). Only explicitly required registry
+  request headers are rendered; registry env vars are never added to a remote
+  entry. The selected URL's header definitions appear as `remoteHeaders` in
   structured results, with `remoteHeadersKnown` indicating whether the
   registry metadata establishes their requirements. Optional headers are
   described separately and omitted from the default JSON, so a client can

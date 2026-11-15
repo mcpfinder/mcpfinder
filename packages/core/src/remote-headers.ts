@@ -15,8 +15,8 @@ function scalar(value: unknown): string | number | boolean | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
-/** Exact Official endpoint; null means metadata cannot be verified. */
-export function selectedRemoteHeaderDeclarations(row: RemoteRow): unknown[] | null {
+/** The Official `remotes[]` entry whose URL exactly matches the row's URL. */
+function selectedOfficialRemote(row: RemoteRow): Record<string, unknown> | null {
   if (!row.remote_url) return null;
   const envelope = parseRawEnvelope(row.raw_data, row.source);
   const payload = envelope ? rawPayloadForSource(envelope, 'official') : null;
@@ -29,10 +29,33 @@ export function selectedRemoteHeaderDeclarations(row: RemoteRow): unknown[] | nu
   // a nearby Official endpoint with a different URL.
   const selected = remotes.find((remote) => remote && typeof remote === 'object' &&
     !Array.isArray(remote) && (remote as Record<string, unknown>).url === row.remote_url);
+  return (selected as Record<string, unknown> | undefined) ?? null;
+}
+
+/** Exact Official endpoint; null means metadata cannot be verified. */
+export function selectedRemoteHeaderDeclarations(row: RemoteRow): unknown[] | null {
+  const selected = selectedOfficialRemote(row);
   if (!selected) return null;
-  const headers = (selected as Record<string, unknown>).headers;
+  const headers = selected.headers;
   if (headers === undefined) return [];
   return Array.isArray(headers) && headers.every((item) => header(item) !== null) ? headers : null;
+}
+
+export type RemoteTransport = 'http' | 'sse';
+
+/**
+ * Transport of the row's remote URL: the selected Official remote's `type`
+ * when published, otherwise inferred from a URL path ending in `/sse`.
+ */
+export function remoteTransportForRow(row: RemoteRow): RemoteTransport {
+  const type = selectedOfficialRemote(row)?.type;
+  if (type === 'sse') return 'sse';
+  if (type === 'streamable-http') return 'http';
+  try {
+    return /\/sse\/?$/i.test(new URL(row.remote_url ?? '').pathname) ? 'sse' : 'http';
+  } catch {
+    return 'http';
+  }
 }
 
 function variable(raw: unknown, parentSecret: boolean, name: string): RegistryRemoteHeaderVariable | null {

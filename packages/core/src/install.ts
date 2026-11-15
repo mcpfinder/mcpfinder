@@ -1,21 +1,15 @@
 /**
  * Generate installation commands for MCP servers.
- * Supports Claude Desktop, Cursor, Claude Code, Cline/Roo Code, Windsurf, and generic configurations.
+ * Supports Claude Desktop, Cursor, Claude Code, Cline, Windsurf, VS Code, and generic configurations.
  */
 import type { DatabaseSync } from 'node:sqlite';
 import type { RegistryEnvVar, RegistryRemoteHeader } from './types.js';
 import { findServerByNameOrSlug } from './search.js';
 import { usableRemoteUrl } from './remote-url.js';
-import { planRemoteHeaders, remoteHeadersForRow } from './remote-headers.js';
+import { planRemoteHeaders, remoteHeadersForRow, remoteTransportForRow, type RemoteTransport } from './remote-headers.js';
+import { CLIENTS, buildRemoteServerEntry, type ClientType } from './clients.js';
 
-export type ClientType =
-  | 'claude-desktop'
-  | 'cursor'
-  | 'claude-code'
-  | 'cline'
-  | 'windsurf'
-  | 'vscode'
-  | 'generic';
+export type { ClientType } from './clients.js';
 
 export interface InstallConfig {
   client: ClientType;
@@ -28,49 +22,6 @@ export interface InstallConfig {
   remoteHeaders?: RegistryRemoteHeader[];
   remoteHeadersKnown?: boolean;
 }
-
-/** Platform metadata: config file paths and notes. */
-const PLATFORM_INFO: Record<
-  ClientType,
-  { configPath: string; configPathWin?: string; displayName: string; postInstall: string }
-> = {
-  'claude-desktop': {
-    configPath: '~/Library/Application Support/Claude/claude_desktop_config.json',
-    configPathWin: '%APPDATA%\\Claude\\claude_desktop_config.json',
-    displayName: 'Claude Desktop',
-    postInstall: 'Restart Claude Desktop to activate the new server.',
-  },
-  cursor: {
-    configPath: '.cursor/mcp.json (project) or ~/.cursor/mcp.json (global)',
-    displayName: 'Cursor',
-    postInstall: 'Cursor auto-detects config changes — no restart needed.',
-  },
-  'claude-code': {
-    configPath: '.mcp.json (project) or ~/.claude.json (global)',
-    displayName: 'Claude Code',
-    postInstall: 'Claude Code will detect the new server automatically on next tool use.',
-  },
-  cline: {
-    configPath: '.vscode/mcp.json or VS Code settings (Cline MCP config)',
-    displayName: 'Cline / Roo Code',
-    postInstall: 'Reload the VS Code window or restart Cline to activate.',
-  },
-  windsurf: {
-    configPath: '~/.windsurf/mcp.json',
-    displayName: 'Windsurf',
-    postInstall: 'Restart Windsurf to activate the new server.',
-  },
-  vscode: {
-    configPath: '.vscode/mcp.json',
-    displayName: 'VS Code',
-    postInstall: 'Reload the VS Code window to activate.',
-  },
-  generic: {
-    configPath: 'your MCP client config file',
-    displayName: 'MCP Client',
-    postInstall: "Refer to your client's docs for how to reload MCP config.",
-  },
-};
 
 /**
  * Coerce a registry-provided value into something that can sit in a config
@@ -149,15 +100,14 @@ export function getInstallCommand(
   const remoteUrl = row.has_remote ? usableRemoteUrl(row.remote_url) : null;
   if (remoteUrl) {
     const remote = remoteHeadersForRow(row);
-    return generateRemoteConfig(serverKey, remoteUrl, remote.headers, remote.known, client);
+    return generateRemoteConfig(serverKey, remoteUrl, remoteTransportForRow(row), remote.headers, remote.known, client);
   }
 
-  const platform = PLATFORM_INFO[client];
   const noPackage = !row.package_identifier;
   return {
     client,
     serverName: serverKey,
-    configFilePath: platform.configPath,
+    configFilePath: CLIENTS[client].configPaths.mac,
     config: {
       note: noPackage
         ? NO_INSTALL_METHOD_NOTE
@@ -180,25 +130,31 @@ export function getInstallCommand(
   };
 }
 
+function wrap(client: ClientType, serverKey: string, entry: Record<string, unknown>): Record<string, unknown> {
+  return { [CLIENTS[client].topLevelKey]: { [serverKey]: entry } };
+}
+
 function buildInstructions(
   mcpConfig: Record<string, unknown>,
   client: ClientType,
   prefix?: string,
 ): { instructions: string; configFilePath: string; postInstallNote: string } {
-  const platform = PLATFORM_INFO[client];
+  const info = CLIENTS[client];
+  const { mac, windows, linux } = info.configPaths;
   const json = JSON.stringify(mcpConfig, null, 2);
   const prefixStr = prefix ? `${prefix}\n\n` : '';
+  const otherPaths = [
+    windows !== mac ? `On Windows: ${windows}` : null,
+    linux !== mac ? `On Linux: ${linux}` : null,
+    info.configNote ?? null,
+  ].filter(Boolean);
 
   const instructions =
-    `${prefixStr}Add to your ${platform.displayName} config (${platform.configPath}):\n\n` +
+    `${prefixStr}Add to your ${info.displayName} config (${mac}):\n\n` +
     '```json\n' + json + '\n```' +
-    (platform.configPathWin ? `\n\nOn Windows: ${platform.configPathWin}` : '');
+    (otherPaths.length ? `\n\n${otherPaths.join('\n')}` : '');
 
-  return {
-    instructions,
-    configFilePath: platform.configPath,
-    postInstallNote: platform.postInstall,
-  };
+  return { instructions, configFilePath: mac, postInstallNote: info.postInstall };
 }
 
 function generateNpmConfig(
@@ -217,7 +173,7 @@ function generateNpmConfig(
     config.env = env;
   }
 
-  const mcpConfig = { mcpServers: { [serverKey]: config } };
+  const mcpConfig = wrap(client, serverKey, config);
   const meta = buildInstructions(mcpConfig, client);
 
   return { client, serverName: serverKey, ...meta, config: mcpConfig, envVarsNeeded: envVars };
@@ -234,7 +190,7 @@ function generatePypiConfig(
   const config: Record<string, unknown> = { command: 'uvx', args: [packageId] };
   if (Object.keys(env).length > 0) config.env = env;
 
-  const mcpConfig = { mcpServers: { [serverKey]: config } };
+  const mcpConfig = wrap(client, serverKey, config);
   const meta = buildInstructions(mcpConfig, client, 'Install via uvx (recommended) or pip.');
 
   return { client, serverName: serverKey, ...meta, config: mcpConfig, envVarsNeeded: envVars };
@@ -251,7 +207,7 @@ function generateDockerConfig(
     args: ['run', '-i', ...envVars.flatMap((v) => ['-e', `${v.name}=<YOUR_VALUE>`]), packageId],
   };
 
-  const mcpConfig = { mcpServers: { [serverKey]: config } };
+  const mcpConfig = wrap(client, serverKey, config);
   const meta = buildInstructions(mcpConfig, client, 'Run via Docker container.');
 
   return { client, serverName: serverKey, ...meta, config: mcpConfig, envVarsNeeded: envVars };
@@ -260,16 +216,17 @@ function generateDockerConfig(
 function generateRemoteConfig(
   serverKey: string,
   remoteUrl: string,
+  transport: RemoteTransport,
   remoteHeaders: RegistryRemoteHeader[],
   remoteHeadersKnown: boolean,
   client: ClientType,
 ): InstallConfig {
   const plan = planRemoteHeaders(remoteHeaders, remoteHeadersKnown);
-  const config: Record<string, unknown> = { url: remoteUrl };
-  if (Object.keys(plan.headers).length > 0) config.headers = plan.headers;
-  const mcpConfig = { mcpServers: { [serverKey]: config } };
-  const meta = buildInstructions(mcpConfig, client, 'This is a hosted/remote MCP server — no local installation needed.');
-  const headerNotes = [
+  const remote = buildRemoteServerEntry(client, serverKey, remoteUrl, transport, plan.headers);
+  const mcpConfig = wrap(client, serverKey, remote.entry);
+  const meta = buildInstructions(mcpConfig, client, 'This is a hosted/remote MCP server — no local package installation needed.');
+  const notes = [
+    ...remote.notes,
     ...(!plan.known ? ['Remote HTTP header metadata is unavailable or invalid; authentication requirements are unknown. Verify the endpoint before installing.'] : []),
     ...plan.requiredHeaders.map((h) => `- Required HTTP header ${h.name}: ${h.description || 'No description'}`),
     ...plan.optionalHeaders.map((h) => `- Optional HTTP header ${h.name}: ${h.description || 'No description'}`),
@@ -277,7 +234,8 @@ function generateRemoteConfig(
   ];
   return {
     client, serverName: serverKey, ...meta,
-    instructions: headerNotes.length ? `${meta.instructions}\n\n${headerNotes.join('\n')}` : meta.instructions,
+    instructions: notes.length ? `${meta.instructions}\n\n${notes.join('\n')}` : meta.instructions,
+    postInstallNote: remote.postInstall,
     config: mcpConfig, envVarsNeeded: [], remoteHeaders, remoteHeadersKnown,
   };
 }

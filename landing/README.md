@@ -11,7 +11,8 @@ on 2026-04-20 so the site lives alongside the code.
 ```
 landing/
 ├── public/
-│   ├── index.html                          # one-pager, fully self-contained (inline CSS)
+│   ├── index.html                          # homepage markup + small inline JS; loads the shared Coder AI Apps switcher (https://coderai.dev/sdk/apps.js, with a fallback link)
+│   ├── home.css                            # homepage styles
 │   ├── analytics.js                        # GA4 (G-LPLFNBLWG4) + conversion events, included by every page
 │   ├── llms.txt                            # short AI-facing discovery guide
 │   ├── llms-full.txt                       # expanded AI-facing manual

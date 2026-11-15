@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MCPfinder | Search, Discover & Install MCP Servers</title>
-  <meta name="description" content="Search MCP servers across the Official MCP Registry and Glama. Inspect trust signals, local env vars and remote HTTP headers, then generate install config for Claude, Cursor, Claude Code, Cline, and Windsurf.">
-  <meta name="keywords" content="MCP discovery, MCP server install, AI agent tooling, Model Context Protocol, MCP server registry, Claude Desktop MCP, Cursor MCP">
+  <title>MCPfinder — Find and install MCP servers from your AI agent</title>
+  <meta name="description" content="Open-source MCP server that lets Claude, Cursor and other AI agents search the Official MCP Registry and Glama, vet each server and write its install config.">
   <meta name="author" content="Coder AI">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://mcpfinder.dev/">
@@ -20,8 +19,8 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mcpfinder.dev/">
-  <meta property="og:title" content="MCPfinder | Search & Discover MCP Servers for AI Agents">
-  <meta property="og:description" content="Search MCP servers across multiple registries, inspect trust signals, and generate install-ready config for your AI client.">
+  <meta property="og:title" content="MCPfinder — Find and install MCP servers from your AI agent">
+  <meta property="og:description" content="Open-source MCP server that lets Claude, Cursor and other AI agents search the Official MCP Registry and Glama, vet each server and write its install config.">
   <meta property="og:image" content="https://mcpfinder.dev/og-image.png">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="640">
@@ -29,15 +28,15 @@
   <meta property="og:image:type" content="image/png">
   <meta property="og:site_name" content="MCPfinder">
   <meta property="og:locale" content="en_US">
-  <meta property="og:updated_time" content="2026-11-02T00:00:00Z">
+  <meta property="og:updated_time" content="2026-11-15T00:00:00Z">
   <meta property="article:author" content="Coder AI">
   <meta property="article:publisher" content="https://coderai.dev">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@coderaidev">
-  <meta name="twitter:title" content="MCPfinder | Search & Discover MCP Servers for AI Agents">
-  <meta name="twitter:description" content="Search MCP servers across multiple registries, inspect trust signals, and generate install-ready config for your AI client.">
+  <meta name="twitter:title" content="MCPfinder — Find and install MCP servers from your AI agent">
+  <meta name="twitter:description" content="Open-source MCP server that lets Claude, Cursor and other AI agents search the Official MCP Registry and Glama, vet each server and write its install config.">
   <meta name="twitter:image" content="https://mcpfinder.dev/og-image.png">
   <meta name="twitter:image:alt" content="MCPfinder — Your AI finds MCP servers for you. Search, vet and install MCP servers from the Official MCP Registry and Glama.">
 
@@ -49,29 +48,23 @@
     "@id": "https://mcpfinder.dev/#app",
     "name": "MCPfinder",
     "url": "https://mcpfinder.dev",
-    "description": "An MCP that finds MCPs. Open-source discovery for agents.",
+    "description": "Free, open-source MCP server that lets Claude, Cursor and other AI agents search the Official MCP Registry and Glama, check each server's trust signals and write its install config.",
     "applicationCategory": "DeveloperApplication",
-    "operatingSystem": "Web",
+    "operatingSystem": "macOS, Windows, Linux",
     "featureList": [
-      "Discover MCP servers for AI agents",
-      "Open-source",
-      "Agent-ready install flow"
+      "Search a merged, deduplicated index of the Official MCP Registry and Glama",
+      "Confidence score, install complexity and warning flags for every candidate",
+      "Required environment variables and HTTP headers flagged before install",
+      "Install config generated for Claude Desktop, Claude Code, Cursor, Windsurf and Cline in VS Code",
+      "Runs locally over stdio with no account or API key"
     ],
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
     "publisher": { "@id": "https://coderai.dev/#org" },
     "isPartOf": { "@id": "https://coderai.dev/#org" },
-    "author": {
-      "@type": "Organization",
-      "name": "Coder AI",
-      "url": "https://coderai.dev"
-    },
+    "author": { "@type": "Organization", "name": "Coder AI", "url": "https://coderai.dev" },
     "softwareVersion": "2.0.2",
     "datePublished": "2025-04-20",
-    "dateModified": "2026-11-02",
+    "dateModified": "2026-11-15",
     "license": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     "downloadUrl": "https://www.npmjs.com/package/@mcpfinder/server",
     "codeRepository": "https://github.com/mcpfinder/mcpfinder",
@@ -81,12 +74,9 @@
       "https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder"
     ],
     "keywords": "MCP, Model Context Protocol, MCP discovery, MCP registry, AI agent tooling, Claude MCP, Cursor MCP",
-    "audience": {
-      "@type": "Audience",
-      "audienceType": "Developers and AI agents"
-    }
+    "audience": { "@type": "Audience", "audienceType": "Developers and AI agents" }
   }
-</script>
+  </script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -96,9 +86,7 @@
     "url": "https://coderai.dev",
     "logo": "https://mcpfinder.dev/mcpfinder-icon.png",
     "description": "Maker of small productivity tools for developers and AI agents: cnvs.app, plugand.ai, plai.chat, free-sign.com, maxcv.ai, whenmeet.me, and mcpfinder.dev.",
-    "sameAs": [
-      "https://twitter.com/CoderAi44221"
-    ],
+    "sameAs": ["https://twitter.com/CoderAi44221"],
     "owns": [
       { "@id": "https://cnvs.app/#app" },
       { "@id": "https://plugand.ai/#app" },
@@ -116,14 +104,10 @@
     "@type": "WebSite",
     "name": "MCPfinder",
     "url": "https://mcpfinder.dev",
-    "description": "AI-first MCP server discovery layer across the Official MCP Registry and Glama.",
+    "description": "Find, vet and install MCP servers from your AI agent, across the Official MCP Registry and Glama.",
     "inLanguage": "en",
-    "dateModified": "2026-11-02",
-    "publisher": {
-      "@type": "Organization",
-      "name": "Coder AI",
-      "url": "https://coderai.dev"
-    }
+    "dateModified": "2026-11-15",
+    "publisher": { "@type": "Organization", "name": "Coder AI", "url": "https://coderai.dev" }
   }
   </script>
   <script type="application/ld+json">
@@ -139,12 +123,8 @@
     "license": "https://www.gnu.org/licenses/agpl-3.0.en.html",
     "url": "https://www.npmjs.com/package/@mcpfinder/server",
     "version": "2.0.2",
-    "dateModified": "2026-11-02",
-    "author": {
-      "@type": "Organization",
-      "name": "Coder AI",
-      "url": "https://coderai.dev"
-    }
+    "dateModified": "2026-11-15",
+    "author": { "@type": "Organization", "name": "Coder AI", "url": "https://coderai.dev" }
   }
   </script>
   <script type="application/ld+json">
@@ -152,38 +132,34 @@
     "@context": "https://schema.org",
     "@type": "HowTo",
     "name": "Install MCPfinder for your AI agent",
-    "description": "Add MCPfinder as an MCP server to your AI client so the assistant can discover and install other MCP servers on demand.",
-    "totalTime": "PT30S",
-    "estimatedCost": {
-      "@type": "MonetaryAmount",
-      "currency": "USD",
-      "value": 0
-    },
+    "description": "MCPfinder runs locally as a stdio MCP server through npx. Pick your client, add the snippet, restart if asked.",
+    "totalTime": "PT1M",
+    "estimatedCost": { "@type": "MonetaryAmount", "currency": "USD", "value": 0 },
     "tool": [
-      { "@type": "HowToTool", "name": "Node.js + npx" },
-      { "@type": "HowToTool", "name": "An MCP-compatible client (Claude Desktop, Cursor, Claude Code, Cline, or Windsurf)" }
+      { "@type": "HowToTool", "name": "Node.js 22.15+ with npx" },
+      { "@type": "HowToTool", "name": "An MCP client such as Claude Desktop, Claude Code, Cursor, VS Code, Windsurf or Cline" }
     ],
     "step": [
       {
         "@type": "HowToStep",
         "position": 1,
-        "name": "Install MCPfinder",
-        "text": "Add MCPfinder as an MCP server in your client's config. Easiest way: run npx -y @mcpfinder/server or paste the mcpServers JSON block shown on the page.",
+        "name": "Pick your client",
+        "text": "Choose Claude Desktop, Claude Code, Cursor, VS Code, Windsurf, Cline or the install-mcpfinder Agent Skill.",
         "url": "https://mcpfinder.dev/#install"
       },
       {
         "@type": "HowToStep",
         "position": 2,
-        "name": "Let the AI discover tools",
-        "text": "Ask the assistant for a capability it doesn't have. It calls search_mcp_servers, inspects results with get_server_details, and recommends the best match.",
-        "url": "https://mcpfinder.dev/#how-it-works"
+        "name": "Add the snippet",
+        "text": "Add the mcpfinder entry running npx -y @mcpfinder/server to your client's MCP config file, or run claude mcp add mcpfinder -- npx -y @mcpfinder/server in Claude Code.",
+        "url": "https://mcpfinder.dev/#install"
       },
       {
         "@type": "HowToStep",
         "position": 3,
-        "name": "Capabilities expand on demand",
-        "text": "The assistant generates a client-specific install snippet with get_install_config. Paste it, restart the client, and the new MCP server is online.",
-        "url": "https://mcpfinder.dev/#how-it-works"
+        "name": "Restart if asked",
+        "text": "Restart or reload the client if it requires it, then ask your agent for a capability it doesn't have yet.",
+        "url": "https://mcpfinder.dev/#install"
       }
     ]
   }
@@ -197,30 +173,10 @@
     "numberOfItems": 4,
     "itemListOrder": "https://schema.org/ItemListOrderAscending",
     "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "search_mcp_servers",
-        "description": "Find candidate MCP servers by keyword, technology, or use case. Returns confidence score, recommendation reason, source count, and warning flags."
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "get_server_details",
-        "description": "Inspect trust signals, transport, local environment variables, selected remote HTTP headers, warnings, and tool manifest before recommending or installing a candidate."
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": "get_install_config",
-        "description": "Generate a ready-to-paste JSON config snippet for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf, plus the target config-file path."
-      },
-      {
-        "@type": "ListItem",
-        "position": 4,
-        "name": "browse_categories",
-        "description": "Single-call category explorer. List all categories with counts, or get top servers within a category like database, filesystem, communication, or security."
-      }
+      { "@type": "ListItem", "position": 1, "name": "search_mcp_servers", "description": "Matches by keyword, technology or use case across both registries, deduplicated. Every result says why it ranked and what looks off." },
+      { "@type": "ListItem", "position": 2, "name": "get_server_details", "description": "Transport, required environment variables or HTTP headers, last update, repository, and the tools the server exposes." },
+      { "@type": "ListItem", "position": 3, "name": "get_install_config", "description": "JSON for your client, the file it belongs in, which secrets you need to fill in, and whether to restart." },
+      { "@type": "ListItem", "position": 4, "name": "browse_categories", "description": "Lists categories like database, filesystem, communication and security with the top servers in each." }
     ]
   }
   </script>
@@ -228,18 +184,21 @@
   {
     "@context": "https://schema.org",
     "@type": "DefinedTermSet",
-    "name": "MCP and MCPfinder glossary",
-    "description": "Short, quotable definitions of the terms used across MCPfinder's tools, results, and trust signals.",
-    "inDefinedTermSet": "https://mcpfinder.dev/#glossary",
+    "@id": "https://mcpfinder.dev/#glossary",
+    "name": "MCPfinder trust signals",
+    "description": "The scores and warning flags MCPfinder returns for every MCP server candidate.",
     "hasDefinedTerm": [
-      { "@type": "DefinedTerm", "name": "MCP", "description": "Model Context Protocol — an open standard from Anthropic that lets AI models connect to external tools and data sources through a uniform interface." },
-      { "@type": "DefinedTerm", "name": "MCP server", "description": "A process that exposes capabilities (tools, resources, prompts) over MCP so an AI agent can use them." },
-      { "@type": "DefinedTerm", "name": "MCP client", "description": "The application that hosts the AI assistant and connects to MCP servers. Examples: Claude Desktop, Cursor, Claude Code, Cline, Windsurf." },
-      { "@type": "DefinedTerm", "name": "stdio transport", "description": "MCP server runs as a child process and exchanges JSON-RPC over standard input/output." },
-      { "@type": "DefinedTerm", "name": "confidenceScore", "description": "Score in [0,1] aggregated from trust signals; higher means stronger evidence the server is real, fresh, and installable." },
-      { "@type": "DefinedTerm", "name": "warningFlags", "description": "Reasons to pause before recommending: single-source-only, missing-update-date, missing-repository-url, install-method-unclear, stale-over-12-months, stale-over-18-months." },
-      { "@type": "DefinedTerm", "name": "installComplexity", "description": "low: zero or one non-secret env var; medium: a few env vars including secrets; high: many secrets or no clean auto-install path." },
-      { "@type": "DefinedTerm", "name": "capabilityCount", "description": "Number of tools the downstream MCP server exposes when a manifest is available. 0 means MCPfinder has no manifest, not that the server is empty." }
+      { "@type": "DefinedTerm", "name": "confidenceScore", "description": "0 to 1. Built from official-registry presence, how many registries list the server, metadata completeness and freshness. Higher means more evidence it is real and installable." },
+      { "@type": "DefinedTerm", "name": "installComplexity", "description": "low: runs via npx, uvx or Docker with at most one non-secret setting. medium: a few settings, some secret. high: many secrets or no clean install path." },
+      { "@type": "DefinedTerm", "name": "requires_user_secrets", "description": "Whether you must supply API keys or tokens. MCPfinder separates local environment variables from remote HTTP headers and lists optional ones separately." },
+      { "@type": "DefinedTerm", "name": "single-source-only", "description": "Listed in only one registry." },
+      { "@type": "DefinedTerm", "name": "missing-repository-url", "description": "No public source code link." },
+      { "@type": "DefinedTerm", "name": "missing-update-date", "description": "No reliable last-updated date." },
+      { "@type": "DefinedTerm", "name": "install-method-unclear", "description": "No package or URL MCPfinder can turn into config." },
+      { "@type": "DefinedTerm", "name": "stale-over-12-months / stale-over-18-months", "description": "Not updated in over a year (or 18 months)." },
+      { "@type": "DefinedTerm", "name": "archived-repo", "description": "The source repository is archived." },
+      { "@type": "DefinedTerm", "name": "deprecated-npm", "description": "The npm package is marked deprecated. The largest score penalty." },
+      { "@type": "DefinedTerm", "name": "status:<value>", "description": "The registry marks the server with a non-active status, e.g. deprecated." }
     ]
   }
   </script>
@@ -247,49 +206,18 @@
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "dateModified": "2026-10-20",
+    "dateModified": "2026-11-15",
     "inLanguage": "en",
     "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is MCP (Model Context Protocol)?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "MCP (Model Context Protocol) is an open standard created by Anthropic that lets AI models connect to external tools and data sources. Think of it as USB-C for AI — a universal plug that lets your AI agent use databases, APIs, file systems, and more."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How do I find the best MCP server for my use case?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "MCPfinder helps an AI agent discover and evaluate MCP servers. Search first, inspect trust signals and the selected connection's env vars or HTTP headers, then generate a client-specific install config."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is MCPfinder free to use?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes! MCPfinder is completely free and open-source. Install it via npm with npx -y @mcpfinder/server or add it to your project with npm install @mcpfinder/server."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What MCP registries does MCPfinder search?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "MCPfinder aggregates the Official MCP Registry and Glama into one searchable index and exposes that discovery workflow through MCP tools."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How is MCPfinder different from browsing a registry directly?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "MCPfinder is itself an MCP server — meaning your AI agent can use it directly to discover and recommend other MCP servers on-the-fly. No manual browsing needed. It's like giving your AI its own app store."
-        }
-      }
+      { "@type": "Question", "name": "What is MCPfinder?", "acceptedAnswer": { "@type": "Answer", "text": "MCPfinder is a free, open-source MCP server that helps AI agents discover, evaluate and install other MCP servers. It searches the Official MCP Registry and Glama, returns trust signals and warning flags for each candidate, and generates install config for Claude Desktop, Claude Code, Cursor, Windsurf and Cline in VS Code." } },
+      { "@type": "Question", "name": "What is an MCP server?", "acceptedAnswer": { "@type": "Answer", "text": "The Model Context Protocol (MCP) is an open standard, introduced by Anthropic, that lets AI applications connect to external tools and data. An MCP server exposes tools, resources or prompts — for example a database, GitHub, Slack or a browser — that an MCP client like Claude Desktop or Cursor can use." } },
+      { "@type": "Question", "name": "How do I find the right MCP server for a task?", "acceptedAnswer": { "@type": "Answer", "text": "Install MCPfinder and ask your agent for the capability in plain words. It calls search_mcp_servers, inspects the best candidates with get_server_details, and uses get_install_config to produce the config. You get a recommendation with reasons and warnings, not just a list of links." } },
+      { "@type": "Question", "name": "Is MCPfinder free? Does it need an API key?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, it is free and open source under AGPL-3.0. It needs no account and no API key; it runs locally through npx -y @mcpfinder/server." } },
+      { "@type": "Question", "name": "Can I use it at work or in a commercial product?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. You can run it and use it with your agents in any personal, internal or commercial setting. AGPL-3.0 only requires that if you modify MCPfinder and offer it as a network service, you publish those changes under the same licence. For other licensing, contact Coder AI." } },
+      { "@type": "Question", "name": "Does MCPfinder install servers by itself?", "acceptedAnswer": { "@type": "Answer", "text": "No. It only returns the config and tells your agent which secrets are needed and what to restart. Your agent or you apply the change, so nothing is added to your client without you seeing it." } },
+      { "@type": "Question", "name": "Which registries does it search, and how fresh is the data?", "acceptedAnswer": { "@type": "Answer", "text": "The Official MCP Registry and Glama, merged and deduplicated. The data ships as a published snapshot; its publish date and server count are public at /api/v1/snapshot/manifest.json, and MCPfinder exposes them to your agent." } },
+      { "@type": "Question", "name": "Is there a hosted HTTP endpoint?", "acceptedAnswer": { "@type": "Answer", "text": "Not yet. The local stdio server is the supported interface. A hosted endpoint with the same tools is on the roadmap." } },
+      { "@type": "Question", "name": "How can I contribute?", "acceptedAnswer": { "@type": "Answer", "text": "Issues and pull requests are welcome on GitHub at github.com/mcpfinder/mcpfinder. The project is maintained by Coder AI." } }
     ]
   }
   </script>
@@ -297,1538 +225,483 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-  <style>
-    /* Reset & Base */
-    *, *::before, *::after { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-    }
-
-    :root {
-      --bg-primary: #0A0A0A;
-      --text-primary: #F5F5F5;
-      --text-secondary: #999;
-      --text-muted: #666;
-      --accent: #D4FF00;
-      --border: #333;
-      --font-mono: 'JetBrains Mono', monospace;
-      --max-width: 1100px;
-    }
-
-    html { 
-      scroll-behavior: smooth; 
-    }
-
-    body {
-      font-family: var(--font-mono);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      font-weight: 400;
-    }
-
-    a { 
-      color: var(--text-primary); 
-      text-decoration: none; 
-      transition: color 0.15s;
-    }
-    a:hover { 
-      color: var(--accent); 
-    }
-
-    .container { 
-      max-width: var(--max-width); 
-      margin: 0 auto; 
-      padding: 0 32px; 
-    }
-
-    /* Utility Classes */
-    .section-label {
-      font-size: 0.75rem; 
-      font-weight: 500; 
-      text-transform: uppercase;
-      letter-spacing: 0.1em; 
-      color: var(--accent); 
-      margin-bottom: 16px;
-    }
-
-    .section-title {
-      font-size: clamp(1.5rem, 3vw, 2rem);
-      font-weight: 700; 
-      margin-bottom: 16px;
-    }
-
-    .section-desc {
-      color: var(--text-secondary); 
-      font-size: 1rem;
-      max-width: 600px; 
-      margin-bottom: 48px;
-    }
-
-    .section-center { 
-      text-align: center; 
-    }
-    .section-center .section-desc { 
-      margin-left: auto; 
-      margin-right: auto; 
-    }
-    #how-it-works .section-desc a { text-decoration: underline; }
-
-    /* Navigation */
-    nav {
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      right: 0; 
-      z-index: 100;
-      background: var(--bg-primary);
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .nav-inner {
-      max-width: var(--max-width); 
-      margin: 0 auto; 
-      padding: 0 32px;
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between; 
-      height: 64px;
-    }
-    
-    .nav-logo {
-      font-size: 1.1rem; 
-      font-weight: 700; 
-      color: var(--text-primary);
-      display: flex; 
-      align-items: center; 
-      gap: 8px;
-    }
-    
-    .nav-links { 
-      display: flex; 
-      gap: 32px; 
-      align-items: center; 
-    }
-    
-    .nav-links a { 
-      color: var(--text-secondary); 
-      font-size: 0.85rem; 
-      font-weight: 500;
-    }
-    
-    .nav-links a:hover { 
-      color: var(--text-primary); 
-    }
-    
-    .nav-cta {
-      background: var(--accent); 
-      color: #000 !important; 
-      padding: 8px 16px;
-      font-size: 0.8rem; 
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      transition: all 0.15s;
-    }
-    
-    .nav-cta:hover { 
-      background: var(--text-primary); 
-      color: #000 !important; 
-    }
-
-    /* Hero Section */
-    .hero {
-      padding: 160px 0 100px;
-      text-align: center;
-    }
-    
-    .hero-badge {
-      display: inline-flex; 
-      align-items: center; 
-      gap: 8px;
-      border: 1px solid var(--border);
-      padding: 8px 16px; 
-      font-size: 0.75rem;
-      color: var(--text-secondary); 
-      margin-bottom: 32px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 500;
-    }
-    
-    .hero h1 {
-      font-size: clamp(2.5rem, 6vw, 4rem);
-      font-weight: 700; 
-      line-height: 1.1;
-      margin-bottom: 24px;
-    }
-    
-    .hero h1 .highlight {
-      color: var(--accent);
-    }
-    
-    .hero p {
-      font-size: 1rem; 
-      color: var(--text-secondary);
-      max-width: 600px; 
-      margin: 0 auto 48px;
-    }
-
-    /* Search Box */
-    .search-wrap {
-      max-width: 600px; 
-      margin: 0 auto 48px;
-      position: relative;
-    }
-    
-    .search-wrap input {
-      width: 100%; 
-      padding: 16px 16px 16px 48px;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-      font-size: 0.9rem; 
-      font-family: var(--font-mono);
-      outline: none; 
-      transition: border-color 0.15s;
-    }
-    
-    .search-wrap input::placeholder { 
-      color: var(--text-muted); 
-    }
-    
-    .search-wrap input:focus {
-      border-color: var(--accent);
-    }
-    
-    .search-icon {
-      position: absolute; 
-      left: 16px; 
-      top: 50%; 
-      transform: translateY(-50%);
-      color: var(--text-muted); 
-      pointer-events: none;
-    }
-
-    /* Buttons */
-    .btn-group { 
-      display: flex; 
-      gap: 16px; 
-      justify-content: center; 
-      flex-wrap: wrap; 
-    }
-    
-    .btn {
-      display: inline-flex; 
-      align-items: center; 
-      gap: 8px;
-      padding: 12px 24px; 
-      font-size: 0.85rem; 
-      font-weight: 700;
-      font-family: var(--font-mono);
-      border: 1px solid var(--border); 
-      cursor: pointer; 
-      transition: all 0.15s;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .btn-primary { 
-      background: var(--accent); 
-      color: #000; 
-      border-color: var(--accent);
-    }
-    
-    .btn-primary:hover { 
-      background: var(--text-primary); 
-      border-color: var(--text-primary);
-      color: #000;
-    }
-    
-    .btn-secondary {
-      background: transparent; 
-      color: var(--text-primary);
-      border-color: var(--border);
-    }
-    
-    .btn-secondary:hover { 
-      background: var(--text-primary);
-      color: #000;
-      border-color: var(--text-primary);
-    }
-
-    /* Sections */
-    section { 
-      padding: 80px 0; 
-    }
-
-    /* What is MCP */
-    .mcp-explainer {
-      border: 1px solid var(--border);
-      padding: 48px;
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 64px;
-      align-items: start;
-    }
-    
-    .mcp-explainer h2 { 
-      font-size: 1.5rem; 
-      margin-bottom: 24px; 
-    }
-    
-    .mcp-explainer p { 
-      color: var(--text-secondary); 
-      margin-bottom: 16px; 
-      font-size: 0.9rem;
-    }
-    
-    .mcp-diagram {
-      display: flex; 
-      flex-direction: column; 
-      gap: 16px;
-      font-size: 0.8rem;
-    }
-    
-    .mcp-node {
-      border: 1px solid var(--border);
-      padding: 16px; 
-      text-align: center;
-      font-weight: 500;
-    }
-    
-    .mcp-node.highlight { 
-      border-color: var(--accent); 
-      background: rgba(212, 255, 0, 0.05);
-    }
-    
-    .mcp-arrow { 
-      text-align: center; 
-      color: var(--text-muted); 
-      font-size: 1rem; 
-    }
-
-    /* How it works */
-    .steps { 
-      display: grid; 
-      grid-template-columns: repeat(3, 1fr); 
-      gap: 32px; 
-    }
-    
-    .step {
-      border: 1px solid var(--border);
-      padding: 32px;
-      transition: border-color 0.15s;
-    }
-    
-    .step:hover { 
-      border-color: var(--text-muted); 
-    }
-    
-    .step-num {
-      display: inline-flex; 
-      align-items: center; 
-      justify-content: center;
-      width: 32px; 
-      height: 32px; 
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      font-size: 0.8rem; 
-      font-weight: 700; 
-      margin-bottom: 24px;
-    }
-    
-    .step h3 { 
-      font-size: 1rem; 
-      margin-bottom: 12px;
-      font-weight: 700;
-    }
-    
-    .step p { 
-      color: var(--text-secondary); 
-      font-size: 0.85rem; 
-    }
-
-    /* Install Section */
-    .install-section { 
-      border-top: 1px solid var(--border); 
-      border-bottom: 1px solid var(--border); 
-    }
-    
-    .install-grid { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 32px; 
-    }
-    
-    .code-block {
-      border: 1px solid var(--border);
-      overflow: hidden;
-    }
-    
-    .code-header {
-      display: flex; 
-      align-items: center; 
-      justify-content: space-between;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.7rem; 
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-    
-    .code-dots { 
-      display: flex; 
-      gap: 8px; 
-    }
-    
-    .code-dots span { 
-      width: 8px; 
-      height: 8px; 
-      border: 1px solid var(--border);
-    }
-    
-    .code-body {
-      padding: 24px; 
-      font-size: 0.8rem;
-      line-height: 1.8; 
-      overflow-x: auto;
-    }
-    
-    .code-body .prompt { 
-      color: var(--accent); 
-    }
-    
-    .code-body .cmd { 
-      color: var(--text-primary); 
-    }
-    
-    .code-body .comment { 
-      color: var(--text-muted); 
-    }
-    
-    .code-body .string { 
-      color: var(--text-secondary); 
-    }
-    
-    .code-body .key { 
-      color: var(--text-primary); 
-    }
-
-    /* Features */
-    .features-grid { 
-      display: grid; 
-      grid-template-columns: repeat(2, 1fr); 
-      gap: 32px; 
-    }
-    
-    .feature {
-      border: 1px solid var(--border);
-      padding: 32px;
-      transition: border-color 0.15s;
-    }
-    
-    .feature:hover { 
-      border-color: var(--text-muted); 
-    }
-    
-    .feature-icon {
-      margin-bottom: 20px;
-      width: 24px; 
-      height: 24px;
-      stroke: var(--accent);
-    }
-    
-    .feature h3 { 
-      font-size: 0.95rem; 
-      margin-bottom: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .feature p { 
-      color: var(--text-secondary); 
-      font-size: 0.8rem; 
-    }
-
-    /* Stats */
-    .stats {
-      display: grid; 
-      grid-template-columns: repeat(4, 1fr); 
-      gap: 32px;
-      padding: 64px 0;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .stat { 
-      text-align: center; 
-    }
-    
-    .stat-value {
-      font-size: 2rem; 
-      font-weight: 700;
-      color: var(--accent);
-    }
-    
-    .stat-label { 
-      color: var(--text-muted); 
-      font-size: 0.7rem; 
-      margin-top: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    .freshness-note {
-      margin-top: 16px;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.75rem;
-    }
-
-    /* FAQ */
-    .faq-list { 
-      max-width: 800px; 
-      margin: 0 auto; 
-    }
-    
-    .faq-item {
-      border-bottom: 1px solid var(--border);
-      padding: 32px 0;
-    }
-    
-    .faq-item:first-child { 
-      border-top: 1px solid var(--border); 
-    }
-    
-    .faq-q {
-      font-size: 0.95rem; 
-      font-weight: 700; 
-      cursor: pointer;
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center;
-      gap: 16px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .faq-q::after {
-      content: '+'; 
-      font-size: 1.2rem; 
-      color: var(--text-muted);
-      flex-shrink: 0; 
-      transition: transform 0.15s;
-    }
-    
-    .faq-item.open .faq-q::after { 
-      content: '−'; 
-    }
-    
-    .faq-a {
-      color: var(--text-secondary); 
-      font-size: 0.85rem;
-      max-height: 0; 
-      overflow: hidden; 
-      transition: max-height 0.3s, padding 0.3s;
-      padding-top: 0;
-      text-transform: none;
-      letter-spacing: normal;
-    }
-    
-    .faq-item.open .faq-a { 
-      max-height: 300px; 
-      padding-top: 16px; 
-    }
-
-    .faq-a code {
-      background: rgba(212, 255, 0, 0.1);
-      padding: 2px 4px;
-      color: var(--accent);
-      font-size: 0.8rem;
-    }
-
-    /* Comparison table */
-    .compare-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-      margin-top: 24px;
-    }
-    .compare-table th,
-    .compare-table td {
-      border: 1px solid var(--border);
-      padding: 14px 16px;
-      text-align: left;
-      vertical-align: top;
-    }
-    .compare-table th {
-      background: rgba(212, 255, 0, 0.05);
-      color: var(--accent);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 0.75rem;
-    }
-    .compare-table td.cell-strong {
-      color: var(--text-primary);
-    }
-    .compare-table td.cell-weak {
-      color: var(--text-muted);
-    }
-    .compare-table tr td:first-child {
-      color: var(--text-primary);
-      font-weight: 500;
-    }
-
-    /* Glossary */
-    .glossary-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0;
-      border: 1px solid var(--border);
-    }
-    .glossary-term {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-    }
-    .glossary-term:nth-child(2n) { border-right: none; }
-    .glossary-term:nth-last-child(-n+2) { border-bottom: none; }
-    .glossary-term dt {
-      color: var(--accent);
-      font-size: 0.85rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 8px;
-    }
-    .glossary-term dd {
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      margin: 0;
-      line-height: 1.55;
-    }
-    @media (max-width: 768px) {
-      .glossary-grid { grid-template-columns: 1fr; }
-      .glossary-term { border-right: none; }
-      .glossary-term:nth-last-child(2) { border-bottom: 1px solid var(--border); }
-      .compare-table { font-size: 0.78rem; }
-      .compare-table th, .compare-table td { padding: 10px 8px; }
-    }
-
-    /* CTA Section */
-    .cta-section {
-      text-align: center; 
-      padding: 100px 0;
-    }
-    
-    .cta-section h2 {
-      font-size: clamp(1.8rem, 3vw, 2.5rem);
-      font-weight: 700; 
-      margin-bottom: 16px;
-    }
-    
-    .cta-section p { 
-      color: var(--text-secondary); 
-      margin-bottom: 48px; 
-      font-size: 1rem; 
-    }
-    
-    .cta-install {
-      display: inline-block;
-      border: 1px solid var(--border);
-      padding: 16px 32px;
-      font-size: 0.9rem;
-      color: var(--text-primary); 
-      margin-bottom: 32px;
-      cursor: pointer; 
-      transition: border-color 0.15s;
-      font-weight: 500;
-    }
-    
-    .cta-install:hover { 
-      border-color: var(--accent); 
-    }
-    
-    .cta-install .prompt { 
-      color: var(--accent); 
-    }
-
-    /* Footer */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 48px 0;
-      text-align: center;
-    }
-    
-    .footer-links { 
-      display: flex; 
-      gap: 32px; 
-      justify-content: center; 
-      margin-bottom: 24px; 
-      flex-wrap: wrap; 
-    }
-    
-    .footer-links a { 
-      color: var(--text-muted); 
-      font-size: 0.8rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .footer-links a:hover { 
-      color: var(--text-secondary); 
-    }
-    
-    .footer-credit { 
-      color: var(--text-muted); 
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-    
-    .footer-credit a { 
-      color: var(--text-muted); 
-    }
-    
-    .footer-credit a:hover { 
-      color: var(--accent); 
-    }
-
-    /* Cross-promo (Coder AI apps) */
-    .coder-ai-apps {
-      padding: 80px 0;
-      border-top: 1px solid var(--border);
-    }
-    .coder-ai-apps h2 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .coder-ai-apps h2 a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-    .coder-ai-apps h2 a:hover {
-      color: var(--text-primary);
-    }
-    .coder-ai-apps .lead {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      margin-bottom: 32px;
-    }
-    .coder-ai-grid {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      flex-wrap: nowrap;
-      scroll-snap-type: x proximity;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
-      padding-bottom: 8px;
-    }
-    .coder-ai-grid::-webkit-scrollbar {
-      height: 6px;
-    }
-    .coder-ai-grid::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .coder-ai-grid::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 3px;
-    }
-    .coder-ai-card {
-      display: block;
-      flex: 0 0 200px;
-      scroll-snap-align: start;
-      padding: 20px;
-      border: 1px solid var(--border);
-      background: transparent;
-      text-decoration: none;
-      color: var(--text-primary);
-      transition: border-color 0.15s, background 0.15s;
-    }
-    .coder-ai-card:hover {
-      border-color: var(--accent);
-      background: rgba(212, 255, 0, 0.03);
-      color: var(--text-primary);
-    }
-    .coder-ai-card h3 {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--accent);
-      margin: 0 0 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .coder-ai-card p {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      line-height: 1.5;
-      margin: 0;
-    }
-    @media (max-width: 560px) {
-      .coder-ai-card { flex-basis: 180px; }
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .nav-links { 
-        display: none; 
-      }
-      .mcp-explainer { 
-        grid-template-columns: 1fr; 
-        gap: 32px; 
-        padding: 32px; 
-      }
-      .steps { 
-        grid-template-columns: 1fr; 
-      }
-      .install-grid { 
-        grid-template-columns: 1fr; 
-      }
-      .features-grid { 
-        grid-template-columns: 1fr; 
-      }
-      .stats { 
-        grid-template-columns: repeat(2, 1fr); 
-        gap: 32px; 
-      }
-      .hero { 
-        padding: 120px 0 80px; 
-      }
-      section { 
-        padding: 64px 0; 
-      }
-      .container {
-        padding: 0 24px;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .stats { 
-        grid-template-columns: 1fr; 
-      }
-      .btn-group { 
-        flex-direction: column; 
-        align-items: center; 
-      }
-    }
-  </style>
-  <!-- Google Analytics 4 (G-LPLFNBLWG4); gtag.js only loads on mcpfinder.dev -->
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/home.css">
+  <script>document.documentElement.classList.add('js');</script>
   <script src="/analytics.js" defer></script>
+  <!-- Coder AI "Apps" switcher (shared SDK, see coderai.dev/sdk/apps-README.md); the fallback link works without it -->
+  <script src="https://coderai.dev/sdk/apps.js" async></script>
 </head>
 <body>
 
-<!-- Navigation -->
-<nav>
-  <div class="nav-inner">
-    <a href="/" class="nav-logo">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-      </svg>
-      MCPFINDER.DEV
+<header class="nav">
+  <nav class="wrap" aria-label="Main">
+    <a class="brand" href="/" aria-label="MCPfinder home">
+      <svg viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="214" cy="214" r="150"/><g transform="translate(222 222) rotate(-45)"><path d="M-62 -40 H62 V10 A62 62 0 0 1 -62 10 Z"/><path d="M-30 -40 V-88 M30 -40 V-88"/><path d="M0 72 V285"/></g></svg>
+      MCPfinder
     </a>
     <div class="nav-links">
-      <a href="#how-it-works">HOW IT WORKS</a>
-      <a href="#install">INSTALL</a>
-      <a href="#features">FEATURES</a>
-      <a href="#for-ai">FOR AI</a>
-      <a href="#compare">COMPARE</a>
-      <a href="#glossary">GLOSSARY</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#install">Install</a>
+      <a href="#compare">Compare</a>
+      <a href="#guides">Guides</a>
       <a href="#faq">FAQ</a>
-      <a href="#about">ABOUT</a>
-      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
-      <a href="/llms.txt" class="nav-cta">LLMS.TXT</a>
     </div>
-  </div>
-</nav>
-
-<!-- Hero -->
-<section class="hero">
-  <div class="container">
-    <div class="hero-badge">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12,6 12,12 16,14"/>
-      </svg>
-      v2.0.2 — FREE AND OPEN-SOURCE (AGPL-3.0)
+    <div class="nav-cta">
+      <coderai-apps theme="dark" lang="en">
+        <a class="btn btn-secondary btn-sm" href="https://coderai.dev" target="_blank" rel="noopener noreferrer">Apps</a>
+      </coderai-apps>
+      <a class="btn btn-secondary btn-sm" href="https://github.com/mcpfinder/mcpfinder">GitHub</a>
+      <a class="btn btn-primary btn-sm" href="#install">Install</a>
     </div>
-    <h1>
-      YOUR AI FINDS<br>
-      <span class="highlight">MCP SERVERS</span><br>
-      FOR YOU
-    </h1>
-    <p>
-      MCPfinder is a free, open-source discovery and install layer for AI agents. It helps an assistant search multiple MCP registries, inspect trust signals and local environment variables or remote HTTP headers, and generate install-ready JSON for the right client.
-    </p>
+  </nav>
+</header>
 
-    <div class="search-wrap">
-      <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/>
-        <path d="m21 21-4.3-4.3"/>
-      </svg>
-      <input type="text" value='Preview only — install MCPfinder and let your AI call search_mcp_servers("postgres")' readonly aria-label="Preview search box">
-    </div>
-
-    <div class="btn-group">
-      <a href="#install" class="btn btn-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        INSTALL MCPFINDER
-      </a>
-      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener" class="btn btn-secondary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
-        </svg>
-        VIEW GITHUB
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- What is MCP? -->
-<section id="what-is-mcp">
-  <div class="container">
-    <div class="mcp-explainer">
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap hero-grid">
       <div>
-        <div class="section-label">FOR NEWCOMERS</div>
-        <h2>WHAT IS MCP?</h2>
-        <p>
-          <strong><a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">Model Context Protocol (MCP)</a></strong> is an open standard by Anthropic that lets AI models connect to external tools and data sources. Think of it as <strong>USB-C for AI</strong> — a universal interface.
-        </p>
-        <p>
-          MCP servers give your AI agent superpowers: access databases, call APIs, manage files, interact with services — all through a standardized protocol.
-        </p>
-        <p>
-          <strong>MCPfinder is an MCP server that discovers other MCP servers.</strong> The primary user is the AI assistant itself; the human installs it once, then the assistant uses it repeatedly.
-        </p>
-      </div>
-      <div class="mcp-diagram">
-        <div class="mcp-node">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h4a2 2 0 0 1 2 2v1.28c.6.35 1 .99 1 1.72 0 .73-.4 1.37-1 1.72V15a2 2 0 0 1-2 2h-4v1.27c.6.35 1 .99 1 1.73a2 2 0 1 1-4 0c0-.74.4-1.38 1-1.73V17H7a2 2 0 0 1-2-2v-1.28c-.6-.35-1-.99-1-1.72 0-.73.4-1.37 1-1.72V9a2 2 0 0 1 2-2h4V5.73c-.6-.35-1-.99-1-1.73a2 2 0 0 1 2-2Z"/>
-          </svg>
-          YOUR AI AGENT
+        <p class="eyebrow">Open-source MCP server · v2.0.2 · AGPL-3.0</p>
+        <h1 id="hero-title">Let your agent find its own MCP servers.</h1>
+        <p class="lede">MCPfinder is an open-source MCP server that searches <span id="snapshot-server-count" data-fallback="137,000+">137,000+</span> servers in the Official MCP Registry and Glama, flags the risky ones and writes the config for Claude, Cursor, Windsurf or Cline.</p>
+        <div class="cmd" data-copy="npx -y @mcpfinder/server" data-snippet="hero-npx">
+          <code><span class="prompt">$</span>npx -y @mcpfinder/server</code>
+          <button class="copy" type="button">Copy</button>
         </div>
-        <div class="mcp-arrow">↕</div>
-        <div class="mcp-node highlight">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-          MCPFINDER
-        </div>
-        <div class="mcp-arrow">↕</div>
-        <div class="mcp-node">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-            <polyline points="14,2 14,8 20,8"/>
-          </svg>
-          GITHUB · POSTGRES · SLACK · MULTI-REGISTRY MCP DISCOVERY
+        <div class="actions">
+          <a class="btn btn-primary" href="#install">Set up your client</a>
+          <a class="btn btn-secondary" href="https://github.com/mcpfinder/mcpfinder">GitHub</a>
         </div>
       </div>
+
+      <figure class="session" aria-label="Example agent session using MCPfinder">
+        <figcaption class="session-head"><span>example session · claude desktop</span><span>real output, trimmed</span></figcaption>
+        <div class="session-body">
+          <div class="turn"><span class="who">you</span><p>Let me file Linear issues from here.</p></div>
+          <div class="call">
+            <div><span class="fn">search_mcp_servers</span>({ query: "linear" })</div>
+            <div class="res">3 candidates · best: app.linear/linear</div>
+          </div>
+          <div class="call">
+            <div><span class="fn">get_server_details</span>({ name: "app.linear/linear" })</div>
+            <div class="checks"><span class="ok">✓ official</span><span class="ok">✓ no secrets</span><span class="warn">! single-source-only</span></div>
+          </div>
+          <div class="call">
+            <div><span class="fn">get_install_config</span>({ name: "app.linear/linear", platform: "claude-desktop" })</div>
+            <div class="snippet"><span class="p">{</span> <span class="k">"linear"</span><span class="p">: {</span> <span class="k">"url"</span><span class="p">:</span> <span class="s">"https://mcp.linear.app/mcp"</span> <span class="p">} }</span></div>
+          </div>
+          <div class="turn assistant"><span class="who">claude</span><p>Linear's official server needs no API key. Add this and restart Claude. Heads-up: it's listed in only one registry.</p></div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <div class="clients">
+    <div class="wrap">
+      <span class="label">Generates config for</span>
+      <span>Claude Desktop</span><span>Claude Code</span><span>Cursor</span><span>Windsurf</span><span>Cline / VS Code</span>
+      <span class="more">+ any MCP client</span>
     </div>
   </div>
-</section>
 
-<!-- How It Works -->
-<section id="how-it-works">
-  <div class="container section-center">
-    <div class="section-label">HOW IT WORKS</div>
-    <h2 class="section-title">THREE STEPS TO SMARTER AI</h2>
-    <p class="section-desc">
-      MCPfinder connects to your AI agent as an MCP server. Your AI can then discover candidate servers, inspect trust signals, and generate install config with minimal round-trips. New to this? Read the <a href="/how-to-find-mcp-servers/">MCP server discovery guide</a>.
-    </p>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <h3>INSTALL MCPFINDER</h3>
-        <p>One install step. Minimal setup. Add MCPfinder as an MCP server to your AI client, then let the assistant discover and configure downstream MCP servers.</p>
+  <section class="section" id="how-it-works" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">How it works</p>
+        <h2 id="how-title">Three tool calls between “I need X” and a working server.</h2>
+        <p class="lede">You install MCPfinder once. After that, your agent uses it on its own whenever a request needs a tool it doesn't have.</p>
       </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <h3>AI DISCOVERS TOOLS</h3>
-        <p>Your AI agent asks MCPfinder: "I need a tool for X." MCPfinder searches across multiple registries and returns the best match.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <h3>CAPABILITIES EXPAND</h3>
-        <p>Your AI gains new abilities on-demand. Need a database tool? A code formatter? A web scraper? MCPfinder finds it instantly.</p>
-      </div>
+      <ol class="steps">
+        <li class="step">
+          <div class="step-id"><span class="n">01</span><span class="tool">search_mcp_servers</span></div>
+          <div><h3>Search the merged index</h3><p>Matches by keyword, technology or use case across both registries, deduplicated. Every result says why it ranked and what looks off.</p></div>
+          <pre class="excerpt">confidenceScore: 0.55
+sources: ["official"]
+warningFlags: ["single-source-only", "missing-repository-url"]</pre>
+        </li>
+        <li class="step">
+          <div class="step-id"><span class="n">02</span><span class="tool">get_server_details</span></div>
+          <div><h3>Check before recommending</h3><p>Transport, required environment variables or HTTP headers, last update, repository, and the tools the server exposes — so the agent can explain the trade-offs instead of guessing.</p></div>
+          <pre class="excerpt">installComplexity: "low"
+secretCount: 0
+freshnessDays: 23</pre>
+        </li>
+        <li class="step">
+          <div class="step-id"><span class="n">03</span><span class="tool">get_install_config</span></div>
+          <div><h3>Write the exact config</h3><p>JSON for your client, the file it belongs in, which secrets you need to fill in, and whether to restart.</p></div>
+          <pre class="excerpt">configFilePath: "…/Claude/claude_desktop_config.json"
+requires_user_secrets: false</pre>
+        </li>
+      </ol>
+      <p class="footnote">Only know the domain, not the product? <code>browse_categories</code> lists categories like database, filesystem, communication and security with the top servers in each.</p>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- Install -->
-<section id="install" class="install-section">
-  <div class="container">
-    <div class="section-label">QUICK START</div>
-    <h2 class="section-title">UP AND RUNNING IN 30 SECONDS</h2>
-    <p class="section-desc">Choose your preferred installation method. Works with Claude Desktop, Cursor, Windsurf, and any MCP-compatible client.</p>
-    <div class="install-grid">
-      <div class="code-block" data-snippet="npx_config">
-        <div class="code-header">
-          <div class="code-dots"><span></span><span></span><span></span></div>
-          <span>NPX (NO INSTALL NEEDED)</span>
-        </div>
-        <div class="code-body">
-          <span class="comment"># Run directly — no install needed</span><br>
-          <span class="prompt">$</span> <span class="cmd">npx -y @mcpfinder/server</span><br><br>
-          <span class="comment"># Or add to your MCP config:</span><br>
-          {<br>
-          &nbsp;&nbsp;<span class="key">"mcpServers"</span>: {<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"mcpfinder"</span>: {<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"command"</span>: <span class="string">"npx"</span>,<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="key">"args"</span>: [<span class="string">"-y"</span>, <span class="string">"@mcpfinder/server"</span>]<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
-          &nbsp;&nbsp;}<br>
-          }
-        </div>
+  <section class="section" id="glossary" aria-labelledby="trust-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">What it checks</p>
+        <h2 id="trust-title">It tells your agent when to hesitate.</h2>
+        <p class="lede">Registries list everything: abandoned forks, placeholder entries, look-alikes of official servers. MCPfinder scores every candidate and returns the reasons, so your agent can repeat them to you instead of installing blind.</p>
       </div>
-      <div class="code-block" data-snippet="npm_global">
-        <div class="code-header">
-          <div class="code-dots"><span></span><span></span><span></span></div>
-          <span>NPM (GLOBAL INSTALL)</span>
+      <div class="split">
+        <div>
+          <p class="col-label">Scores</p>
+          <dl class="defs">
+            <div><dt>confidenceScore</dt><dd>0 to 1. Built from official-registry presence, how many registries list the server, metadata completeness and freshness. Higher means more evidence it is real and installable.</dd></div>
+            <div><dt>installComplexity</dt><dd>low: runs via npx, uvx or Docker with at most one non-secret setting. medium: a few settings, some secret. high: many secrets or no clean install path.</dd></div>
+            <div><dt>requires_user_secrets</dt><dd>Whether you must supply API keys or tokens. MCPfinder separates local environment variables from remote HTTP headers and lists optional ones separately.</dd></div>
+          </dl>
         </div>
-        <div class="code-body">
-          <span class="comment"># Install globally</span><br>
-          <span class="prompt">$</span> <span class="cmd">npm install -g @mcpfinder/server</span><br><br>
-          <span class="comment"># Then run it</span><br>
-          <span class="prompt">$</span> <span class="cmd">mcpfinder</span><br><br>
-          <span class="comment"># Or add to a project</span><br>
-          <span class="prompt">$</span> <span class="cmd">npm install @mcpfinder/server</span>
+        <div>
+          <p class="col-label">Warning flags</p>
+          <dl class="defs flags">
+            <div><dt>single-source-only</dt><dd>Listed in only one registry.</dd></div>
+            <div><dt>missing-repository-url</dt><dd>No public source code link.</dd></div>
+            <div><dt>missing-update-date</dt><dd>No reliable last-updated date.</dd></div>
+            <div><dt>install-method-unclear</dt><dd>No package or URL MCPfinder can turn into config.</dd></div>
+            <div><dt>stale-over-12-months<br>stale-over-18-months</dt><dd>Not updated in over a year (or 18 months).</dd></div>
+            <div><dt>archived-repo</dt><dd>The source repository is archived.</dd></div>
+            <div><dt>deprecated-npm</dt><dd>The npm package is marked deprecated. The largest score penalty.</dd></div>
+            <div><dt>status:&lt;value&gt;</dt><dd>The registry marks the server with a non-active status, e.g. deprecated.</dd></div>
+          </dl>
         </div>
       </div>
     </div>
-    <h3 style="margin-top:48px;margin-bottom:12px;">USE WITH CODEX</h3>
-    <p class="section-desc" style="margin-bottom:0;overflow-wrap:anywhere;">Using Codex? See the MCP stack for Codex: <a href="https://aicommander.dev/agent-stack/codex/" target="_blank" rel="noopener">https://aicommander.dev/agent-stack/codex/</a>. MCPfinder is one part of <a href="https://aicommander.dev/agent-stack/" target="_blank" rel="noopener">the agent stack</a> we use alongside Claude Code, Codex and Grok.</p>
-  </div>
-</section>
+  </section>
 
-<!-- For AI Agents -->
-<section id="for-ai">
-  <div class="container">
-    <div class="section-center">
-      <div class="section-label">FOR AI AGENTS</div>
-      <h2 class="section-title">THE PART YOUR ASSISTANT ACTUALLY NEEDS</h2>
-      <p class="section-desc">Humans install MCPfinder once. Assistants use it repeatedly to discover missing capabilities, inspect trust signals, and generate install-ready config.</p>
-    </div>
-    <div class="features-grid">
-      <div class="feature">
-        <h3>SEARCH_MCP_SERVERS</h3>
-        <p>Find candidate servers by keyword, technology, or use case. Use this first when the user needs a capability you do not already have.</p>
+  <section class="section" id="install" aria-labelledby="install-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Install</p>
+        <h2 id="install-title">Install in under a minute.</h2>
+        <p class="lede">MCPfinder runs locally as a stdio MCP server through npx. Pick your client, add the snippet, restart if asked.</p>
       </div>
-      <div class="feature">
-        <h3>GET_SERVER_DETAILS</h3>
-        <p>Inspect trust signals, tools, warning flags, transport, and local environment variables or selected remote HTTP headers before recommending anything.</p>
-      </div>
-      <div class="feature">
-        <h3>GET_INSTALL_CONFIG</h3>
-        <p>Generate a client-specific JSON config snippet for Claude Desktop, Cursor, Claude Code, Cline, or Windsurf.</p>
-      </div>
-      <div class="feature">
-        <h3>BROWSE_CATEGORIES</h3>
-        <p>Explore categories when the user only knows a domain like database, filesystem, communication, or security.</p>
-      </div>
-    </div>
-    <div class="btn-group" style="margin-top:32px;">
-      <a href="/llms.txt" class="btn btn-primary">READ LLMS.TXT</a>
-      <a href="https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder" target="_blank" rel="noopener" class="btn btn-secondary">VIEW REGISTRY ENTRY</a>
-    </div>
-  </div>
-</section>
 
-<!-- Features -->
-<section id="features">
-  <div class="container">
-    <div class="section-center">
-      <div class="section-label">FEATURES</div>
-      <h2 class="section-title">EVERYTHING YOU NEED TO DISCOVER MCP SERVERS</h2>
-      <p class="section-desc">MCPfinder aggregates, searches, scores, warns, and generates install config — so your AI can choose tools with less guesswork.</p>
-    </div>
-    <div class="features-grid">
-      <div class="feature">
-        <svg class="feature-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.3-4.3"/>
-        </svg>
-        <h3>MULTI-REGISTRY SEARCH</h3>
-        <p>Aggregates the <a href="https://registry.modelcontextprotocol.io" target="_blank" rel="noopener">Official MCP Registry</a> and <a href="https://glama.ai/mcp" target="_blank" rel="noopener">Glama</a> into one unified search. Never miss a server.</p>
+      <div class="tablist" role="tablist" aria-label="MCP client" hidden>
+        <button type="button" role="tab" id="tab-claude-desktop" aria-controls="panel-claude-desktop" aria-selected="true">Claude Desktop</button>
+        <button type="button" role="tab" id="tab-claude-code" aria-controls="panel-claude-code" aria-selected="false" tabindex="-1">Claude Code</button>
+        <button type="button" role="tab" id="tab-cursor" aria-controls="panel-cursor" aria-selected="false" tabindex="-1">Cursor</button>
+        <button type="button" role="tab" id="tab-vscode" aria-controls="panel-vscode" aria-selected="false" tabindex="-1">VS Code</button>
+        <button type="button" role="tab" id="tab-windsurf" aria-controls="panel-windsurf" aria-selected="false" tabindex="-1">Windsurf</button>
+        <button type="button" role="tab" id="tab-cline" aria-controls="panel-cline" aria-selected="false" tabindex="-1">Cline</button>
+        <button type="button" role="tab" id="tab-skill" aria-controls="panel-skill" aria-selected="false" tabindex="-1">Agent Skill</button>
       </div>
-      <div class="feature">
-        <svg class="feature-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h4a2 2 0 0 1 2 2v1.28c.6.35 1 .99 1 1.72 0 .73-.4 1.37-1 1.72V15a2 2 0 0 1-2 2h-4v1.27c.6.35 1 .99 1 1.73a2 2 0 1 1-4 0c0-.74.4-1.38 1-1.73V17H7a2 2 0 0 1-2-2v-1.28c-.6-.35-1-.99-1-1.72 0-.73.4-1.37 1-1.72V9a2 2 0 0 1 2-2h4V5.73c-.6-.35-1-.99-1-1.73a2 2 0 0 1 2-2Z"/>
-        </svg>
-        <h3>SMART RECOMMENDATIONS</h3>
-        <p>Search returns confidence, recommendation reasons, and warning flags so an assistant can decide whether to recommend a server strongly or cautiously.</p>
-      </div>
-      <div class="feature">
-        <svg class="feature-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-        </svg>
-        <h3>ZERO-FRICTION SETUP</h3>
-        <p>One install for MCPfinder itself. After that, your assistant can generate install-ready JSON snippets for the right downstream MCP server.</p>
-      </div>
-      <div class="feature">
-        <svg class="feature-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
-          <circle cx="12" cy="5" r="2"/>
-          <path d="m12 7-8 4 8 4 8-4-8-4z"/>
-        </svg>
-        <h3>AI-NATIVE INTERFACE</h3>
-        <p>MCPfinder is itself an MCP server. Your AI agent discovers tools programmatically — no human browsing required.</p>
-      </div>
-      <div class="feature">
-        <svg class="feature-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-          <polyline points="9,22 9,12 15,12 15,22"/>
-        </svg>
-        <h3>ALWAYS UP-TO-DATE</h3>
-        <p>Bootstraps from published snapshots and syncs from upstream registries. The snapshot manifest is a better freshness signal than vague marketing claims.</p>
-      </div>
-      <div class="feature">
-        <svg class="feature-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-        </svg>
-        <h3>FREE & OPEN SOURCE</h3>
-        <p>AGPL-3.0 licensed. Inspect the code, contribute, or fork it. Built by the community, for the community.</p>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- Stats -->
-<section>
-  <div class="container">
-    <div class="stats">
-      <div class="stat">
-        <div class="stat-value" id="snapshot-server-count" data-fallback="100,000+">100,000+</div>
-        <div class="stat-label">SERVERS IN LATEST SNAPSHOT</div>
+      <div class="panel" role="tabpanel" id="panel-claude-desktop" aria-labelledby="tab-claude-desktop">
+        <h3 class="panel-title">Claude Desktop</h3>
+        <div class="code" data-snippet="install-claude-desktop" data-copy='{
+  "mcpServers": {
+    "mcpfinder": {
+      "command": "npx",
+      "args": ["-y", "@mcpfinder/server"]
+    }
+  }
+}'>
+          <div class="code-head"><span class="path">~/Library/Application Support/Claude/claude_desktop_config.json</span><button class="copy" type="button">Copy</button></div>
+<pre><span class="p">{</span>
+  <span class="k">"mcpServers"</span><span class="p">: {</span>
+    <span class="k">"mcpfinder"</span><span class="p">: {</span>
+      <span class="k">"command"</span><span class="p">:</span> <span class="s">"npx"</span><span class="p">,</span>
+      <span class="k">"args"</span><span class="p">: [</span><span class="s">"-y"</span><span class="p">,</span> <span class="s">"@mcpfinder/server"</span><span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span></pre>
+        </div>
+        <p class="after">Restart Claude Desktop. On Windows the file is <code>%APPDATA%\Claude\claude_desktop_config.json</code>.</p>
       </div>
-      <div class="stat">
-        <div class="stat-value">3</div>
-        <div class="stat-label">REGISTRIES AGGREGATED</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">JSON</div>
-        <div class="stat-label">STRUCTURED OUTPUTS</div>
-      </div>
-      <div class="stat">
-        <div class="stat-value">AGPL-3.0</div>
-        <div class="stat-label">OPEN SOURCE LICENSE</div>
-      </div>
-    </div>
-    <p class="freshness-note" id="snapshot-freshness">
-      The published snapshot holds <strong>over 100,000 MCP servers</strong> (October 2026). Live count and freshness appear here when the manifest endpoint is reachable.
-    </p>
-  </div>
-</section>
 
-<!-- Comparison -->
-<section id="compare">
-  <div class="container section-center">
-    <div class="section-label">HOW IT COMPARES</div>
-    <h2 class="section-title">MCPFINDER VS THE ALTERNATIVES</h2>
-    <p class="section-desc">MCPfinder is not another directory site — it is the agent-facing layer that sits on top of the Official MCP Registry and Glama, with extra trust scoring and ready-to-paste install configs.</p>
-    <div style="overflow-x:auto;">
-    <table class="compare-table" aria-label="MCPfinder feature comparison">
-      <thead>
-        <tr>
-          <th scope="col">Capability</th>
-          <th scope="col">MCPfinder</th>
-          <th scope="col">Browsing Glama / Smithery</th>
-          <th scope="col">Official Registry only</th>
-          <th scope="col">Asking the model from memory</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Used directly by AI agents</td>
-          <td class="cell-strong">Yes — itself an MCP server</td>
-          <td class="cell-weak">No — human-facing site</td>
-          <td class="cell-weak">No — REST API only</td>
-          <td class="cell-strong">Yes, but stale</td>
-        </tr>
-        <tr>
-          <td>Aggregates multiple sources</td>
-          <td class="cell-strong">Official Registry + Glama</td>
-          <td class="cell-weak">Single source per site</td>
-          <td class="cell-weak">Official only</td>
-          <td class="cell-weak">N/A</td>
-        </tr>
-        <tr>
-          <td>Structured trust signals</td>
-          <td class="cell-strong">confidenceScore, sourceCount, warningFlags, installComplexity</td>
-          <td class="cell-weak">Stars, downloads (UI)</td>
-          <td class="cell-weak">Raw metadata</td>
-          <td class="cell-weak">None</td>
-        </tr>
-        <tr>
-          <td>Generates client-specific install config</td>
-          <td class="cell-strong">Claude Desktop, Cursor, Claude Code, Cline, Windsurf</td>
-          <td class="cell-weak">Manual copy-paste</td>
-          <td class="cell-weak">No</td>
-          <td class="cell-weak">Hallucinations likely</td>
-        </tr>
-        <tr>
-          <td>Flags required secrets before install</td>
-          <td class="cell-strong">Yes (selected local env vars or required remote HTTP headers; credential-name hints are advisory)</td>
-          <td class="cell-weak">Sometimes, in prose</td>
-          <td class="cell-weak">Raw schema only</td>
-          <td class="cell-weak">Unreliable</td>
-        </tr>
-        <tr>
-          <td>Freshness signal exposed to the agent</td>
-          <td class="cell-strong">Snapshot manifest with publishedAt</td>
-          <td class="cell-weak">Implicit only</td>
-          <td class="cell-strong">Per-record updatedAt</td>
-          <td class="cell-weak">No</td>
-        </tr>
-        <tr>
-          <td>Cost</td>
-          <td class="cell-strong">Free, open source (AGPL-3.0)</td>
-          <td class="cell-strong">Free to browse</td>
-          <td class="cell-strong">Free</td>
-          <td class="cell-strong">Free</td>
-        </tr>
-      </tbody>
-    </table>
-    </div>
-    <p class="section-desc" style="margin-top:32px;margin-left:auto;margin-right:auto;">In short: <strong>Glama and Smithery are great human directories; the Official Registry is the canonical metadata source; MCPfinder is the agent-readable union of the Official Registry and Glama with installability baked in.</strong></p>
-  </div>
-</section>
+      <div class="panel" role="tabpanel" id="panel-claude-code" aria-labelledby="tab-claude-code">
+        <h3 class="panel-title">Claude Code</h3>
+        <div class="code" data-snippet="install-claude-code" data-copy="claude mcp add mcpfinder -- npx -y @mcpfinder/server">
+          <div class="code-head"><span class="path">terminal</span><button class="copy" type="button">Copy</button></div>
+<pre><span class="p">$</span> claude mcp add mcpfinder -- npx -y @mcpfinder/server</pre>
+        </div>
+        <p class="after">Or add the same <code>mcpServers</code> block to <code>.mcp.json</code> in your project.</p>
+      </div>
 
-<!-- Glossary -->
-<section id="glossary">
-  <div class="container">
-    <div class="section-center">
-      <div class="section-label">GLOSSARY</div>
-      <h2 class="section-title">MCP IN ONE GLANCE</h2>
-      <p class="section-desc">Short definitions for the terms that come up across MCPfinder, MCP clients, and the registries it indexes.</p>
-    </div>
-    <dl class="glossary-grid">
-      <div class="glossary-term">
-        <dt>MCP (Model Context Protocol)</dt>
-        <dd>An open standard from Anthropic that lets AI models talk to external tools, data sources, and services through a uniform interface. Think of it as USB-C for AI.</dd>
+      <div class="panel" role="tabpanel" id="panel-cursor" aria-labelledby="tab-cursor">
+        <h3 class="panel-title">Cursor</h3>
+        <div class="code" data-snippet="install-cursor" data-copy='{
+  "mcpServers": {
+    "mcpfinder": {
+      "command": "npx",
+      "args": ["-y", "@mcpfinder/server"]
+    }
+  }
+}'>
+          <div class="code-head"><span class="path">~/.cursor/mcp.json</span><button class="copy" type="button">Copy</button></div>
+<pre><span class="p">{</span>
+  <span class="k">"mcpServers"</span><span class="p">: {</span>
+    <span class="k">"mcpfinder"</span><span class="p">: {</span>
+      <span class="k">"command"</span><span class="p">:</span> <span class="s">"npx"</span><span class="p">,</span>
+      <span class="k">"args"</span><span class="p">: [</span><span class="s">"-y"</span><span class="p">,</span> <span class="s">"@mcpfinder/server"</span><span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span></pre>
+        </div>
+        <p class="after">Use <code>.cursor/mcp.json</code> for a single project. Cursor picks up the change without a restart.</p>
       </div>
-      <div class="glossary-term">
-        <dt>MCP server</dt>
-        <dd>A process that exposes capabilities (tools, resources, prompts) over MCP so an AI agent can use them. Examples: Postgres, Slack, GitHub, filesystem.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>MCP client</dt>
-        <dd>The application that hosts the AI assistant and connects to MCP servers. Examples: Claude Desktop, Cursor, Claude Code, Cline, Windsurf.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>stdio transport</dt>
-        <dd>The MCP server runs as a child process and exchanges JSON-RPC over standard input/output. The most portable transport and MCPfinder's canonical mode.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>Environment variables and HTTP headers</dt>
-        <dd>Local processes read environment variables at startup; remote endpoints receive HTTP headers. MCPfinder distinguishes required headers from optional alternatives and marks unknown remote auth metadata for manual review.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>Trust signals</dt>
-        <dd>Lightweight evidence MCPfinder aggregates: official registry presence, multiple source registries, recent updates, clear repository URL, healthy capability count.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>confidenceScore</dt>
-        <dd>Score in <code>[0, 1]</code> derived from trust signals. Higher means stronger evidence the server is real, fresh, and installable.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>warningFlags</dt>
-        <dd>Reasons to pause before recommending: <code>single-source-only</code>, <code>missing-update-date</code>, <code>missing-repository-url</code>, <code>install-method-unclear</code>, <code>stale-over-12-months</code>, <code>stale-over-18-months</code>.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>installComplexity</dt>
-        <dd><strong>low</strong>: zero or one non-secret env var; runs via npx/uvx/docker. <strong>medium</strong>: a few env vars, some secret. <strong>high</strong>: many secrets or no clean auto-install path.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>capabilityCount</dt>
-        <dd>Number of tools the downstream MCP server itself exposes, when its registry published a tool manifest. <code>0</code> means MCPfinder has no manifest — not that the server is empty.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>next_actions</dt>
-        <dd>Suggested follow-up tool calls returned with every result so an agent can chain <code>search</code> → <code>get_server_details</code> → <code>get_install_config</code> with minimal round-trips.</dd>
-      </div>
-      <div class="glossary-term">
-        <dt>Snapshot manifest</dt>
-        <dd>Public freshness signal at <code>/api/v1/snapshot/manifest.json</code>: <code>publishedAt</code>, <code>serverCount</code>, <code>sha256</code>, and per-registry counts. Lets an agent decide whether to trust the bundled data or refresh.</dd>
-      </div>
-    </dl>
-  </div>
-</section>
 
-<!-- FAQ -->
-<section id="faq">
-  <div class="container section-center">
-    <div class="section-label">FAQ</div>
-    <h2 class="section-title">FREQUENTLY ASKED QUESTIONS</h2>
-    <p class="section-desc">Everything you need to know about MCPfinder and MCP servers.</p>
+      <div class="panel" role="tabpanel" id="panel-vscode" aria-labelledby="tab-vscode">
+        <h3 class="panel-title">VS Code</h3>
+        <div class="code" data-snippet="install-vscode" data-copy='{
+  "servers": {
+    "mcpfinder": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@mcpfinder/server"]
+    }
+  }
+}'>
+          <div class="code-head"><span class="path">.vscode/mcp.json</span><button class="copy" type="button">Copy</button></div>
+<pre><span class="p">{</span>
+  <span class="k">"servers"</span><span class="p">: {</span>
+    <span class="k">"mcpfinder"</span><span class="p">: {</span>
+      <span class="k">"type"</span><span class="p">:</span> <span class="s">"stdio"</span><span class="p">,</span>
+      <span class="k">"command"</span><span class="p">:</span> <span class="s">"npx"</span><span class="p">,</span>
+      <span class="k">"args"</span><span class="p">: [</span><span class="s">"-y"</span><span class="p">,</span> <span class="s">"@mcpfinder/server"</span><span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span></pre>
+        </div>
+        <p class="after">Reload the window, then enable the server in Copilot Chat's tools picker.</p>
+      </div>
 
-    <div class="faq-list">
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          WHAT IS MCP (MODEL CONTEXT PROTOCOL)?
+      <div class="panel" role="tabpanel" id="panel-windsurf" aria-labelledby="tab-windsurf">
+        <h3 class="panel-title">Windsurf</h3>
+        <div class="code" data-snippet="install-windsurf" data-copy='{
+  "mcpServers": {
+    "mcpfinder": {
+      "command": "npx",
+      "args": ["-y", "@mcpfinder/server"]
+    }
+  }
+}'>
+          <div class="code-head"><span class="path">~/.codeium/windsurf/mcp_config.json</span><button class="copy" type="button">Copy</button></div>
+<pre><span class="p">{</span>
+  <span class="k">"mcpServers"</span><span class="p">: {</span>
+    <span class="k">"mcpfinder"</span><span class="p">: {</span>
+      <span class="k">"command"</span><span class="p">:</span> <span class="s">"npx"</span><span class="p">,</span>
+      <span class="k">"args"</span><span class="p">: [</span><span class="s">"-y"</span><span class="p">,</span> <span class="s">"@mcpfinder/server"</span><span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span></pre>
         </div>
-        <div class="faq-a">
-          MCP (Model Context Protocol) is an open standard created by Anthropic that lets AI models connect to external tools and data sources. Think of it as USB-C for AI — a universal plug that lets your AI agent use databases, APIs, file systems, and more through a standardized interface.
-        </div>
+        <p class="after">Restart Windsurf.</p>
       </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          HOW DO I FIND THE BEST MCP SERVER FOR MY USE CASE?
-        </div>
-        <div class="faq-a">
-          MCPfinder works best as an AI workflow rather than a human search page. Your assistant should search for candidates, inspect trust signals and selected local env vars or remote HTTP headers with <code>get_server_details</code>, then generate config with <code>get_install_config</code>.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          IS MCPFINDER FREE TO USE?
-        </div>
-        <div class="faq-a">
-          Yes! MCPfinder is completely free and open-source under the AGPL-3.0 license. Install it via npm with <code>npx -y @mcpfinder/server</code> or add it to your project with <code>npm install @mcpfinder/server</code>. No API keys or subscriptions required.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          CAN I USE MCPFINDER IN A COMMERCIAL PRODUCT?
-        </div>
-        <div class="faq-a">
-          Yes. AGPL-3.0 lets you use MCPfinder in any personal, internal, or commercial setting without additional licensing — running it, integrating it with your AI agents, and shipping it with proprietary workflows is fine. What AGPL-3.0 does require is that if you <em>modify</em> MCPfinder and expose it as a network service, you must publish those modifications under the same license. Need a non-AGPL license to embed MCPfinder in a closed-source distribution? Contact <span class="eml" data-e="ved.iaredoc@troppus"></span>.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          WHAT MCP REGISTRIES DOES MCPFINDER SEARCH?
-        </div>
-        <div class="faq-a">
-          MCPfinder aggregates the <a href="https://registry.modelcontextprotocol.io" target="_blank" rel="noopener">Official MCP Registry</a> and <a href="https://glama.ai/mcp" target="_blank" rel="noopener">Glama</a> — two of the largest MCP server registries — into a single searchable index. Data is deduplicated and merged across sources; new servers appear as soon as any upstream publishes them. MCPfinder itself is also registered there as <a href="https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder" target="_blank" rel="noopener"><code>dev.mcpfinder/server</code></a>.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          HOW IS MCPFINDER DIFFERENT FROM BROWSING A REGISTRY DIRECTLY?
-        </div>
-        <div class="faq-a">
-          MCPfinder is itself an MCP server, so an assistant can use it directly. Instead of manually browsing registries, the assistant can ask for candidates, review warnings, and generate install-ready JSON. That makes it more like a decision engine than a static directory.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          WHICH AI CLIENTS WORK WITH MCPFINDER?
-        </div>
-        <div class="faq-a">
-          MCPfinder works with any MCP-compatible client, including Claude Desktop, Cursor, Windsurf, Cline, and others. Any tool that supports the Model Context Protocol can connect to MCPfinder and use it to discover other MCP servers.
-        </div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          CAN I CONTRIBUTE TO MCPFINDER?
-        </div>
-        <div class="faq-a">
-          Absolutely! MCPfinder is open-source and we welcome contributions. Visit our <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GitHub repository</a> to report issues, submit pull requests, or suggest new features. The project is maintained by Coder AI.
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- CTA -->
-<section class="cta-section">
-  <div class="container">
-    <h2>INSTALL ONCE, LET YOUR AI USE IT DAILY</h2>
-    <p>Use the local stdio server as the canonical interface, then point your assistant at MCPfinder whenever it needs a missing capability.</p>
-    <div class="cta-install" title="Click to copy" data-snippet="npx_command" data-copy="npx -y @mcpfinder/server">
-      <span class="prompt">$</span> npx -y @mcpfinder/server
-    </div>
-    <br><br>
-    <div class="btn-group">
-      <a href="https://www.npmjs.com/package/@mcpfinder/server" target="_blank" rel="noopener" class="btn btn-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        INSTALL FROM NPM
-      </a>
-      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener" class="btn btn-secondary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
-        </svg>
-        VIEW SOURCE
-      </a>
-    </div>
-  </div>
-</section>
+      <div class="panel" role="tabpanel" id="panel-cline" aria-labelledby="tab-cline">
+        <h3 class="panel-title">Cline</h3>
+        <div class="code" data-snippet="install-cline" data-copy='{
+  "mcpServers": {
+    "mcpfinder": {
+      "command": "npx",
+      "args": ["-y", "@mcpfinder/server"]
+    }
+  }
+}'>
+          <div class="code-head"><span class="path">Cline → MCP Servers → Configure</span><button class="copy" type="button">Copy</button></div>
+<pre><span class="p">{</span>
+  <span class="k">"mcpServers"</span><span class="p">: {</span>
+    <span class="k">"mcpfinder"</span><span class="p">: {</span>
+      <span class="k">"command"</span><span class="p">:</span> <span class="s">"npx"</span><span class="p">,</span>
+      <span class="k">"args"</span><span class="p">: [</span><span class="s">"-y"</span><span class="p">,</span> <span class="s">"@mcpfinder/server"</span><span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span></pre>
+        </div>
+        <p class="after">Also works in Roo Code.</p>
+      </div>
 
-<!-- About / E-E-A-T -->
-<section id="about" itemscope itemtype="https://schema.org/AboutPage">
-  <div class="container">
-    <div class="section-center">
-      <div class="section-label">ABOUT</div>
-      <h2 class="section-title">WHO BUILDS MCPFINDER</h2>
+      <div class="panel" role="tabpanel" id="panel-skill" aria-labelledby="tab-skill">
+        <h3 class="panel-title">Agent Skill</h3>
+        <div class="code" data-snippet="install-agent-skill" data-copy="mkdir -p ~/.claude/skills/install-mcpfinder && curl -sSf -o ~/.claude/skills/install-mcpfinder/SKILL.md https://mcpfinder.dev/skill/install-mcpfinder/SKILL.md">
+          <div class="code-head"><span class="path">terminal</span><button class="copy" type="button">Copy</button></div>
+<pre><span class="p">$</span> mkdir -p ~/.claude/skills/install-mcpfinder &amp;&amp; \
+  curl -sSf -o ~/.claude/skills/install-mcpfinder/SKILL.md \
+  https://mcpfinder.dev/skill/install-mcpfinder/SKILL.md</pre>
+        </div>
+        <p class="after">Then tell your agent “install MCPfinder”. The skill finds your client's config and merges the entry without touching your other servers. Works with any agent that supports Agent Skills.</p>
+      </div>
+
+      <div class="try">
+        <p class="col-label">Then ask your agent</p>
+        <ul>
+          <li>“Find me an MCP server for Postgres.”</li>
+          <li>“I need to read Google Drive files.”</li>
+          <li>“What's a safe way to give you browser access?”</li>
+        </ul>
+      </div>
+      <p class="codex">Using Codex? See the <a href="https://aicommander.dev/agent-stack/codex/" target="_blank" rel="noopener">MCP stack for Codex</a>.</p>
     </div>
-    <div class="mcp-explainer" style="grid-template-columns:1fr;padding:32px;">
+  </section>
+
+  <section class="section" id="data" aria-labelledby="data-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Data</p>
+        <h2 id="data-title">Where the servers come from.</h2>
+      </div>
+      <div class="split">
+        <div class="data-copy">
+          <p>MCPfinder merges the Official MCP Registry and Glama into one deduplicated SQLite index and ships it as a published snapshot. The local server downloads that snapshot, then answers your agent's searches from the local copy.</p>
+          <p>Smithery used to be a third source; it stopped syncing after Smithery shut down its API on 31 October 2026. <a href="/smithery-alternative/">What changed →</a></p>
+        </div>
+        <div class="facts">
+          <div class="live">current snapshot</div>
+          <dl>
+            <div><dt>servers in snapshot</dt><dd class="big"><span data-live="count">137,253</span></dd></div>
+            <div><dt>snapshot published</dt><dd><span id="snapshot-freshness">2026-11-15</span></dd></div>
+            <div><dt>sources</dt><dd>Official MCP Registry, Glama</dd></div>
+            <div><dt>manifest</dt><dd><a href="/api/v1/snapshot/manifest.json">/api/v1/snapshot/manifest.json</a></dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="compare" aria-labelledby="compare-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Compare</p>
+        <h2 id="compare-title">Why not just browse a directory?</h2>
+        <p class="lede">Directories are built for people clicking around. MCPfinder is built for the agent doing the work.</p>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col"><span class="sr-only">Feature</span></th><th scope="col" class="us">MCPfinder</th><th scope="col">Directory sites</th><th scope="col">Official Registry API</th><th scope="col">The model's memory</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Used by the agent directly</th><td class="us">Yes, it's an MCP server</td><td>No, web UI</td><td>REST only</td><td>Yes, but out of date</td></tr>
+            <tr><th scope="row">Sources</th><td class="us">Official Registry + Glama, merged</td><td>One per site</td><td>Official only</td><td>Training data</td></tr>
+            <tr><th scope="row">Trust signals</th><td class="us">Score, reasons, warning flags</td><td>Stars, downloads</td><td>Raw metadata</td><td>None</td></tr>
+            <tr><th scope="row">Install config</th><td class="us">Generated per client</td><td>Copy-paste by hand</td><td>No</td><td>Often wrong</td></tr>
+            <tr><th scope="row">Flags required secrets</th><td class="us">Env vars and HTTP headers</td><td>Sometimes, in prose</td><td>Raw schema</td><td>Unreliable</td></tr>
+            <tr><th scope="row">Freshness</th><td class="us">Snapshot date exposed</td><td>Implicit</td><td>Per-record updatedAt</td><td>Unknown</td></tr>
+            <tr><th scope="row">Price</th><td class="us">Free, AGPL-3.0</td><td>Free</td><td>Free</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">Directory sites such as Glama are great for browsing by hand; the Official MCP Registry is the canonical metadata source. MCPfinder sits on top of both. <a href="/mcp-server-directories/">MCP server directories compared →</a></p>
+    </div>
+  </section>
+
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">FAQ</p>
+        <h2 id="faq-title">Questions</h2>
+      </div>
+      <div class="faq">
+        <details><summary>What is MCPfinder?</summary><p>MCPfinder is a free, open-source MCP server that helps AI agents discover, evaluate and install other MCP servers. It searches the Official MCP Registry and Glama, returns trust signals and warning flags for each candidate, and generates install config for Claude Desktop, Claude Code, Cursor, Windsurf and Cline in VS Code.</p></details>
+        <details><summary>What is an MCP server?</summary><p>The Model Context Protocol (MCP) is an open standard, introduced by Anthropic, that lets AI applications connect to external tools and data. An MCP server exposes tools, resources or prompts — for example a database, GitHub, Slack or a browser — that an MCP client like Claude Desktop or Cursor can use.</p></details>
+        <details><summary>How do I find the right MCP server for a task?</summary><p>Install MCPfinder and ask your agent for the capability in plain words. It calls <code>search_mcp_servers</code>, inspects the best candidates with <code>get_server_details</code>, and uses <code>get_install_config</code> to produce the config. You get a recommendation with reasons and warnings, not just a list of links.</p></details>
+        <details><summary>Is MCPfinder free? Does it need an API key?</summary><p>Yes, it is free and open source under <a href="https://github.com/mcpfinder/mcpfinder/blob/main/LICENSE">AGPL-3.0</a>. It needs no account and no API key; it runs locally through <code>npx -y @mcpfinder/server</code>.</p></details>
+        <details><summary>Can I use it at work or in a commercial product?</summary><p>Yes. You can run it and use it with your agents in any personal, internal or commercial setting. AGPL-3.0 only requires that if you modify MCPfinder and offer it as a network service, you publish those changes under the same licence. For other licensing, contact <a href="#about">Coder AI</a>.</p></details>
+        <details><summary>Does MCPfinder install servers by itself?</summary><p>No. It only returns the config and tells your agent which secrets are needed and what to restart. Your agent or you apply the change, so nothing is added to your client without you seeing it.</p></details>
+        <details><summary>Which registries does it search, and how fresh is the data?</summary><p>The Official MCP Registry and Glama, merged and deduplicated. The data ships as a published snapshot; its publish date and server count are public at <a href="/api/v1/snapshot/manifest.json">/api/v1/snapshot/manifest.json</a>, and MCPfinder exposes them to your agent.</p></details>
+        <details><summary>Is there a hosted HTTP endpoint?</summary><p>Not yet. The local stdio server is the supported interface. A hosted endpoint with the same tools is on the roadmap.</p></details>
+        <details><summary>How can I contribute?</summary><p>Issues and pull requests are welcome on GitHub at <a href="https://github.com/mcpfinder/mcpfinder">github.com/mcpfinder/mcpfinder</a>. The project is maintained by <a href="https://coderai.dev">Coder AI</a>.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="guides" aria-labelledby="guides-title">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Guides</p>
+        <h2 id="guides-title">Guides</h2>
+      </div>
+      <div class="guides">
+        <a href="/mcp-servers-for-claude/"><strong>MCP servers for Claude</strong><span>Find and install servers for Claude Desktop and Claude Code.</span></a>
+        <a href="/mcp-servers-for-cursor/"><strong>MCP servers for Cursor</strong><span>Search registries and get Cursor-ready config.</span></a>
+        <a href="/mcp-servers-for-vscode/"><strong>MCP servers for VS Code</strong><span>Servers for Copilot Chat and Cline, with .vscode/mcp.json config.</span></a>
+        <a href="/best-mcp-servers-2026/"><strong>Best MCP servers 2026</strong><span>Vendor-published picks from the Official MCP Registry.</span></a>
+        <a href="/best-mcp-servers/"><strong>How to pick the best MCP server</strong><span>Compare candidates by trust signals, tools and install effort.</span></a>
+        <a href="/how-to-find-mcp-servers/"><strong>How to find MCP servers</strong><span>A discovery guide across registries.</span></a>
+        <a href="/mcp-server-directories/"><strong>MCP server directories compared</strong><span>Official Registry, Glama, mcp.so, PulseMCP and more.</span></a>
+        <a href="/smithery-alternative/"><strong>Smithery alternative</strong><span>What to use after Smithery's 31 October shutdown.</span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer" id="about">
+  <div class="wrap">
+    <div class="closing">
+      <h2>Give your agent a way to find its own tools.</h2>
+      <div class="closing-cta">
+        <div class="cmd" data-copy="npx -y @mcpfinder/server" data-snippet="footer-npx">
+          <code><span class="prompt">$</span>npx -y @mcpfinder/server</code>
+          <button class="copy" type="button">Copy</button>
+        </div>
+        <a class="btn btn-secondary" href="https://www.npmjs.com/package/@mcpfinder/server">npm</a>
+      </div>
+    </div>
+    <div class="cols">
       <div>
-        <p>
-          MCPfinder is built by <a href="https://coderai.dev" target="_blank" rel="noopener"><strong>Coder AI</strong></a>, an independent team that ships small, useful tools for developers and AI agents — including <a href="https://cnvs.app" target="_blank" rel="noopener">cnvs.app</a> (collaborative whiteboard with built-in MCP), <a href="https://plugand.ai" target="_blank" rel="noopener">plugand.ai</a> (Slack AI bot), <a href="https://plai.chat" target="_blank" rel="noopener">plai.chat</a> (private multi-model AI chat), <a href="https://maxcv.ai" target="_blank" rel="noopener">maxcv.ai</a>, and <a href="https://whenmeet.me" target="_blank" rel="noopener">whenmeet.me</a>.
-        </p>
-        <p>
-          The project is fully open source under the <strong>AGPL-3.0-or-later</strong> license. Code lives on <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GitHub</a> and the canonical package is published as <a href="https://www.npmjs.com/package/@mcpfinder/server" target="_blank" rel="noopener"><code>@mcpfinder/server</code></a> on npm. The MCP server itself is registered in the <a href="https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder" target="_blank" rel="noopener">Official MCP Registry</a> as <code>dev.mcpfinder/server</code>.
-        </p>
-        <p>
-          For security disclosures or commercial-licensing questions, write to <span class="eml" data-e="ved.iaredoc@troppus"></span> — see also <a href="/.well-known/security.txt">security.txt</a>.
-        </p>
-        <p style="color:var(--text-muted);font-size:0.8rem;margin-top:24px;">
-          MCPfinder v2.0.2 · last updated <time datetime="2026-11-02">2026-11-02</time> · canonical: <a href="https://mcpfinder.dev">mcpfinder.dev</a>
-        </p>
+        <h3>About</h3>
+        <p>MCPfinder is built by <a href="https://coderai.dev">Coder AI</a>, an independent team making small tools for developers and AI agents. Security reports and licensing: <span class="eml" data-e="ved.iaredoc@troppus"></span> · <a href="/.well-known/security.txt">security.txt</a></p>
+      </div>
+      <div>
+        <h3>Project</h3>
+        <ul>
+          <li><a href="https://github.com/mcpfinder/mcpfinder">GitHub</a></li>
+          <li><a href="https://www.npmjs.com/package/@mcpfinder/server">npm <span>@mcpfinder/server</span></a></li>
+          <li><a href="https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder">MCP Registry <span>dev.mcpfinder/server</span></a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/llms-full.txt">llms-full.txt</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Resources</h3>
+        <ul>
+          <li><a href="https://modelcontextprotocol.io">MCP specification</a></li>
+          <li><a href="https://registry.modelcontextprotocol.io">Official MCP Registry</a></li>
+          <li><a href="https://glama.ai/mcp/servers">Glama</a></li>
+          <li><a href="/api/v1/snapshot/manifest.json">Snapshot manifest</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Also from Coder AI</h3>
+        <ul>
+          <li><a href="https://cnvs.app" target="_blank" rel="noopener">cnvs.app <span>whiteboard with built-in MCP</span></a></li>
+          <li><a href="https://plugand.ai" target="_blank" rel="noopener">plugand.ai <span>Slack AI bot</span></a></li>
+          <li><a href="https://plai.chat" target="_blank" rel="noopener">plai.chat <span>private AI chat</span></a></li>
+          <li><a href="https://free-sign.com" target="_blank" rel="noopener">free-sign.com <span>sign PDFs in the browser</span></a></li>
+          <li><a href="https://maxcv.ai" target="_blank" rel="noopener">maxcv.ai <span>CV tailoring</span></a></li>
+          <li><a href="https://whenmeet.me" target="_blank" rel="noopener">whenmeet.me <span>group scheduling</span></a></li>
+        </ul>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- Cross-promo: Coder AI free productivity tools -->
-<section class="coder-ai-apps">
-  <div class="container">
-    <h2>Also free from
-      <a href="https://coderai.dev"
-         target="_blank" rel="noopener"
-         title="Coder AI — maker of cnvs.app, plugand.ai, plai.chat, free-sign.com, maxcv.ai, whenmeet.me and mcpfinder.dev">Coder AI</a>
-    </h2>
-    <p class="lead">Small productivity tools we built for ourselves — each usable for free.</p>
-
-    <div class="coder-ai-grid">
-      <a class="coder-ai-card" href="https://cnvs.app"
-         target="_blank" rel="noopener"
-         title="cnvs.app — free no-signup real-time collaborative whiteboard with built-in MCP endpoint for AI agents">
-        <h3>cnvs.app →</h3>
-        <p>No-signup whiteboard, real-time, AI-ready</p>
-      </a>
-
-      <a class="coder-ai-card" href="https://plugand.ai"
-         target="_blank" rel="noopener"
-         title="plugand.ai — Slack AI bot with 300+ models, flat team pricing, no per-seat subscription">
-        <h3>plugand.ai →</h3>
-        <p>Whole-team Slack AI bot, no per-seat</p>
-      </a>
-
-      <a class="coder-ai-card" href="https://plai.chat"
-         target="_blank" rel="noopener"
-         title="plai.chat — private AI chat with 300+ models, zero data retention, browser-only storage">
-        <h3>plai.chat →</h3>
-        <p>Private AI chat, 300+ models</p>
-      </a>
-
-      <a class="coder-ai-card" href="https://free-sign.com"
-         target="_blank" rel="noopener"
-         title="free-sign.com — sign PDFs confidentially in your browser, no upload, no account">
-        <h3>free-sign.com →</h3>
-        <p>Sign PDFs confidentially in your browser. No upload. No account.</p>
-      </a>
-
-      <a class="coder-ai-card" href="https://maxcv.ai"
-         target="_blank" rel="noopener"
-         title="maxcv.ai — AI resume and CV tailoring per job posting, optimized for Applicant Tracking Systems">
-        <h3>maxcv.ai →</h3>
-        <p>AI CV tailored to each job, ATS-optimized</p>
-      </a>
-
-      <a class="coder-ai-card" href="https://whenmeet.me"
-         target="_blank" rel="noopener"
-         title="whenmeet.me — cross-company group meeting scheduling with built-in video calls and AI summaries">
-        <h3>whenmeet.me →</h3>
-        <p>Cross-company group scheduling + video</p>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- Footer -->
-<footer>
-  <div class="container">
-    <div class="footer-links">
-      <a href="https://github.com/mcpfinder/mcpfinder" target="_blank" rel="noopener">GITHUB</a>
-      <a href="https://www.npmjs.com/package/@mcpfinder/server" target="_blank" rel="noopener">NPM</a>
-      <a href="/llms.txt">LLMS.TXT</a>
-      <a href="/mcp-servers-for-claude/">CLAUDE MCP</a>
-      <a href="/mcp-servers-for-cursor/">CURSOR MCP</a>
-      <a href="/mcp-servers-for-vscode/">VS CODE MCP</a>
-      <a href="/best-mcp-servers/">BEST MCP</a>
-      <a href="/best-mcp-servers-2026/">BEST 2026</a>
-      <a href="/how-to-find-mcp-servers/">HOW TO FIND</a>
-      <a href="/smithery-alternative/">SMITHERY ALTERNATIVE</a>
-      <a href="/mcp-server-directories/">MCP DIRECTORIES</a>
-      <a href="https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder" target="_blank" rel="noopener">REGISTRY</a>
-      <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">MCP SPEC</a>
-      <a href="https://coderai.dev" target="_blank" rel="noopener">Coder AI</a>
-    </div>
-    <p class="footer-credit">
-      Built by <a href="https://coderai.dev" target="_blank" rel="noopener">Coder AI</a> · AGPL-3.0 license
-    </p>
+    <p class="bottom">MCPfinder v2.0.2 · last updated <time datetime="2026-11-15">2026-11-15</time> · AGPL-3.0</p>
   </div>
 </footer>
 
 <script>
   async function loadSnapshotManifest() {
-    const countEl = document.getElementById('snapshot-server-count');
-    const freshnessEl = document.getElementById('snapshot-freshness');
-
+    var countEls = document.querySelectorAll('#snapshot-server-count, [data-live="count"]');
+    var freshnessEl = document.getElementById('snapshot-freshness');
     try {
-      const response = await fetch('/api/v1/snapshot/manifest.json', {
-        headers: { 'accept': 'application/json' }
-      });
+      var response = await fetch('/api/v1/snapshot/manifest.json', { headers: { 'accept': 'application/json' } });
       if (!response.ok) throw new Error('manifest unavailable');
-
-      const manifest = await response.json();
-
+      var manifest = await response.json();
       if (typeof manifest.serverCount === 'number') {
-        countEl.textContent = manifest.serverCount.toLocaleString('en-US');
-      } else if (countEl.dataset.fallback) {
-        countEl.textContent = countEl.dataset.fallback;
-      } else {
-        countEl.textContent = 'N/A';
+        var count = manifest.serverCount.toLocaleString('en-US');
+        countEls.forEach(function (el) { el.textContent = count; });
       }
-
       if (manifest.publishedAt) {
-        const published = new Date(manifest.publishedAt);
-        const ageHours = Math.round((Date.now() - published.getTime()) / (1000 * 60 * 60));
-        const sizeMb = typeof manifest.sizeBytes === 'number'
-          ? (manifest.sizeBytes / 1e6).toFixed(1)
-          : '?';
-        freshnessEl.textContent =
-          'Latest published snapshot: ' +
-          published.toISOString().slice(0, 10) +
-          ' (' + ageHours + 'h ago), compressed size ' + sizeMb + ' MB.';
-      } else {
-        freshnessEl.textContent = 'Snapshot manifest loaded, but freshness metadata is incomplete.';
+        var published = new Date(manifest.publishedAt);
+        var ageHours = Math.max(0, Math.round((Date.now() - published.getTime()) / 36e5));
+        var age = ageHours < 48 ? ageHours + 'h ago' : Math.round(ageHours / 24) + ' days ago';
+        freshnessEl.textContent = published.toISOString().slice(0, 10) + ' · ' + age;
       }
-    } catch {
-      if (countEl.dataset.fallback) {
-        countEl.textContent = countEl.dataset.fallback;
-      } else {
-        countEl.textContent = 'N/A';
-      }
-      // Keep the SSR'd freshness sentence if live manifest is unreachable.
+    } catch (e) {
+      // Keep the server-rendered count and date if the manifest is unreachable.
     }
   }
-
   loadSnapshotManifest();
 
   document.querySelectorAll('[data-copy]').forEach(function (el) {
@@ -1839,15 +712,45 @@
       if (sel && !sel.isCollapsed && (el.contains(sel.anchorNode) || el.contains(sel.focusNode))) return;
       if (!navigator.clipboard) return;
       navigator.clipboard.writeText(el.dataset.copy).then(function () {
-        el.title = 'Copied!';
+        var btn = el.querySelector('.copy');
+        if (btn) {
+          btn.textContent = 'Copied';
+          btn.classList.add('copied');
+          setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1600);
+        }
         if (typeof gtag === 'function') {
           gtag('event', 'copy_install_snippet', { snippet: el.dataset.snippet, copy_method: 'button' });
         }
       }).catch(function () {});
     });
   });
-</script>
-<script>
+
+  // Install tabs: without JS every panel is visible, stacked.
+  (function () {
+    var list = document.querySelector('[role="tablist"]');
+    var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+    function select(tab, focus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on);
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      });
+      if (focus) tab.focus();
+    }
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener('click', function () { select(tab); });
+      tab.addEventListener('keydown', function (e) {
+        var next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : null;
+        if (next === null) return;
+        e.preventDefault();
+        select(tabs[(next + tabs.length) % tabs.length], true);
+      });
+    });
+    list.hidden = false;
+    select(tabs[0]);
+  })();
+
   // Support email is stored reversed and assembled here so crawlers reading raw HTML don't harvest it.
   document.querySelectorAll('.eml[data-e]').forEach(function (el) {
     var e = el.getAttribute('data-e').split('').reverse().join('');

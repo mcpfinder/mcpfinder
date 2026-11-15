@@ -16,7 +16,7 @@ The version lives in these places. Bump them together:
 - `packages/mcp-server/server.json` (twice: top-level `version` and `packages[0].version`)
 - `packages/mcp-server/manifest.json` (MCPB)
 - `landing/public/.well-known/agents.json`
-- `landing/public/index.html`: the hero badge (`v<version> — FREE AND OPEN-SOURCE`),
+- `landing/public/index.html`: the hero eyebrow (`Open-source MCP server · v<version> · AGPL-3.0`),
   the footer line (`MCPfinder v<version> · last updated …`), `softwareVersion`
   (SoftwareApplication JSON-LD) and `version` (SoftwareSourceCode JSON-LD), plus their
   `dateModified`

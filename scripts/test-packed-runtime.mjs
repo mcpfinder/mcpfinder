@@ -20,7 +20,13 @@ const fixtureRoot = mkdtempSync(path.join(os.tmpdir(), 'mcpfinder-packed-runtime
 const graph = {
   '@modelcontextprotocol/sdk': { version: '1.32.2', dependencies: { express: '5.3.0', zod: '3.25.76' } },
   express: { version: '5.3.0', dependencies: { qs: '6.17.1', 'body-parser': '2.3.0', 'proxy-addr': '2.0.8' } },
-  'body-parser': { version: '2.3.0', dependencies: { qs: '6.17.1' } },
+  'body-parser': { version: '2.3.0', dependencies: { qs: '6.17.1', debug: '4.4.3' } },
+  // Optional peer that the audit did not install, so the lock has no edge.
+  debug: {
+    version: '4.4.3',
+    peerDependencies: { 'supports-color': '*' },
+    peerDependenciesMeta: { 'supports-color': { optional: true } },
+  },
   'proxy-addr': { version: '2.0.8' },
   qs: { version: '6.17.1' },
   zod: { version: '3.25.76' },
@@ -88,5 +94,14 @@ const workspaceManifest = JSON.parse(readFileSync(path.join(workspaceRange.serve
 workspaceManifest.dependencies['@mcpfinder/core'] = 'workspace:^2.0.3';
 writePackage(workspaceRange.server, workspaceManifest);
 assert.throws(() => checkPackedRuntime(workspaceRange.server, workspaceRange.lockFile), /workspace:\^2\.0\.3/);
+
+const hostPeer = makeFixture('host-optional-peer');
+writePackage(path.join(hostPeer.server, '../../supports-color'), { name: 'supports-color', version: '9.4.0' });
+assert.throws(() => checkPackedRuntime(hostPeer.server, hostPeer.lockFile), /Unaudited peer supports-color of debug/);
+
+const requiredPeer = makeFixture('required-peer');
+const debugManifest = path.join(requiredPeer.bundled, 'debug/package.json');
+writeFileSync(debugManifest, JSON.stringify({ ...JSON.parse(readFileSync(debugManifest, 'utf8')), peerDependenciesMeta: {} }));
+assert.throws(() => checkPackedRuntime(requiredPeer.server, requiredPeer.lockFile), /Unaudited required peer supports-color/);
 
 console.log(`packed runtime checks passed; retained metadata fixtures: ${fixtureRoot}`);

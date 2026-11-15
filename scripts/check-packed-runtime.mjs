@@ -68,6 +68,17 @@ export function checkPackedRuntime(serverArgument, lockArgument = path.join(repo
     for (const dependency of Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies })) {
       assert(dependency in edges, `Unaudited runtime dependency ${dependency} in ${name}`);
     }
+    // Peers absent from the snapshot were not installed by the audit. An optional
+    // one may stay absent, but any copy that resolves would run unaudited.
+    const audited = lock.packages[`${name}@${version}`];
+    const peers = { ...audited.peerDependencies, ...manifest.peerDependencies };
+    const peerMeta = { ...audited.peerDependenciesMeta, ...manifest.peerDependenciesMeta };
+    for (const peer of Object.keys(peers)) {
+      if (peer in edges) continue;
+      assert(peerMeta[peer]?.optional, `Unaudited required peer ${peer} of ${name}`);
+      const resolved = locate(peer, root);
+      assert(!resolved, `Unaudited peer ${peer} of ${name} resolves at ${resolved?.root}`);
+    }
     for (const [dependency, target] of Object.entries(snapshot.dependencies ?? {})) {
       visit(dependency, target, root);
     }

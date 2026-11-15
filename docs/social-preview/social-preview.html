@@ -1,0 +1,44 @@
+<!doctype html>
+<!--
+  Source of the GitHub social preview, the README banner and the mcpfinder.dev OG image.
+  Re-render (1280x640) from this directory, then copy to landing/public/og-image.png:
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --hide-scrollbars \
+    --window-size=1280,640 --virtual-time-budget=5000 --screenshot=social-preview.png "file://$PWD/social-preview.html"
+-->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1280px;height:640px;overflow:hidden}
+  body{background:#0A0A0A;color:#F5F5F5;font-family:'JetBrains Mono',monospace;position:relative;-webkit-font-smoothing:antialiased}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(#161616 1px,transparent 1px),linear-gradient(90deg,#161616 1px,transparent 1px);background-size:40px 40px}
+  .glow{position:absolute;left:-120px;top:40px;width:640px;height:560px;background:radial-gradient(closest-side,rgba(212,255,0,.13),transparent)}
+  .safe{position:absolute;inset:80px;display:flex;align-items:center;gap:64px}
+  .icon{flex:0 0 340px;height:340px}
+  .text{flex:1}
+  .brand{font-size:30px;font-weight:700;color:#999;letter-spacing:.02em;margin-bottom:22px}
+  .brand b{color:#D4FF00}
+  h1{font-size:64px;font-weight:800;line-height:1.08;letter-spacing:-.01em;margin-bottom:30px}
+  h1 span{color:#D4FF00}
+  .sub{font-size:22px;color:#999;line-height:1.5;margin-bottom:34px;max-width:640px}
+  .cmd{display:inline-flex;align-items:center;gap:14px;border:1px solid #333;background:#111;padding:14px 22px;font-size:24px;font-weight:500}
+  .cmd i{color:#D4FF00;font-style:normal}
+</style></head><body>
+<div class="grid"></div><div class="glow"></div>
+<div class="safe">
+  <svg class="icon" viewBox="0 0 512 512" fill="none" stroke="#D4FF00" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="214" cy="214" r="150"/>
+    <g transform="translate(222 222) rotate(-45)">
+      <path d="M-62 -40 H62 V10 A62 62 0 0 1 -62 10 Z"/>
+      <path d="M-30 -40 V-88 M30 -40 V-88"/>
+      <path d="M0 72 V285"/>
+    </g>
+  </svg>
+  <div class="text">
+    <div class="brand"><b>MCP</b>finder</div>
+    <h1>Your AI finds<br><span>MCP servers</span><br>for you</h1>
+    <div class="sub">Search, vet &amp; install MCP servers from the Official MCP Registry and Glama.</div>
+    <div class="cmd"><i>$</i> npx -y @mcpfinder/server</div>
+  </div>
+</div>
+</body></html>

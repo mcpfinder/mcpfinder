@@ -1,3 +1,7 @@
+<p align="center">
+  <a href="https://mcpfinder.dev"><img src="docs/social-preview/social-preview.png" alt="MCPfinder — Your AI finds MCP servers for you. Search, vet and install MCP servers from the Official MCP Registry and Glama." width="100%"></a>
+</p>
+
 # MCPfinder
 
 > The MCP server that helps AI agents discover, evaluate, and install other MCP servers.

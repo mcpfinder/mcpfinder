@@ -570,13 +570,29 @@ a violation fails the install outright.
 Two consequences worth knowing before they surprise you:
 
 - **A freshly published version will not resolve for a week.** That is the
-  point. The packages listed under `overrides` are the exception: they are a
-  hand-maintained set of security pins, so they appear in
-  `minimumReleaseAgeExclude` and update the day a patch lands. Remove a package
-  from `overrides` and remove it from that list too.
+  point. Only packages explicitly listed in `minimumReleaseAgeExclude` bypass
+  that delay for maintained security patches. Other overrides, including the
+  SDK's Express and proxy-addr floors, retain the normal cooldown. Remove an
+  exemption when its override is no longer needed.
 - **`trustPolicyExclude` carries exactly one pinned entry**, `undici-types@6.21.0`,
   with the evidence for why it is benign recorded in the file. Pin any future
   exemption to an exact version the same way, never to a bare package name.
+
+### Published runtime dependencies
+
+The server package uses standard `bundleDependencies` for the MCP SDK and Zod,
+including their complete transitive runtime trees. This carries the audited
+SDK → Express → proxy-addr/qs graph to public consumers: workspace overrides
+alone do not constrain dependencies selected by another project's package manager
+or existing lockfile. The dependency-free `@mcpfinder/core` remains a separate,
+coupled package at the same version.
+
+Keep the workspace's isolated linker. Prepare release tarballs in a fresh,
+release-only hoisted install as described in the publish playbook; retain
+third-party licenses and notices and verify actual packed resolution under npm
+11, npm 12 and pnpm 11, including hosts with older locked SDK dependencies.
+An audit with no Critical findings does not mean High and lower findings, or an
+unrelated consumer project's dependencies, are clear.
 
 ### Releasing
 

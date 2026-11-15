@@ -21,7 +21,7 @@ allowBuilds:
 minimumReleaseAge: 10080
 
 # Refuse transitive deps that resolve to a git URL or a bare tarball instead of
-# a registry entry. Currently a no-op — all 238 lockfile entries resolve via the
+# a registry entry. Currently a no-op — all lockfile entries resolve via the
 # registry — which is the point: it fails loudly the day one stops doing so.
 blockExoticSubdeps: true
 
@@ -44,15 +44,13 @@ trustPolicy: no-downgrade
 trustPolicyExclude:
   - undici-types@6.21.0
 
-# The `overrides` block below is a hand-maintained list of security patches: an
-# entry lands there precisely when we need the fix *now*. Leaving those packages
-# under the 7-day floor would delay the very updates the block exists to force,
-# so they are exempt.
+# These existing security overrides need patches without the 7-day delay, so
+# they have explicit age exemptions. Other overrides retain the normal cooldown.
 #
 # The trade-off is explicit — these 14 packages get no cooldown, and they are
 # also the ones an attacker would most want to hijack. It is the right side of
 # the trade only because every entry here is a package we deliberately track and
-# bump by hand; drop a name from `overrides` and drop it from this list too.
+# bump by hand; remove its exemption when an override is no longer needed.
 minimumReleaseAgeExclude:
   - hono
   - "@hono/node-server"
@@ -83,4 +81,8 @@ overrides:
   esbuild: "^0.28.1"
   ajv: "^8.18.0"
   ws: "^8.20.1"
-  qs: "^6.15.2"
+  qs: "^6.16.0"
+  # Express supports this proxy-addr patch; keep the SDK's caller on that floor.
+  # Both fixes retain the normal release-age and trust checks.
+  proxy-addr: "^2.0.8"
+  "@modelcontextprotocol/sdk>express": "^5.3.0"

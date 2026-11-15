@@ -1,5 +1,16 @@
 # Changelog — @mcpfinder/server
 
+## 2.0.3 — 2026-11-14
+
+### Fixed
+- Bundle the audited MCP SDK 1.32.2 and Zod runtime trees so consumers receive
+  the fixed dependencies even in hosts with older locked SDK dependencies.
+  The bundled graph includes Express 5.3.0, proxy-addr 2.0.8 and qs 6.17.1;
+  workspace overrides alone do not protect published-package consumers.
+- Include the first-party license alongside bundled third-party licenses.
+- Requires `@mcpfinder/core` ^2.0.3. MCP tools and their public interfaces remain
+  unchanged. High and lower dependency findings remain outside this Critical fix.
+
 ## 2.0.2 — 2026-11-02
 
 ### Fixed

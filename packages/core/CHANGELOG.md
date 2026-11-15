@@ -1,5 +1,12 @@
 # Changelog — @mcpfinder/core
 
+## 2.0.3 — 2026-11-14
+
+### Changed
+- Coupled release with `@mcpfinder/server` 2.0.3, which bundles its audited SDK
+  and Zod runtime dependencies. Core remains dependency-free; its public API
+  and catalog behavior are unchanged.
+
 ## 2.0.2 — 2026-11-02
 
 ### Fixed

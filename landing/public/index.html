@@ -215,7 +215,7 @@
       { "@type": "Question", "name": "Is MCPfinder free? Does it need an API key?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, it is free and open source under AGPL-3.0. It needs no account and no API key; it runs locally through npx -y @mcpfinder/server." } },
       { "@type": "Question", "name": "Can I use it at work or in a commercial product?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. You can run it and use it with your agents in any personal, internal or commercial setting. AGPL-3.0 only requires that if you modify MCPfinder and offer it as a network service, you publish those changes under the same licence. For other licensing, contact Coder AI." } },
       { "@type": "Question", "name": "Does MCPfinder install servers by itself?", "acceptedAnswer": { "@type": "Answer", "text": "No. It only returns the config and tells your agent which secrets are needed and what to restart. Your agent or you apply the change, so nothing is added to your client without you seeing it." } },
-      { "@type": "Question", "name": "Which registries does it search, and how fresh is the data?", "acceptedAnswer": { "@type": "Answer", "text": "The Official MCP Registry and Glama, merged and deduplicated. The data ships as a published snapshot; its publish date and server count are public at /api/v1/snapshot/manifest.json, and MCPfinder exposes them to your agent." } },
+      { "@type": "Question", "name": "Which registries does it search, and how fresh is the data?", "acceptedAnswer": { "@type": "Answer", "text": "The Official MCP Registry and Glama, merged and deduplicated. The data ships as a published snapshot; its publish date and server count are public at /api/v1/snapshot/manifest.json. Each result also carries its own updatedAt and freshness flags such as stale-over-12-months." } },
       { "@type": "Question", "name": "Is there a hosted HTTP endpoint?", "acceptedAnswer": { "@type": "Answer", "text": "Not yet. The local stdio server is the supported interface. A hosted endpoint with the same tools is on the roadmap." } },
       { "@type": "Question", "name": "How can I contribute?", "acceptedAnswer": { "@type": "Answer", "text": "Issues and pull requests are welcome on GitHub at github.com/mcpfinder/mcpfinder. The project is maintained by Coder AI." } }
     ]
@@ -275,7 +275,7 @@
       </div>
 
       <figure class="session" aria-label="Example agent session using MCPfinder">
-        <figcaption class="session-head"><span>example session · claude desktop</span><span>real output, trimmed</span></figcaption>
+        <figcaption class="session-head"><span>example session · cursor</span><span>real output, trimmed</span></figcaption>
         <div class="session-body">
           <div class="turn"><span class="who">you</span><p>Let me file Linear issues from here.</p></div>
           <div class="call">
@@ -287,10 +287,10 @@
             <div class="checks"><span class="ok">✓ official</span><span class="ok">✓ no secrets</span><span class="warn">! single-source-only</span></div>
           </div>
           <div class="call">
-            <div><span class="fn">get_install_config</span>({ name: "app.linear/linear", platform: "claude-desktop" })</div>
-            <div class="snippet"><span class="p">{</span> <span class="k">"linear"</span><span class="p">: {</span> <span class="k">"url"</span><span class="p">:</span> <span class="s">"https://mcp.linear.app/mcp"</span> <span class="p">} }</span></div>
+            <div><span class="fn">get_install_config</span>({ name: "app.linear/linear", platform: "cursor" })</div>
+            <div class="snippet"><span class="p">{</span> <span class="k">"mcpServers"</span><span class="p">: {</span> <span class="k">"linear"</span><span class="p">: {</span> <span class="k">"url"</span><span class="p">:</span> <span class="s">"https://mcp.linear.app/mcp"</span> <span class="p">} } }</span></div>
           </div>
-          <div class="turn assistant"><span class="who">claude</span><p>Linear's official server needs no API key. Add this and restart Claude. Heads-up: it's listed in only one registry.</p></div>
+          <div class="turn assistant"><span class="who">cursor</span><p>Linear's official server needs no API key — you sign in with OAuth on first use. Add this to ~/.cursor/mcp.json. Heads-up: it's listed in only one registry.</p></div>
         </div>
       </figure>
     </div>
@@ -300,7 +300,6 @@
     <div class="wrap">
       <span class="label">Generates config for</span>
       <span>Claude Desktop</span><span>Claude Code</span><span>Cursor</span><span>Windsurf</span><span>Cline / VS Code</span>
-      <span class="more">+ any MCP client</span>
     </div>
   </div>
 
@@ -329,7 +328,7 @@ freshnessDays: 23</pre>
         <li class="step">
           <div class="step-id"><span class="n">03</span><span class="tool">get_install_config</span></div>
           <div><h3>Write the exact config</h3><p>JSON for your client, the file it belongs in, which secrets you need to fill in, and whether to restart.</p></div>
-          <pre class="excerpt">configFilePath: "…/Claude/claude_desktop_config.json"
+          <pre class="excerpt">configFilePath: { mac: "~/.cursor/mcp.json", … }
 requires_user_secrets: false</pre>
         </li>
       </ol>
@@ -579,7 +578,7 @@ requires_user_secrets: false</pre>
             <tr><th scope="row">Trust signals</th><td class="us">Score, reasons, warning flags</td><td>Stars, downloads</td><td>Raw metadata</td><td>None</td></tr>
             <tr><th scope="row">Install config</th><td class="us">Generated per client</td><td>Copy-paste by hand</td><td>No</td><td>Often wrong</td></tr>
             <tr><th scope="row">Flags required secrets</th><td class="us">Env vars and HTTP headers</td><td>Sometimes, in prose</td><td>Raw schema</td><td>Unreliable</td></tr>
-            <tr><th scope="row">Freshness</th><td class="us">Snapshot date exposed</td><td>Implicit</td><td>Per-record updatedAt</td><td>Unknown</td></tr>
+            <tr><th scope="row">Freshness</th><td class="us">Per-server updatedAt + public snapshot manifest</td><td>Implicit</td><td>Per-record updatedAt</td><td>Unknown</td></tr>
             <tr><th scope="row">Price</th><td class="us">Free, AGPL-3.0</td><td>Free</td><td>Free</td><td>—</td></tr>
           </tbody>
         </table>
@@ -601,7 +600,7 @@ requires_user_secrets: false</pre>
         <details><summary>Is MCPfinder free? Does it need an API key?</summary><p>Yes, it is free and open source under <a href="https://github.com/mcpfinder/mcpfinder/blob/main/LICENSE">AGPL-3.0</a>. It needs no account and no API key; it runs locally through <code>npx -y @mcpfinder/server</code>.</p></details>
         <details><summary>Can I use it at work or in a commercial product?</summary><p>Yes. You can run it and use it with your agents in any personal, internal or commercial setting. AGPL-3.0 only requires that if you modify MCPfinder and offer it as a network service, you publish those changes under the same licence. For other licensing, contact <a href="#about">Coder AI</a>.</p></details>
         <details><summary>Does MCPfinder install servers by itself?</summary><p>No. It only returns the config and tells your agent which secrets are needed and what to restart. Your agent or you apply the change, so nothing is added to your client without you seeing it.</p></details>
-        <details><summary>Which registries does it search, and how fresh is the data?</summary><p>The Official MCP Registry and Glama, merged and deduplicated. The data ships as a published snapshot; its publish date and server count are public at <a href="/api/v1/snapshot/manifest.json">/api/v1/snapshot/manifest.json</a>, and MCPfinder exposes them to your agent.</p></details>
+        <details><summary>Which registries does it search, and how fresh is the data?</summary><p>The Official MCP Registry and Glama, merged and deduplicated. The data ships as a published snapshot; its publish date and server count are public at <a href="/api/v1/snapshot/manifest.json">/api/v1/snapshot/manifest.json</a>. Each result also carries its own updatedAt and freshness flags such as stale-over-12-months.</p></details>
         <details><summary>Is there a hosted HTTP endpoint?</summary><p>Not yet. The local stdio server is the supported interface. A hosted endpoint with the same tools is on the roadmap.</p></details>
         <details><summary>How can I contribute?</summary><p>Issues and pull requests are welcome on GitHub at <a href="https://github.com/mcpfinder/mcpfinder">github.com/mcpfinder/mcpfinder</a>. The project is maintained by <a href="https://coderai.dev">Coder AI</a>.</p></details>
       </div>
@@ -705,11 +704,14 @@ requires_user_secrets: false</pre>
   loadSnapshotManifest();
 
   document.querySelectorAll('[data-copy]').forEach(function (el) {
-    el.addEventListener('click', function () {
+    el.addEventListener('click', function (e) {
       // A drag-select ends in a click too; leave the selection alone and let
       // the copy listener in analytics.js count it, so it isn't counted twice.
-      var sel = window.getSelection && window.getSelection();
-      if (sel && !sel.isCollapsed && (el.contains(sel.anchorNode) || el.contains(sel.focusNode))) return;
+      // An explicit Copy button click always copies.
+      if (!e.target.closest('button.copy')) {
+        var sel = window.getSelection && window.getSelection();
+        if (sel && !sel.isCollapsed && (el.contains(sel.anchorNode) || el.contains(sel.focusNode))) return;
+      }
       if (!navigator.clipboard) return;
       navigator.clipboard.writeText(el.dataset.copy).then(function () {
         var btn = el.querySelector('.copy');

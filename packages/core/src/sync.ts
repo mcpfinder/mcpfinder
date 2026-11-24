@@ -383,6 +383,9 @@ export async function syncOfficialRegistry(
     )
     ON CONFLICT(id) DO UPDATE SET
       description = CASE WHEN length(excluded.description) > length(servers.description) THEN excluded.description ELSE servers.description END,
+      -- Stored categories describe the old description; clearing them makes
+      -- readers fall back to categorizeServer until assignCategories runs again.
+      categories = CASE WHEN length(excluded.description) > length(servers.description) THEN '[]' ELSE servers.categories END,
       version = excluded.version,
       registry_type = COALESCE(excluded.registry_type, servers.registry_type),
       package_identifier = COALESCE(excluded.package_identifier, servers.package_identifier),

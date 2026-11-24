@@ -97,6 +97,7 @@ export {
   categorizeServer,
   listCategories,
   getServersByCategory,
+  assignCategories,
 } from './categories.js';
 
 // Install

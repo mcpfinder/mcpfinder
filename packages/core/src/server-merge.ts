@@ -214,6 +214,11 @@ export function mergeServerData(
       queueUpdate('env_vars', mergedEnvVars);
     }
   }
+  // Stored categories were computed from the old name/description; clearing
+  // them makes readers fall back to categorizeServer until assignCategories runs.
+  if (['name', 'description'].some((f) => updates.has(f) && updates.get(f) !== existing[f])) {
+    queueUpdate('categories', '[]');
+  }
   if (updates.size > 0) {
     const values = [...updates.values(), existingId] as SqlParam[];
     const assignments = [...updates.keys()].map((field) => `${field} = ?`);

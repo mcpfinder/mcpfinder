@@ -1,5 +1,27 @@
 # Changelog — @mcpfinder/core
 
+## Unreleased
+
+### Fixed
+- `categorizeServer` matches whole words (plus simple forms such as
+  `files`, `deploying`, `encryption`) instead of substrings, and ignores the
+  registry namespace/owner part of the name. "email" no longer lands in `ai`,
+  "digital" in `git`, or every `io.github.*` server in `git`. Overly generic
+  keywords (`ai`, `claude`, `query`, `request`, bare `search`) are gone.
+  `getServersByCategory` uses the same rule instead of SQL `LIKE` (same
+  `limit` semantics: `0` returns nothing, negative returns everything).
+- Unmatched servers get the `other` category, which `listCategories` now
+  lists and `getServersByCategory` accepts.
+- Sync and merge writes that change a server's name or description reset its
+  stored `categories` to `[]`, so details recompute them instead of showing
+  stale ones.
+
+### Added
+- `finance` category (payments, banking, crypto, trading).
+- `assignCategories(db)` stores each row's categories in the `categories`
+  column; the snapshot build calls it, so snapshot consumers read categories
+  instead of recomputing them.
+
 ## 2.0.4 — 2026-11-15
 
 ### Fixed

@@ -102,6 +102,7 @@ const {
   getServerCount,
   enrichDeprecationFlags,
   mergeSameRemoteOfficialEntries,
+  assignCategories,
 } = await import(corePath);
 
 const dbPath = join(outDir, 'data.sqlite');
@@ -227,6 +228,10 @@ for (const m of urlMerge.merged) {
 for (const k of urlMerge.skipped) {
   console.log(`[build-snapshot]   skipped ${k.reason}: ${k.ids.join(', ')} (${k.url})`);
 }
+
+// Categories are stored once here, after every merge has settled each row's
+// name and description, so snapshot consumers read them instead of recomputing.
+console.log(`[build-snapshot] categories: ${assignCategories(db)} rows`);
 
 // Smithery is no longer a source: its API shuts down on 2026-10-31
 // (https://smithery.ai/future). Official + Glama are the whole corpus.

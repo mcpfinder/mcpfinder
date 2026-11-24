@@ -1,5 +1,18 @@
 # Changelog — @mcpfinder/server
 
+## Unreleased
+
+### Fixed
+- A source repository the GitHub API answers 404 for (private or deleted) is no
+  longer reported as `archived-repo`. It gets the new `repo-unavailable`
+  warning flag (−0.05 confidence, driver `-repo-unavailable`) and no longer
+  counts as `trustSignals.hasRepository`.
+- A server whose repository URL changed no longer inherits the previous
+  repository's archived/unavailable flag in the published catalog snapshot.
+- `get_server_details` no longer prints the always-empty "verified" trust
+  signal. `trustSignals.isVerified` and `confidenceBreakdown.components.verified`
+  stay in structured output as deprecated, always false/0.
+
 ## 2.0.4 — 2026-11-15
 
 ### Fixed

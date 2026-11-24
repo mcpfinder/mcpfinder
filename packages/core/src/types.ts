@@ -79,7 +79,12 @@ export interface ToolSummary {
 
 export interface TrustSignals {
   hasOfficialSource: boolean;
+  /**
+   * @deprecated Always false since 2.0.0: the only source (Smithery) was
+   * retired. Kept so existing consumers of `trustSignals` don't break.
+   */
   isVerified: boolean;
+  /** A repository URL is listed and was not found unreachable (GitHub 404). */
   hasRepository: boolean;
   hasRemote: boolean;
   multiSource: boolean;
@@ -100,7 +105,7 @@ export interface ConfidenceBreakdown {
   components: {
     base: number;        // starting point (all servers share this)
     official: number;    // lift for Official Registry presence
-    verified: number;    // lift for verified publisher flag
+    verified: number;    // deprecated: always 0 since 2.0.0 (no verified-publisher source)
     popularity: number;  // lift for community use_count tiers
     multiSource: number; // lift for appearing in >1 registry
     penalties: number;   // sum of penalties (<=0): staleness, missing install path, etc.
@@ -155,7 +160,7 @@ export interface McpServer {
   /** Directory listing page (e.g. Glama's server page). Never an MCP endpoint. */
   listing_url?: string | null;
   deprecated_npm: number | null; // null = not checked, 0 = clean, 1 = deprecated on npm
-  archived_repo: number | null;  // null = not checked, 0 = clean, 1 = archived on GitHub
+  archived_repo: number | null;  // null = not checked, 0 = clean, 1 = archived on GitHub, 2 = not publicly reachable (GitHub 404: private or deleted)
 }
 
 /** Search result returned to MCP clients */

@@ -7,7 +7,7 @@ import { runSearchRelevanceChecks } from './search-relevance-checks.mjs';
 const dir = mkdtempSync(join(tmpdir(), 'mcpf-core-test-'));
 process.env.MCPFINDER_DATA_DIR = dir;
 
-const { initDatabase, getServerDetails, searchServers } = await import('../packages/core/dist/index.js');
+const { initDatabase, getServerDetails, searchServers, enrichDeprecationFlags } = await import('../packages/core/dist/index.js');
 
 const db = initDatabase();
 
@@ -119,6 +119,56 @@ assert.ok(ghSearch, 'search should find the ghtool fixture');
 assert.equal(ghSearch.trustSignals.possibleUnlabeledSecrets, true);
 const fsSearch = searchServers(db, 'filesystem').find((r) => r.name === 'io.example/filesystem');
 assert.equal(fsSearch?.trustSignals.possibleUnlabeledSecrets, false);
+
+// Verified publisher is a retired signal: a stale `verified = 1` row earns no
+// lift, no driver and no trust signal.
+assert.equal(detail?.trustSignals.isVerified, false);
+assert.equal(detail?.confidenceBreakdown.components.verified, 0);
+assert.equal(detail?.confidenceBreakdown.drivers.includes('+verified'), false);
+assert.ok(!detail?.recommendationReason.includes('verified'));
+
+// GitHub archived probe: 404 (private or deleted) is "unavailable" (2), not
+// archived (1); `archived: true` is archived; anything else is clean (0).
+const insertRepo = db.prepare(`
+  INSERT INTO servers (id, slug, name, registry_type, package_identifier, transport_type,
+    repository_url, status, sources, raw_data, env_vars, source, last_synced_at)
+  VALUES (@id, @id, @id, 'npm', @id, 'stdio', @repo, 'active', '["official"]', '{}', '[]', 'official', @now)
+`);
+const now = new Date().toISOString();
+insertRepo.run({ id: 'repo-private', repo: 'https://github.com/example/private', now });
+insertRepo.run({ id: 'repo-archived', repo: 'https://github.com/example/archived', now });
+const realFetch = globalThis.fetch;
+globalThis.fetch = async (url) => {
+  const u = String(url);
+  if (u.endsWith('/example/private')) return new Response('{}', { status: 404 });
+  if (u.endsWith('/example/archived')) return Response.json({ archived: true });
+  if (u.startsWith('https://api.github.com/')) return Response.json({ archived: false });
+  return Response.json({ 'dist-tags': {}, versions: {} });
+};
+try {
+  const enriched = await enrichDeprecationFlags(db, { token: 'test' });
+  assert.equal(enriched.github.probed, 3);
+} finally {
+  globalThis.fetch = realFetch;
+}
+const archivedOf = (id) => db.prepare('SELECT archived_repo FROM servers WHERE id = ?').get(id).archived_repo;
+assert.equal(archivedOf('repo-private'), 2);
+assert.equal(archivedOf('repo-archived'), 1);
+assert.equal(archivedOf('io.example/filesystem'), 0);
+
+const privateDetail = getServerDetails(db, 'repo-private');
+assert.ok(privateDetail?.warningFlags.includes('repo-unavailable'));
+assert.equal(privateDetail?.warningFlags.includes('archived-repo'), false);
+assert.ok(privateDetail?.confidenceBreakdown.drivers.includes('-repo-unavailable'));
+assert.equal(privateDetail?.confidenceBreakdown.components.penalties, -0.05);
+assert.equal(privateDetail?.trustSignals.hasRepository, false);
+
+const archivedDetail = getServerDetails(db, 'repo-archived');
+assert.ok(archivedDetail?.warningFlags.includes('archived-repo'));
+assert.equal(archivedDetail?.warningFlags.includes('repo-unavailable'), false);
+assert.ok(archivedDetail?.confidenceBreakdown.drivers.includes('-archived-repo'));
+assert.equal(archivedDetail?.confidenceBreakdown.components.penalties, -0.1);
+assert.equal(archivedDetail?.trustSignals.hasRepository, true);
 
 db.close();
 

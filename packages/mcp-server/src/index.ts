@@ -447,7 +447,6 @@ server.registerTool(
       `**Trust Signals:** ${
         [
           selectedTrustSignals.hasOfficialSource ? 'official' : '',
-          selectedTrustSignals.isVerified ? 'verified' : '',
           selectedTrustSignals.multiSource ? 'multi-source' : '',
           selectedTrustSignals.hasRepository ? 'repository' : '',
           selectedTrustSignals.hasRemote ? 'remote' : '',
@@ -483,7 +482,6 @@ server.registerTool(
       }`,
       `**Why recommended:** ${detail.recommendationReason}`,
       detail.useCount > 0 ? `**Popularity:** ${formatUseCount(detail.useCount)} uses` : '',
-      detail.verified ? '**Verified:** ✓' : '',
       trustSection,
       warningsSection,
       toolSection,

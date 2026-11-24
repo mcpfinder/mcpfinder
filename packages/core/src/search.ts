@@ -6,7 +6,7 @@
  *     * (0.4 + 0.6 * name_focus)
  * + fts_relevance * 0.3
  * + log(use_count + 1) * 0.2
- * + (3.0 if official | 1.5 if verified | 0) * 0.15
+ * + (3.0 if official | 1.5 if verified (always 0 since 2.0.0) | 0) * 0.15
  *
  * The name-match term dominates by design — a query word occurring in the name
  * is the strongest signal we have — which is exactly why it must not fire on
@@ -808,14 +808,8 @@ function extractToolSummariesFromPayload(payload: Record<string, unknown>): Tool
 }
 
 function getRecommendationReason(row: McpServer, sources: string[]): string {
-  if (sources.includes('official') && row.verified === 1 && (row.use_count || 0) > 0) {
-    return 'official registry presence, verified publisher metadata, and community usage';
-  }
   if (sources.includes('official')) {
     return 'official registry presence and metadata completeness';
-  }
-  if (row.verified === 1) {
-    return 'verified listing and strong discovery signals';
   }
   if ((row.use_count || 0) > 0) {
     return 'community usage and text relevance';
@@ -832,9 +826,11 @@ function getWarningFlags(row: McpServer, sources: string[]): string[] {
   if (!row.package_identifier && !hasUsableRemote(row)) warnings.push('install-method-unclear');
   if (row.status && row.status !== 'active') warnings.push(`status:${row.status}`);
 
-  // Build-time enrichment flags (null = never probed, 1 = flagged, 0 = clean).
+  // Build-time enrichment flags (null = never probed, 1 = flagged, 0 = clean;
+  // archived_repo 2 = GitHub 404, i.e. private or deleted).
   if (row.deprecated_npm === 1) warnings.push('deprecated-npm');
   if (row.archived_repo === 1) warnings.push('archived-repo');
+  if (row.archived_repo === 2) warnings.push('repo-unavailable');
 
   if (row.updated_at) {
     const updatedTime = Date.parse(row.updated_at);
@@ -855,7 +851,8 @@ function getConfidenceBreakdown(
 ): ConfidenceBreakdown {
   const base = 0.4;
   const official = sources.includes('official') ? 0.2 : 0;
-  const verified = row.verified === 1 ? 0.15 : 0;
+  // Deprecated component: no verified-publisher source since 2.0.0.
+  const verified = 0;
   const useCount = row.use_count || 0;
   const popularity = useCount >= 100 ? 0.15 : useCount > 0 ? 0.1 : 0;
   const multiSource = sources.length > 1 ? 0.05 : 0;
@@ -864,6 +861,7 @@ function getConfidenceBreakdown(
   if (warningFlags.includes('stale-over-18-months')) penalties -= 0.15;
   if (warningFlags.includes('deprecated-npm')) penalties -= 0.2;
   if (warningFlags.includes('archived-repo')) penalties -= 0.1;
+  if (warningFlags.includes('repo-unavailable')) penalties -= 0.05;
   if (warningFlags.includes('install-method-unclear')) penalties -= 0.1;
   if (warningFlags.includes('missing-repository-url')) penalties -= 0.05;
 
@@ -872,12 +870,12 @@ function getConfidenceBreakdown(
 
   const drivers: string[] = [];
   if (official) drivers.push('+official');
-  if (verified) drivers.push('+verified');
   if (popularity >= 0.15) drivers.push('+popularity:100+uses');
   else if (popularity > 0) drivers.push('+popularity:any-use');
   if (multiSource) drivers.push('+multi-source');
   if (warningFlags.includes('deprecated-npm')) drivers.push('-deprecated-npm');
   if (warningFlags.includes('archived-repo')) drivers.push('-archived-repo');
+  if (warningFlags.includes('repo-unavailable')) drivers.push('-repo-unavailable');
   if (warningFlags.includes('stale-over-18-months')) drivers.push('-stale>18mo');
   if (warningFlags.includes('install-method-unclear')) drivers.push('-install-unclear');
   if (warningFlags.includes('missing-repository-url')) drivers.push('-no-repo-url');
@@ -904,8 +902,8 @@ function getTrustSignals(
   const freshnessDays = getFreshnessDays(row);
   return {
     hasOfficialSource: sources.includes('official'),
-    isVerified: row.verified === 1,
-    hasRepository: Boolean(row.repository_url),
+    isVerified: false,
+    hasRepository: Boolean(row.repository_url) && row.archived_repo !== 2,
     hasRemote: hasUsableRemote(row),
     multiSource: sources.length > 1,
     hasRecentUpdate: freshnessDays !== null && freshnessDays <= 180,

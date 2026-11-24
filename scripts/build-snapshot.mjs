@@ -43,6 +43,7 @@ import {
 } from './snapshot-quality.mjs';
 import { snapshotBrotliManifestUrl, snapshotManifestUrl } from '../shared/snapshot-artifacts.js';
 import { loadReplay } from './glama-capture-lib.mjs';
+import { seedFlagsFromSnapshot } from './carry-over-flags.mjs';
 
 // GitHub-hosted ubuntu-latest advertises AAAA records whose routes black-hole.
 // Node's default DNS order tries those first; undici then sits on connect until
@@ -134,7 +135,8 @@ const previousManifestPromise = fetchPreviousManifest({
 
 /**
  * Seed deprecation/archived flags (and their probe timestamps) into the freshly
- * built DB from the previously published snapshot, keyed by stable server id.
+ * built DB from the previously published snapshot, keyed by stable server id
+ * (archived_* only while the repository URL is unchanged).
  *
  * The DB is rebuilt from scratch every run, so without this the enrichment
  * probes would re-scan all ~25k repos each time and never finish within the
@@ -152,28 +154,9 @@ async function carryOverFlags(targetDb, workDir, previousManifest) {
   const prevPath = join(workDir, 'prev.sqlite');
   await writeFile(prevPath, gunzipSync(Buffer.from(await res.arrayBuffer())));
 
-  targetDb.exec(`ATTACH DATABASE '${prevPath.replace(/'/g, "''")}' AS prev`);
   try {
-    const prevCols = new Set(
-      targetDb.prepare(`SELECT name FROM prev.pragma_table_info('servers')`).all().map((c) => c.name),
-    );
-    // Older snapshots predate the *_checked_at columns — carry whatever exists.
-    const cols = [
-      'archived_repo',
-      'archived_repo_checked_at',
-      'deprecated_npm',
-      'deprecated_npm_checked_at',
-    ].filter((c) => prevCols.has(c));
-    if (cols.length === 0) return 0;
-    const setClause = cols
-      .map((c) => `${c} = (SELECT p.${c} FROM prev.servers p WHERE p.id = servers.id)`)
-      .join(', ');
-    const info = targetDb
-      .prepare(`UPDATE servers SET ${setClause} WHERE id IN (SELECT id FROM prev.servers)`)
-      .run();
-    return info.changes;
+    return seedFlagsFromSnapshot(targetDb, prevPath);
   } finally {
-    targetDb.exec('DETACH DATABASE prev');
     await rm(prevPath, { force: true });
   }
 }

@@ -40,6 +40,8 @@ function isGitHubRateLimited(res: Response): boolean {
  *
  * Each row's `deprecated_npm` / `archived_repo` column becomes 0 (clean after
  * probe) or 1 (flagged), and `*_checked_at` records the probe time.
+ * `archived_repo` has one more value: 2 when the GitHub API answers 404 —
+ * the repo is private or deleted, which is not the same as archived.
  *
  * The probe is incremental: a row is (re)probed only when it has never been
  * flagged, has no probe timestamp, or its timestamp is older than the
@@ -61,6 +63,9 @@ export interface DeprecationEnrichResult {
  * secondary limit. At 4 runs/day the whole corpus refreshes well inside the
  * 30-day window.
  */
+/** `archived_repo` value for a repo the GitHub API answers 404 for. */
+const REPO_UNAVAILABLE = 2;
+
 const NPM_STALE_DAYS = 14;
 const NPM_MAX_PROBES = 4000;
 const GITHUB_STALE_DAYS = 30;
@@ -259,7 +264,8 @@ async function probeGitHubArchived(
         return;
       }
       if (res.status === 404) {
-        update.run(1, now, row.id); // repo gone = treat as archived
+        // Private and deleted repos both 404: not archived, just unreachable.
+        update.run(REPO_UNAVAILABLE, now, row.id);
         stats.flagged++;
         return;
       }

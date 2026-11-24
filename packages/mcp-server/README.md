@@ -168,9 +168,13 @@ Four canonical tools, optimized for AI consumption (typed `outputSchema` +
 - Ranked results with `confidenceScore` plus a transparent
   `confidenceBreakdown` (`base`, `official`, `verified`, `popularity`,
   `multiSource`, `penalties`). Since 2.0.0 `verified` and `popularity` are
-  always 0 (and `useCount`/`verified` in details are 0/false): Smithery was
-  their only source and is no longer synced — see [CHANGELOG](./CHANGELOG.md).
-- `warningFlags`: `deprecated-npm`, `archived-repo`, `stale-over-18-months`,
+  always 0 (and `useCount`/`verified` in details and `trustSignals.isVerified`
+  are 0/false): Smithery was their only source and is no longer synced — see
+  [CHANGELOG](./CHANGELOG.md). These fields are deprecated and kept only for
+  compatibility.
+- `warningFlags`: `deprecated-npm`, `archived-repo`, `repo-unavailable` (the
+  source repository is not publicly reachable: private or deleted),
+  `stale-over-18-months`,
   `single-source-only`, `missing-repository-url`, `install-method-unclear`.
 - Install metadata: target file path per OS, local process variables or remote
   HTTP headers, `safe_to_autoinstall` and `requires_user_secrets` signals.

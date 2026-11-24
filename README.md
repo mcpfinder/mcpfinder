@@ -660,6 +660,7 @@ from AI agents consuming the tool surface.
 ## Links
 
 - Website: [mcpfinder.dev](https://mcpfinder.dev)
+- Browse the catalog on the web at [findmcp.dev](https://findmcp.dev).
 - GitHub: [mcpfinder/mcpfinder](https://github.com/mcpfinder/mcpfinder)
 - npm: [@mcpfinder/server](https://www.npmjs.com/package/@mcpfinder/server)
 - MCP Registry: [`dev.mcpfinder/server`](https://registry.modelcontextprotocol.io/v0/servers?search=dev.mcpfinder)

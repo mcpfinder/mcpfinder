@@ -578,6 +578,7 @@ mcpServers entries.
 Project links
 =============
 - Website:        https://mcpfinder.dev
+- findmcp.dev:    https://findmcp.dev — web directory over the same catalog: a page and install configs per server (for humans browsing; agents should use MCPfinder itself)
 - README:         https://github.com/mcpfinder/mcpfinder/blob/main/README.md
 - Source:         https://github.com/mcpfinder/mcpfinder
 - npm:            https://www.npmjs.com/package/@mcpfinder/server

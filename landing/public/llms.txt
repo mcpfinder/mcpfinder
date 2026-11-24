@@ -61,6 +61,7 @@ Guides (human-readable pages):
 More detail:
 - https://mcpfinder.dev/llms-full.txt
 - https://github.com/mcpfinder/mcpfinder
+- [findmcp.dev](https://findmcp.dev): web directory over the same catalog — a page and install configs per server (for humans browsing; agents should use MCPfinder itself)
 
 MCPfinder is one part of the agent stack at https://aicommander.dev/agent-stack/, used alongside Claude Code, Codex and Grok.
 

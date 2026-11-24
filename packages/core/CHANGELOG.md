@@ -1,8 +1,15 @@
 # Changelog — @mcpfinder/core
 
-## Unreleased
+## 2.0.5 — 2026-11-24
 
 ### Fixed
+- `enrichDeprecationFlags` stores a GitHub 404 (private or deleted repo) as
+  `archived_repo = 2` instead of `1`. Search and details report it as the new
+  `repo-unavailable` warning (−0.05 confidence, driver `-repo-unavailable`,
+  `trustSignals.hasRepository = false`) rather than `archived-repo`.
+- The retired verified-publisher signal no longer affects confidence, drivers
+  or recommendation reasons. `trustSignals.isVerified` and
+  `confidenceBreakdown.components.verified` are deprecated, always false/0.
 - `categorizeServer` matches whole words (plus simple forms such as
   `files`, `deploying`, `encryption`) instead of substrings, and ignores the
   registry namespace/owner part of the name. "email" no longer lands in `ai`,

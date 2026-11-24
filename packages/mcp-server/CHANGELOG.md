@@ -1,6 +1,6 @@
 # Changelog — @mcpfinder/server
 
-## Unreleased
+## 2.0.5 — 2026-11-24
 
 ### Fixed
 - A source repository the GitHub API answers 404 for (private or deleted) is no

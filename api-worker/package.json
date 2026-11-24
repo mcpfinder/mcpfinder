@@ -12,7 +12,7 @@
 		"r2:lifecycle:apply": "wrangler r2 bucket lifecycle set mcp-finder-db-snapshots --file r2-lifecycle.json --force"
 	},
 	"dependencies": {
-		"hono": "^4.13.3"
+		"hono": "^4.13.21"
 	},
 	"devDependencies": {
 		"@types/node": "22.20.1",

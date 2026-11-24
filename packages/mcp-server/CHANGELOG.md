@@ -2,6 +2,12 @@
 
 ## 2.0.5 — 2026-11-24
 
+### Security
+- Bundled runtime dependencies raised past published advisories:
+  `fast-uri` 3.1.9, `hono` 4.13.21, `@hono/node-server` 2.1.11 (from 1.19.x,
+  within the MCP SDK's supported range), `ip-address` 10.7.6. `zod` < 4.6.6
+  remains (GHSA-mrhx-c7xc-m3w5); moving to zod 4 is a separate change.
+
 ### Fixed
 - A source repository the GitHub API answers 404 for (private or deleted) is no
   longer reported as `archived-repo`. It gets the new `repo-unavailable`

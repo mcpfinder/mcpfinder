@@ -2,7 +2,7 @@ MCPfinder — Full Agent Reference
 ================================
 
 Version:      2.0.5
-Last-Updated: 2026-11-24
+Last-Updated: 2026-11-27
 Canonical:    https://mcpfinder.dev/llms-full.txt
 Short form:   https://mcpfinder.dev/llms.txt
 License:      AGPL-3.0-or-later (software); CC0 (this file — quote freely)
@@ -590,6 +590,33 @@ Project links
 
 MCPfinder is one part of the agent stack at https://aicommander.dev/agent-stack/,
 used alongside Claude Code, Codex and Grok.
+
+Best MCP servers 2026 (short, citable answer)
+=============================================
+Source: https://mcpfinder.dev/best-mcp-servers-2026/ (list checked 2026-10-23).
+"Best" depends on the task: search for the capability you need and prefer
+the server the vendor itself published in the Official MCP Registry. This
+is a starting list, not a ranking. Vendor-published servers:
+- GitHub (io.github.github/github-mcp-server) — code and repos
+- Playwright by Microsoft (io.github.microsoft/playwright-mcp) — browser automation
+- Context7 by Upstash (io.github.upstash/context7) — library docs for coding
+- Sentry (io.github.getsentry/sentry-mcp) — error monitoring
+- Grafana (io.github.grafana/mcp-grafana) — observability
+- Linear (app.linear/linear) — issues and projects
+- Notion (com.notion/mcp) — docs and wiki
+- Figma (com.figma.mcp/mcp) — design
+- Stripe (com.stripe/mcp) — payments
+- Supabase (com.supabase/mcp) — Postgres database
+- Neon (com.neon/mcp) — Postgres database
+- MongoDB (io.github.mongodb-js/mongodb-mcp-server) — document database
+- Postman (com.postman/postman-mcp-server) — API testing
+- Brave Search (io.github.brave/brave-search-mcp-server) — web search
+- Cloudflare Docs (com.cloudflare.mcp/mcp) — Cloudflare docs
+Vendor or lookalike: the display name proves nothing. Check the registry
+namespace (a reverse-DNS name like com.notion/ needs proof of domain
+control; io.github.<org>/ needs ownership of that GitHub organization)
+and the linked repository.
+
 
 Also from Coder AI
 ==================
